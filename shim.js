@@ -13,6 +13,7 @@
   };
   // One app window only, so skip the browser lock that can freeze sign-in on iPhone after the app sleeps.
   const noLock = async (name, timeout, fn) => fn();
+  window.__stage="client";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, lock:noLock}, global:{fetch:timedFetch}});
   window.__sb = sb;
   let user = null, readyResolve; const ready = new Promise(r => readyResolve = r);
@@ -28,14 +29,15 @@
   function err(e){ const x = new Error(e && e.message || "error"); x.code = /permission|denied|rls/i.test(x.message) ? "permission_denied" : "error"; return x; }
   async function load(c, force){
     if(loaded[c] && !force) return loaded[c];
+    window.__stage="loading"; (window.__pend=window.__pend||{})[c]=1;
     loaded[c] = (async () => {
       const m = new Map(); let from = 0;
       for(;;){
         const {data, error} = await sb.from("app_docs").select("id,data").eq("coll", c).range(from, from + 999);
-        if(error) { delete loaded[c]; throw err(error); }
+        if(error) { delete loaded[c]; delete window.__pend[c]; (window.__errs||[]).push(c+": "+error.message); throw err(error); }
         data.forEach(r => m.set(r.id, r.data)); if(data.length < 1000) break; from += 1000;
       }
-      cache[c] = m; return m;
+      cache[c] = m; delete window.__pend[c]; return m;
     })();
     return loaded[c];
   }
@@ -244,11 +246,13 @@
   function start(u){
     if(user) { if(!u || u.id !== user.id) location.reload(); return; }
     if(!u){ if(document.body) gate(); else document.addEventListener("DOMContentLoaded", gate); return; }
-    user = u; const g = document.getElementById("authGate"); if(g) g.remove(); readyResolve();
+    user = u; window.__stage="signed in"; const g = document.getElementById("authGate"); if(g) g.remove(); readyResolve();
   }
   window.walletEmail = () => (user && user.email) || "";
   window.walletSignOut = async () => { await sb.auth.signOut(); location.reload(); };
-  sb.auth.getSession().then(({data}) => start(data.session && data.session.user));
+  window.__stage="checking sign-in";
+  sb.auth.getSession().then(({data, error}) => { if(error) (window.__errs||[]).push("session: "+error.message); start(data && data.session && data.session.user); })
+    .catch(e => { (window.__errs||[]).push("session: "+(e && e.message || e)); start(null); });
   sb.auth.onAuthStateChange((ev, session) => { if(ev === "SIGNED_IN" || ev === "SIGNED_OUT") start(session && session.user); });
   if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
