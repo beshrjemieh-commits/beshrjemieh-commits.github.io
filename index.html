@@ -348,16 +348,14 @@ form.card .logform{row-gap:11px!important}
 .conf.high{background:var(--accent-soft);color:var(--accent)} .conf.medium{background:var(--warn-soft);color:var(--warn)} .conf.low{background:var(--line);color:var(--muted)}
 .deal.done{opacity:.5}
 @media (max-width:560px){.tiles.ptiles{grid-template-columns:repeat(3,1fr)}.tiles.ptiles .tile{padding:10px}.tiles.ptiles .v{font-size:15px;overflow-wrap:anywhere}.tiles{grid-template-columns:1fr}.tile .v{font-size:20px}.logform{grid-template-columns:1fr}}
-/* balance card: big number left, starting amount + money in stacked right */
-.tile.balcard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:12px;margin-top:8px}
-.balcard .balmain{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:0}
-.balcard .balmain .v{font-size:clamp(18px,6vw,26px);white-space:nowrap}
-.balcard .balside{display:flex;flex-direction:column;gap:6px}
-.balcard .balmini{display:flex;flex-direction:column;gap:0;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-width:104px}
-.balcard .balmini .tag{font-size:11px}
-.balcard .balmini .v{font-size:15px}
-.balcard .balnote{grid-column:1/-1;text-align:center}
-@media (max-width:360px){.balcard .balmain .v{font-size:21px}.balcard .balmini{min-width:90px}}
+/* balance: big number on its own, then starting amount, then money in | money out */
+.balhero{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;margin:14px 0 6px}
+.balhero .v{font-family:var(--mono);font-size:clamp(28px,9.5vw,44px);font-weight:600;line-height:1.1;white-space:nowrap}
+.balhero .tag:first-child{font-size:14px;font-weight:600}
+.balgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.balgrid .tile{padding:10px 12px}
+.balgrid .balwide{grid-column:1/-1}
+.balgrid .v{font-size:18px}
 
 /* settings sheet */
 .gear{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:15px;line-height:1;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-left:2px}
@@ -525,14 +523,11 @@ form.card .logform{row-gap:11px!important}
   <div class="view" id="viewBal" role="tabpanel" aria-labelledby="tabBal" hidden>
     <section>
       <div><h2>Your money right now</h2><p class="sub">Starts from the cash and bank money you have, adds every bit of money that comes in, and takes away every cost you log in Expenses.</p></div>
-      <div class="tile balcard">
-        <div class="balmain"><span class="tag" style="font-size:15px;font-weight:600">Current balance</span><span class="v" id="balNow">–</span></div>
-        <div class="balside">
-          <div class="balmini"><span class="tag">Starting amount</span><span class="v" id="balStart">0</span></div>
-          <div class="balmini"><span class="tag">Money in</span><span class="v diff-down" id="balIn">0</span></div>
-          <div class="balmini" hidden><span class="tag">Costs logged</span><span class="v diff-up" id="balOut">0</span></div>
-        </div>
-        <span class="tag balnote" id="balNote"></span>
+      <div class="balhero"><span class="tag">Current balance</span><span class="v" id="balNow">–</span><span class="tag" id="balNote"></span></div>
+      <div class="balgrid">
+        <div class="tile balwide"><span class="tag">Starting amount</span><span class="v" id="balStart">0</span></div>
+        <div class="tile"><span class="tag">Money in</span><span class="v diff-down" id="balIn">0</span></div>
+        <div class="tile"><span class="tag">Money out</span><span class="v diff-up" id="balOut">0</span><span class="tag" id="balLast"></span></div>
       </div>
     </section>
     <section>
@@ -1702,6 +1697,8 @@ function renderBalance(){
   document.getElementById("balStart").textContent = sar(start);
   document.getElementById("balIn").textContent = sar(inn);
   document.getElementById("balOut").textContent = sar(out);
+  { const last=(typeof entries!=="undefined"?entries:[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt)[0];
+    document.getElementById("balLast").textContent = last ? `Latest: ${sar(last.amount)} · ${(BY[last.cat]||{s:"Other"}).s}${last.note?" · "+last.note:""}` : ""; }
   document.getElementById("balNote").textContent = balStart ? `Counting from ${balStart.asOf} (cash ${sar(balStart.cash)}, bank ${sar(balStart.bank)}).` : "Set your starting point below so this matches your real money.";
   const box = document.getElementById("inList");
   const list = income.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt);
