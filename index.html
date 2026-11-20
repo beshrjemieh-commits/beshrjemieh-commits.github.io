@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Smart Wallet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wallet">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#121614">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#121614;--surface:#1a201d;--surface2:#222a26;--fg:#e7ece8;--muted:#9aa69f;--line:#2c3531;
+  --accent:#5fc3a6;--accent-fg:#0f1a16;--accent-soft:#1d3a31;--warn:#e7a35f;--warn-soft:#3a2b1c;--bad:#f07b7b;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --top:env(safe-area-inset-top,0px);--bot:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 var(--sans);overflow-x:clip;-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:16px}
+button{cursor:pointer;touch-action:manipulation}
+[hidden]{display:none!important}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.app{max-width:560px;margin:0 auto;padding:calc(var(--top) + 14px) 16px calc(var(--bot) + 150px)}
+h1{font-size:32px;line-height:1.15;margin:4px 0 14px;letter-spacing:-.02em}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:22px 4px 8px}
+.card{background:var(--surface);border-radius:14px;padding:14px}
+.list{background:var(--surface);border-radius:14px;overflow:hidden}
+.li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:none}
+.li .ic{width:36px;height:36px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;font-size:18px}
+.li .t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li small{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .amt{font-family:var(--mono);font-weight:600}
+.li .amt.pos{color:var(--accent)}
+.empty{padding:22px 14px;text-align:center;color:var(--muted)}
+.hero{display:flex;flex-direction:column;gap:2px;padding:18px}
+.hero .big{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.02em}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.stat{background:var(--surface);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:17px;font-weight:600}
+.stat span{font-size:12px;color:var(--muted)}
+.btn{border:none;border-radius:12px;padding:12px 16px;background:var(--surface2);font-weight:600}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.small{padding:6px 12px;font-size:14px;border-radius:999px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;color:var(--muted);font-weight:600}
+.in{width:100%;height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);-webkit-appearance:none;appearance:none}
+textarea.in{height:auto;padding:10px 12px;resize:vertical;unicode-bidi:plaintext}
+.in.amount{font-family:var(--mono);font-size:30px;height:60px;text-align:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{border:none;background:none;border-radius:9px;padding:9px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--surface2);color:var(--fg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 12px;font-size:14px}
+.chip[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.row{display:flex;gap:8px;align-items:center}
+.row > *{flex:1;min-width:0}
+.status{font-size:14px;color:var(--muted);min-height:1.3em;margin-top:8px;text-align:center}
+.status.err{color:var(--bad)}
+.tip{background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:15px}
+.tip.warn{background:var(--warn-soft)}
+.pending{border:1px solid var(--warn)}
+.pending .li .ic{background:var(--warn-soft)}
+.prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;background:var(--accent)}
+/* tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px calc(var(--bot) + 6px);background:rgba(18,22,20,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+.tabbar button{border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:4px 0}
+.tabbar button span{font-size:22px;line-height:1}
+.tabbar button[aria-selected=true]{color:var(--accent)}
+.fab{position:fixed;right:max(16px,calc(50% - 264px));bottom:calc(var(--bot) + 74px);z-index:21;width:56px;height:56px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-fg);font-size:30px;line-height:1;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30;opacity:0;transition:opacity .2s}
+.scrim.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;max-width:560px;margin:0 auto;background:var(--surface);border-radius:18px 18px 0 0;padding:8px 16px calc(var(--bot) + 16px);max-height:92dvh;overflow:auto;transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.9,.3,1)}
+.sheet.on{transform:none}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.sheet h3{margin:0 0 12px;font-size:20px}
+.toast{position:fixed;left:50%;top:calc(var(--top) + 10px);transform:translateX(-50%) translateY(-120%);z-index:40;background:#0b0b0c;color:#f5f5f7;border-radius:999px;padding:9px 16px;font-size:14px;transition:transform .25s;max-width:calc(100% - 32px)}
+.toast.on{transform:translateX(-50%)}
+.auth{min-height:80dvh;display:flex;flex-direction:column;justify-content:center}
+.auth .logo{width:64px;height:64px;border-radius:16px;margin-bottom:10px}
+.linkbtn{border:none;background:none;color:var(--accent);font-weight:600;padding:8px}
+@media (prefers-reduced-motion:reduce){.sheet,.scrim,.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- SIGN IN -->
+<main class="app auth" id="authView" hidden>
+  <img class="logo" src="icon-192.png" alt="">
+  <h1>Smart Wallet</h1>
+  <p class="muted" style="margin:-6px 0 18px">Your daily balance, spending and the cheapest prices around you.</p>
+  <form id="authForm" class="card" novalidate>
+    <div class="field"><label for="aEmail">Email</label><input class="in" id="aEmail" type="email" autocomplete="email" inputmode="email" required></div>
+    <div class="field"><label for="aPass">Password</label><input class="in" id="aPass" type="password" autocomplete="current-password" minlength="6" required></div>
+    <button class="btn primary wide" id="aGo" type="submit">Sign in</button>
+    <div class="status" id="aStatus"></div>
+  </form>
+  <p style="text-align:center;margin-top:8px"><button class="linkbtn" id="aSwitch" type="button">New here? Create an account</button></p>
+</main>
+
+<!-- APP -->
+<div id="appView" hidden>
+  <main class="app" id="vHome">
+    <h1 id="hello">Wallet</h1>
+    <div class="card hero"><span class="muted" id="monthLbl">This month</span><span class="big" id="bal">–</span><span class="muted" style="font-size:14px">left this month (money in − spent)</span></div>
+    <div class="stats">
+      <div class="stat"><span>Spent</span><b id="sSpent">0</b></div>
+      <div class="stat"><span>Money in</span><b id="sIn">0</b></div>
+      <div class="stat"><span>Today</span><b id="sToday">0</b></div>
+    </div>
+    <div id="pendBox" hidden><h2>Waiting for a tap</h2><div class="list pending" id="pendList"></div></div>
+    <h2>Recent</h2>
+    <div class="list" id="txList"><div class="empty">Loading…</div></div>
+  </main>
+
+  <main class="app" id="vPrices" hidden>
+    <h1>Prices</h1>
+    <form class="card" id="priceForm" novalidate>
+      <div class="field"><label for="pItem">Item</label><input class="in" id="pItem" list="dlItems" placeholder="e.g. Almarai milk 1L" autocomplete="off" maxlength="80"><datalist id="dlItems"></datalist></div>
+      <div class="row">
+        <div class="field"><label for="pStore">Store</label><input class="in" id="pStore" list="dlStores" placeholder="e.g. Panda" autocomplete="off" maxlength="60"><datalist id="dlStores"></datalist></div>
+        <div class="field"><label for="pPrice">Price (SAR)</label><input class="in num" id="pPrice" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+      </div>
+      <button class="btn primary wide" type="submit">Save price</button>
+      <div id="pTip"></div>
+    </form>
+    <h2>Look up</h2>
+    <input class="in" id="pSearch" type="search" placeholder="Search an item to see the cheapest store" autocomplete="off">
+    <div class="list" id="pList" style="margin-top:10px"><div class="empty">Prices from everyone in Jeddah show here. Add the first one above.</div></div>
+  </main>
+
+  <main class="app" id="vPots" hidden>
+    <h1>Pots</h1>
+    <p class="muted" style="margin:-6px 4px 12px">Money you've put aside for each goal.</p>
+    <div class="list" id="potList"><div class="empty">Loading…</div></div>
+    <h2>New pot</h2>
+    <form class="card row" id="potForm" novalidate><input class="in" id="potName" placeholder="e.g. Umrah" maxlength="40"><input class="in num" id="potTarget" inputmode="decimal" placeholder="Target" style="max-width:110px"><button class="btn primary" type="submit" style="flex:0 0 auto">Add</button></form>
+  </main>
+
+  <main class="app" id="vMe" hidden>
+    <h1>Me</h1>
+    <div class="list">
+      <div class="li"><span class="ic">👤</span><div class="t"><span id="meEmail"></span><small>Signed in</small></div><span></span></div>
+      <div class="li"><span class="ic">📍</span><div class="t">Jeddah<small>Your city, used for price tips</small></div><span></span></div>
+    </div>
+    <h2>iPhone Shortcut</h2>
+    <div class="card"><p style="margin:0 0 8px">To log a bank SMS in one tap, have your Shortcut open this link with the message text at the end:</p><code id="scUrl" style="word-break:break-all;font-size:13px;color:var(--accent)"></code><p class="muted" style="margin:8px 0 0;font-size:14px">It shows up on Home under "Waiting for a tap" so you can confirm it.</p></div>
+    <h2>&nbsp;</h2>
+    <button class="btn wide" id="signOut" type="button" style="color:var(--bad)">Sign out</button>
+  </main>
+
+  <button class="fab" id="fab" type="button" aria-label="Add">+</button>
+  <nav class="tabbar" role="tablist">
+    <button role="tab" data-v="vHome" aria-selected="true"><span>🏠</span>Home</button>
+    <button role="tab" data-v="vPrices" aria-selected="false"><span>🏷️</span>Prices</button>
+    <button role="tab" data-v="vPots" aria-selected="false"><span>🫙</span>Pots</button>
+    <button role="tab" data-v="vMe" aria-selected="false"><span>⚙️</span>Me</button>
+  </nav>
+</div>
+
+<!-- ADD SHEET -->
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle" hidden>
+  <div class="grab"></div>
+  <h3 id="shTitle">Add</h3>
+  <div class="seg" id="kindSeg"><button type="button" data-k="expense" aria-pressed="true">Spent</button><button type="button" data-k="income" aria-pressed="false">Money in</button></div>
+  <form id="addForm" novalidate>
+    <div class="field"><input class="in amount" id="fAmt" inputmode="decimal" placeholder="0" autocomplete="off" aria-label="Amount in SAR"></div>
+    <div class="field"><label>Category</label><div class="chips" id="cats"></div></div>
+    <div class="row">
+      <div class="field"><label for="fNote">Note</label><input class="in" id="fNote" placeholder="e.g. Jahez" maxlength="100" autocomplete="off"></div>
+      <div class="field" style="max-width:150px"><label for="fDate">Date</label><input class="in" id="fDate" type="date"></div>
+    </div>
+    <div class="field" id="potPick" hidden><label for="fPot">Into pot</label><select class="in" id="fPot"></select></div>
+    <button class="btn primary wide" id="fGo" type="submit">Add</button>
+  </form>
+  <h2 style="margin-top:18px">Or paste a bank SMS</h2>
+  <textarea class="in" id="smsIn" rows="3" placeholder="Paste one or more bank messages"></textarea>
+  <button class="btn wide" id="smsGo" type="button" style="margin-top:8px">📋 Paste &amp; read</button>
+  <div class="status" id="fStatus"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = "https://rvqjjbgeossfygaglohe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_DSFK-TyIwyuAzYjF0mWWNA_vOedk4zz"; // publishable: safe in the browser, data is protected by row level security
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true,autoRefreshToken:true}});
+
+const $ = id => document.getElementById(id);
+const CATS = {
+  expense:[["🍽️","Food"],["🛒","Groceries"],["⛽","Fuel"],["🚬","Smoking"],["🎉","Fun"],["🧾","Bills"],["📱","Phone"],["🚗","Car"],["🏠","Rent"],["👪","Family"],["🛍️","Shopping"],["💊","Health"],["➕","Other"]],
+  income:[["💼","Salary"],["↩️","Refund"],["🤝","Transfer"],["🫙","To pot"],["➕","Other"]]
+};
+const icon = c => (CATS.expense.concat(CATS.income).find(x=>x[1]===c)||["💳"])[0];
+const fmt = n => Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2});
+const today = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+let user=null, kind="expense", cat="Food", pots=[], signup=false;
+
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("on"),2200); }
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- auth ---------- */
+$("aSwitch").onclick = () => { signup=!signup; $("aGo").textContent = signup?"Create account":"Sign in"; $("aSwitch").textContent = signup?"Have an account? Sign in":"New here? Create an account"; $("aPass").autocomplete = signup?"new-password":"current-password"; $("aStatus").textContent=""; };
+$("authForm").onsubmit = async e => {
+  e.preventDefault();
+  const email=$("aEmail").value.trim(), password=$("aPass").value;
+  const st=$("aStatus"); st.className="status";
+  if(!email || password.length<6){ st.textContent="Enter your email and a password of at least 6 characters."; st.className="status err"; return; }
+  $("aGo").disabled=true; st.textContent = signup?"Creating your account…":"Signing in…";
+  const {data,error} = signup ? await sb.auth.signUp({email,password}) : await sb.auth.signInWithPassword({email,password});
+  $("aGo").disabled=false;
+  if(error){ st.textContent=error.message; st.className="status err"; return; }
+  if(signup && !data.session){ st.textContent="Check your email and tap the confirm link, then come back and sign in."; signup=true; $("aSwitch").click(); }
+};
+$("signOut").onclick = async () => { await sb.auth.signOut(); };
+sb.auth.onAuthStateChange((_ev, session) => { const u=session?.user||null; if((u&&u.id)!==(user&&user.id)){ user=u; route(); } });
+
+async function route(){
+  $("authView").hidden = !!user; $("appView").hidden = !user;
+  if(!user) return;
+  $("meEmail").textContent = user.email;
+  $("hello").textContent = "Hi " + (user.email.split("@")[0]);
+  $("scUrl").textContent = location.origin + location.pathname + "?sms=";
+  await Promise.all([loadPots(), loadTx(), loadCatalog()]);
+  handleShortcut();
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabbar button").forEach(x=>x.setAttribute("aria-selected", x===b));
+  ["vHome","vPrices","vPots","vMe"].forEach(v=>$(v).hidden = v!==b.dataset.v);
+  $("fab").hidden = b.dataset.v!=="vHome" && b.dataset.v!=="vPots";
+  window.scrollTo(0,0);
+});
+
+/* ---------- add sheet ---------- */
+function renderCats(){
+  $("cats").innerHTML = CATS[kind].map(([i,c])=>`<button type="button" class="chip" aria-pressed="${c===cat}" data-c="${c}">${i} ${c}</button>`).join("");
+  $("potPick").hidden = !(kind==="income" && cat==="To pot");
+}
+$("cats").onclick = e => { const b=e.target.closest(".chip"); if(!b) return; cat=b.dataset.c; renderCats(); };
+$("kindSeg").onclick = e => { const b=e.target.closest("button"); if(!b) return; kind=b.dataset.k; cat=CATS[kind][0][1];
+  $("kindSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b)); renderCats(); };
+function openSheet(){ $("fDate").value=today(); $("fStatus").textContent=""; renderCats();
+  $("fPot").innerHTML = pots.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+  $("scrim").hidden=$("sheet").hidden=false; requestAnimationFrame(()=>{$("scrim").classList.add("on");$("sheet").classList.add("on");}); setTimeout(()=>$("fAmt").focus(),250); }
+function closeSheet(){ $("scrim").classList.remove("on"); $("sheet").classList.remove("on"); setTimeout(()=>{$("scrim").hidden=$("sheet").hidden=true;},250); }
+$("fab").onclick = () => { if(!$("vPots").hidden){ $("potName").focus(); return; } openSheet(); };
+$("scrim").onclick = closeSheet;
+
+$("addForm").onsubmit = async e => {
+  e.preventDefault();
+  const amount = parseFloat($("fAmt").value.replace(/[^\d.]/g,""));
+  if(!(amount>0)){ $("fStatus").textContent="Enter an amount."; $("fStatus").className="status err"; return; }
+  $("fGo").disabled=true;
+  const toPot = kind==="income" && cat==="To pot";
+  const row = { amount, kind: toPot?"transfer":kind, category: cat, note: $("fNote").value.trim()||null, source:"manual",
+    occurred_at: new Date($("fDate").value+"T12:00:00").toISOString(), pot_id: toPot ? $("fPot").value||null : null };
+  const {error} = await sb.from("transactions").insert(row);
+  if(!error && toPot){ const p=pots.find(x=>x.id===row.pot_id); if(p) await sb.from("pots").update({balance:Number(p.balance)+amount}).eq("id",p.id); }
+  $("fGo").disabled=false;
+  if(error){ $("fStatus").textContent=error.message; $("fStatus").className="status err"; return; }
+  $("fAmt").value=""; $("fNote").value=""; closeSheet(); toast("Added "+fmt(amount)+" SAR"); loadTx(); if(toPot) loadPots();
+};
+
+/* ---------- bank SMS ---------- */
+function parseSms(text){
+  const out=[];
+  for(const msg of text.split(/\n\s*\n|(?=شراء|Purchase|POS)/i).map(s=>s.trim()).filter(Boolean)){
+    const t = msg.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/٫/g,".").replace(/,(?=\d{3}\b)/g,"");
+    const m = t.match(/(?:SAR|SR|ر\.?س|ريال)\s*:?\s*(\d+(?:\.\d+)?)/i) || t.match(/(\d+(?:\.\d+)?)\s*(?:SAR|SR|ر\.?س|ريال)/i) || t.match(/(?:مبلغ|Amount)\s*:?\s*(\d+(?:\.\d+)?)/i);
+    if(!m) continue;
+    const mer = (t.match(/(?:لدى|من|at|from|Merchant)\s*:?\s*([^\n]+)/i)||[])[1];
+    const income = /(?:إيداع|ايداع|حوالة واردة|راتب|deposit|credited|incoming|salary)/i.test(t);
+    out.push({amount:parseFloat(m[1]), merchant:(mer||"").trim().slice(0,60)||null, kind:income?"income":"expense", sms_text:msg.slice(0,500)});
+  }
+  return out;
+}
+async function addSms(text, confirmed){
+  const items=parseSms(text);
+  if(!items.length) return 0;
+  const {error}=await sb.from("transactions").insert(items.map(i=>({...i, category:i.kind==="income"?"Transfer":"Other", source:"sms", confirmed})));
+  if(error){ toast(error.message); return 0; }
+  return items.length;
+}
+$("smsGo").onclick = async () => {
+  let text=$("smsIn").value.trim();
+  if(!text && navigator.clipboard?.readText){ try{ text=(await navigator.clipboard.readText()).trim(); $("smsIn").value=text; }catch{} }
+  if(!text){ $("fStatus").textContent="Paste a bank message first."; $("fStatus").className="status err"; return; }
+  const n=await addSms(text,false);
+  if(!n){ $("fStatus").textContent="I couldn't find an amount in that message."; $("fStatus").className="status err"; return; }
+  $("smsIn").value=""; closeSheet(); toast(n+" message"+(n>1?"s":"")+" read. Confirm on Home."); loadTx();
+};
+async function handleShortcut(){
+  const q=new URLSearchParams(location.search).get("sms");
+  if(!q) return;
+  history.replaceState(null,"",location.pathname);
+  const n=await addSms(q,false);
+  toast(n?"Bank SMS added. Tap ✓ to confirm.":"No amount found in that SMS.");
+  loadTx();
+}
+
+/* ---------- home ---------- */
+async function loadTx(){
+  const now=new Date(), start=new Date(now.getFullYear(),now.getMonth(),1);
+  $("monthLbl").textContent = now.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+  const {data,error}=await sb.from("transactions").select("*").gte("occurred_at",start.toISOString()).order("occurred_at",{ascending:false}).limit(500);
+  if(error){ $("txList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
+  const done=data.filter(t=>t.confirmed), pend=data.filter(t=>!t.confirmed);
+  const spent=done.filter(t=>t.kind==="expense").reduce((s,t)=>s+Number(t.amount),0);
+  const inn=done.filter(t=>t.kind==="income").reduce((s,t)=>s+Number(t.amount),0);
+  const td=today(); const tSpent=done.filter(t=>t.kind==="expense"&&localDay(t.occurred_at)===td).reduce((s,t)=>s+Number(t.amount),0);
+  $("bal").textContent=fmt(inn-spent); $("sSpent").textContent=fmt(spent); $("sIn").textContent=fmt(inn); $("sToday").textContent=fmt(tSpent);
+  $("pendBox").hidden=!pend.length;
+  $("pendList").innerHTML=pend.map(t=>`<div class="li"><span class="ic">📩</span><div class="t">${esc(t.merchant||"Bank SMS")}<small>${t.kind==="income"?"Money in":"Spent"} · ${dayLbl(t.occurred_at)}</small></div>
+    <span class="row" style="gap:6px"><span class="amt ${t.kind==="income"?"pos":""}">${fmt(t.amount)}</span><button class="btn small primary" data-ok="${t.id}" aria-label="Confirm">✓</button><button class="btn small" data-no="${t.id}" aria-label="Discard">✕</button></span></div>`).join("");
+  $("txList").innerHTML = done.length ? done.slice(0,60).map(t=>`<div class="li" data-tx="${t.id}"><span class="ic">${icon(t.category)}</span><div class="t">${esc(t.note||t.merchant||t.category||"")}<small>${esc(t.category||"")} · ${dayLbl(t.occurred_at)}</small></div><span class="amt ${t.kind!=="expense"?"pos":""}">${t.kind==="expense"?"−":"+"}${fmt(t.amount)}</span></div>`).join("")
+    : `<div class="empty">Nothing yet this month. Tap + to add your first cost.</div>`;
+}
+const localDay = iso => { const d=new Date(iso); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const dayLbl = iso => { const d=localDay(iso); if(d===today()) return "Today"; return new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
+$("pendList").onclick = async e => {
+  const ok=e.target.closest("[data-ok]"), no=e.target.closest("[data-no]");
+  if(ok){ await sb.from("transactions").update({confirmed:true}).eq("id",ok.dataset.ok); toast("Confirmed"); loadTx(); }
+  if(no){ await sb.from("transactions").delete().eq("id",no.dataset.no); loadTx(); }
+};
+$("txList").onclick = async e => {
+  const r=e.target.closest("[data-tx]"); if(!r) return;
+  if(confirm("Delete this entry?")){ await sb.from("transactions").delete().eq("id",r.dataset.tx); toast("Deleted"); loadTx(); }
+};
+
+/* ---------- pots ---------- */
+async function loadPots(){
+  const {data,error}=await sb.from("pots").select("*").order("created_at");
+  if(error){ $("potList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
+  pots=data;
+  $("potList").innerHTML = pots.length ? pots.map(p=>{ const pct=p.target?Math.min(100,100*p.balance/p.target):0;
+    return `<div class="li" data-pot="${p.id}"><span class="ic">🫙</span><div class="t">${esc(p.name)}<small>${p.target?fmt(p.target)+" target":"Tap to add money"}</small>${p.target?`<div class="prog"><i style="width:${pct}%"></i></div>`:""}</div><span class="amt">${fmt(p.balance)}</span></div>`; }).join("")
+    : `<div class="empty">No pots yet.</div>`;
+}
+$("potList").onclick = async e => {
+  const r=e.target.closest("[data-pot]"); if(!r) return;
+  const p=pots.find(x=>x.id===r.dataset.pot); const v=prompt(`Add to ${p.name} (SAR). Use a minus to take out.`); const n=parseFloat(v);
+  if(!n) return;
+  await sb.from("pots").update({balance:Number(p.balance)+n}).eq("id",p.id); toast(`${p.name}: ${fmt(Number(p.balance)+n)} SAR`); loadPots();
+};
+$("potForm").onsubmit = async e => {
+  e.preventDefault(); const name=$("potName").value.trim(); if(!name) return;
+  const target=parseFloat($("potTarget").value)||null;
+  const {error}=await sb.from("pots").insert({name,target}); if(error){ toast(error.message); return; }
+  $("potName").value=$("potTarget").value=""; loadPots();
+};
+
+/* ---------- prices ---------- */
+let stores=[], products=[];
+async function loadCatalog(){
+  const [s,p]=await Promise.all([sb.from("stores").select("id,name,branch,city").limit(1000), sb.from("products").select("id,name,size").limit(2000)]);
+  stores=s.data||[]; products=p.data||[];
+  $("dlStores").innerHTML=stores.map(x=>`<option value="${esc(x.name)}">`).join("");
+  $("dlItems").innerHTML=products.map(x=>`<option value="${esc(x.name)}">`).join("");
+}
+const norm = s => s.trim().replace(/\s+/g," ").toLowerCase();
+async function ensure(table, list, name, extra){
+  let row=list.find(x=>norm(x.name)===norm(name));
+  if(row) return row;
+  const {data,error}=await sb.from(table).insert({name:name.trim(),...extra}).select().single();
+  if(error){ // someone else may have just added it
+    const {data:d2}=await sb.from(table).select("*").ilike("name",name.trim()).limit(1);
+    if(d2&&d2[0]){ list.push(d2[0]); return d2[0]; } throw error; }
+  list.push(data); return data;
+}
+$("priceForm").onsubmit = async e => {
+  e.preventDefault();
+  const item=$("pItem").value, store=$("pStore").value, price=parseFloat($("pPrice").value);
+  if(!item.trim()||!store.trim()||!(price>0)){ $("pTip").innerHTML=`<div class="tip warn">Fill in the item, store and price.</div>`; return; }
+  try{
+    const p=await ensure("products",products,item,{}), s=await ensure("stores",stores,store,{city:"Jeddah"});
+    const {error}=await sb.from("price_reports").insert({product_id:p.id,store_id:s.id,price}); if(error) throw error;
+    const {data:cheaper}=await sb.rpc("cheaper_elsewhere",{p_product:p.id,p_price:price,p_city:"Jeddah"});
+    $("pTip").innerHTML = cheaper&&cheaper.length
+      ? `<div class="tip warn">💡 Cheaper at <b>${esc(cheaper[0].store_name)}</b>: ${fmt(cheaper[0].price)} SAR (save ${fmt(cheaper[0].saving)})</div>`
+      : `<div class="tip">✅ Saved. No cheaper price reported in Jeddah right now.</div>`;
+    $("pPrice").value=""; $("pItem").value=""; $("pItem").focus(); loadCatalog();
+  }catch(err){ $("pTip").innerHTML=`<div class="tip warn">${esc(err.message)}</div>`; }
+};
+let sT;
+$("pSearch").oninput = () => { clearTimeout(sT); sT=setTimeout(searchPrices,250); };
+async function searchPrices(){
+  const q=norm($("pSearch").value); if(q.length<2){ $("pList").innerHTML=`<div class="empty">Type at least 2 letters.</div>`; return; }
+  const hits=products.filter(p=>norm(p.name).includes(q)).slice(0,15);
+  if(!hits.length){ $("pList").innerHTML=`<div class="empty">No prices for that yet.</div>`; return; }
+  const {data}=await sb.from("latest_prices").select("product_id,store_id,price,observed_at").in("product_id",hits.map(h=>h.id));
+  const sName=id=>(stores.find(s=>s.id===id)||{}).name||"Store";
+  $("pList").innerHTML = hits.map(h=>{ const rows=(data||[]).filter(r=>r.product_id===h.id).sort((a,b)=>a.price-b.price);
+    if(!rows.length) return "";
+    return `<div class="li"><span class="ic">🏷️</span><div class="t">${esc(h.name)}<small>Cheapest at ${esc(sName(rows[0].store_id))}${rows.length>1?` · ${rows.length} stores`:""}</small></div><span class="amt pos">${fmt(rows[0].price)}</span></div>`; }).join("") || `<div class="empty">No recent prices for that.</div>`;
+}
+
+/* ---------- start ---------- */
+(async () => {
+  const {data:{session}} = await sb.auth.getSession();
+  user = session?.user || null; route();
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>
