@@ -237,6 +237,7 @@
     if(!u){ if(document.body) gate(); else document.addEventListener("DOMContentLoaded", gate); return; }
     user = u; const g = document.getElementById("authGate"); if(g) g.remove(); readyResolve();
   }
+  window.walletEmail = () => (user && user.email) || "";
   window.walletSignOut = async () => { await sb.auth.signOut(); location.reload(); };
   sb.auth.getSession().then(({data}) => start(data.session && data.session.user));
   sb.auth.onAuthStateChange((ev, session) => { if(ev === "SIGNED_IN" || ev === "SIGNED_OUT") start(session && session.user); });

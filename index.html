@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -336,11 +336,35 @@ form.card .logform{row-gap:11px!important}
 .conf.high{background:var(--accent-soft);color:var(--accent)} .conf.medium{background:var(--warn-soft);color:var(--warn)} .conf.low{background:var(--line);color:var(--muted)}
 .deal.done{opacity:.5}
 @media (max-width:560px){.tiles.ptiles{grid-template-columns:repeat(3,1fr)}.tiles.ptiles .tile{padding:10px}.tiles.ptiles .v{font-size:15px;overflow-wrap:anywhere}.tiles{grid-template-columns:1fr}.tile .v{font-size:20px}.logform{grid-template-columns:1fr}}
+/* settings sheet */
+.gear{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:15px;line-height:1;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-left:2px}
+#setSheet{position:fixed;inset:0;z-index:900;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);opacity:0;transition:opacity .2s}
+#setSheet.on{opacity:1}
+#setSheet .sh{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--bg);border-radius:16px 16px 0 0;padding:8px 16px max(20px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s ease;-webkit-overflow-scrolling:touch}
+#setSheet.on .sh{transform:none}
+#setSheet .grab{width:36px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+#setSheet .shTop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#setSheet .shTop h2{margin:0}
+#setSheet .grp{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 4px 6px}
+#setSheet .list{background:var(--surface);border-radius:12px;overflow:hidden}
+#setSheet .row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:8px 14px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;color:var(--fg);font:inherit;text-align:left}
+#setSheet .row:last-child{border-bottom:none}
+#setSheet button.row{cursor:pointer}
+#setSheet .row .val{color:var(--muted);white-space:nowrap}
+#setSheet .row .val::after{content:" ›";opacity:.6}
+#setSheet .row.danger{color:var(--bad);justify-content:center}
+#setSheet .seg{display:flex;gap:6px}
+#setSheet .seg .btn{min-width:44px;min-height:34px}
+#setSheet .sw{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;cursor:pointer;flex:none;margin:0;transition:background .2s}
+#setSheet .sw::after{content:"";position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .2s}
+#setSheet .sw:checked{background:var(--accent)}
+#setSheet .sw:checked::after{transform:translateX(20px)}
+#setSheet .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:14px}
 </style>
 
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:6px">
-    <div style="display:flex;justify-content:space-between;align-items:center"><span class="eyebrow">Personal finance · SAR</span><span style="display:flex;gap:4px"><button class="btn" type="button" id="expAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Open all sections">+ All</button><button class="btn" type="button" id="colAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Close all sections">− All</button><button class="btn" type="button" id="editMode" style="padding:2px 8px;font-size:11px;min-height:0" aria-pressed="false">✏️ Edit</button></span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="eyebrow">Personal finance · SAR</span><span style="display:flex;gap:4px"><button class="btn" type="button" id="expAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Open all sections">+ All</button><button class="btn" type="button" id="colAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Close all sections">− All</button><button class="btn" type="button" id="editMode" style="padding:2px 8px;font-size:11px;min-height:0" aria-pressed="false">✏️ Edit</button><button type="button" id="setBtn" class="gear" aria-label="Settings">⚙️</button></span></div>
     <h1 id="wTitle">My Wallet</h1>
     <p class="sub">Your balance, daily spending, price book and best deals, in one place.</p>
   </header>
@@ -446,7 +470,7 @@ form.card .logform{row-gap:11px!important}
   </section>
 
   <section id="salary">
-    <div><h2>Salary day</h2><p class="sub">Your salary arrives on the 10th. Make these transfers the same day, before spending anything.</p></div>
+    <div><h2>Salary day</h2><p class="sub">Your salary arrives on the <span class="payTxt">10th</span>. Make these transfers the same day, before spending anything.</p></div>
     <div class="card" id="salaryCard"></div>
   </section>
 
@@ -1042,7 +1066,7 @@ buildRows(); update(); smoke();
 (function(){
   let saved={}; try{ saved=JSON.parse(localStorage.getItem("w-collapsed2")||"{}"); }catch(e){}
   document.querySelectorAll("section > div:first-child h2").forEach(h=>{ if(h.closest("section > div:first-child").querySelectorAll("h2")[0]!==h) return;
-    const sec=h.closest("section"), key=h.textContent.trim();
+    const sec=h.closest("section"), key=(h.dataset.en||h.textContent.trim());
     h.setAttribute("role","button"); h.tabIndex=0; h.title="Tap to show or hide";
     const set=c=>{ sec.classList.toggle("collapsed",c); h.setAttribute("aria-expanded",String(!c)); };
     set(saved[key]!==false);
@@ -1062,7 +1086,8 @@ let scT=null; window.addEventListener("scroll",()=>{ clearTimeout(scT); scT=setT
 /* ---------- edit mode: rename / hide / add cards ---------- */
 let cardPrefs={names:{},hidden:{},custom:{}};
 try{ const c=JSON.parse(localStorage.getItem("w-cardprefs")||"null"); if(c) cardPrefs=Object.assign(cardPrefs,c); }catch(e){}
-function rowKeyOf(row){ const sec=row.closest("section"); const h=sec&&sec.querySelector("h2"); const rows=sec?[...sec.querySelectorAll(".tiles")]:[]; return (h?h.textContent.trim():"x")+"#"+rows.indexOf(row); }
+const hKey=h=>h.dataset.en||h.textContent.trim();
+function rowKeyOf(row){ const sec=row.closest("section"); const h=sec&&sec.querySelector("h2"); const rows=sec?[...sec.querySelectorAll(".tiles")]:[]; return (h?hKey(h):"x")+"#"+rows.indexOf(row); }
 function saveCardPrefs(){ try{ localStorage.setItem("w-cardprefs",JSON.stringify(cardPrefs)); }catch(e){} if(window.saveUI) saveUI({cardPrefs}); }
 function applyCards(){
   document.querySelectorAll(".tiles").forEach(row=>{ const rk=rowKeyOf(row);
@@ -1144,7 +1169,7 @@ applyCards();
     document.getElementById("aiX").onclick=()=>{ res.hidden=true; };
     chat.push({role:"user",content:q}); chat=chat.slice(-8);
     const today=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-    const sys="You are the assistant inside the user's personal wallet app (Jeddah, Saudi Arabia, money in SAR). Today is "+today+". Current tab: "+TABNAME[(Object.entries(TABS).find(([,[,v]])=>!document.getElementById(v).hidden)||["plan"])[0]]+". Use the tools to read the app's real numbers before answering money questions, never guess figures. When the user asks to see, show, open, hide, enlarge or change something in the interface, do it with the tools. Answer in 1-3 short plain sentences (no markdown, no lists unless asked). Reply in the user's language (Arabic or English).\n\n";
+    const sys="You are the assistant inside the user's personal wallet app (Jeddah, Saudi Arabia, money in SAR). Today is "+today+". Current tab: "+TABNAME[(Object.entries(TABS).find(([,[,v]])=>!document.getElementById(v).hidden)||["plan"])[0]]+". Use the tools to read the app's real numbers before answering money questions, never guess figures. When the user asks to see, show, open, hide, enlarge or change something in the interface, do it with the tools. Answer in 1-3 short plain sentences (no markdown, no lists unless asked). Reply in the user's language (Arabic or English)."+(window.walletLang==="ar"?" The app is set to Arabic, so reply in Arabic unless the user writes in English.":"")+"\n\n";
     const msgs=chat.map((m,i)=>i===chat.length-1?{role:"user",content:sys+m.content}:m);
     if(msgs[0].role!=="user") msgs.shift();
     try{ const r=await aiNS(msgs,{tools,cache:false,signal:aiCtl.signal,onText:({text})=>{ out.textContent=text||"Thinking…"; }});
@@ -1158,7 +1183,7 @@ applyCards();
 setTimeout(function(){
   cardPrefs.secs=cardPrefs.secs||{}; cardPrefs.order=cardPrefs.order||{}; cardPrefs.tabs=cardPrefs.tabs||{};
   const views=Object.values(TABS).map(([,v])=>document.getElementById(v));
-  function key(sec){ const h=sec.querySelector(":scope > div:first-child h2"); if(!h) return null; if(!h.dataset.orig) h.dataset.orig=h.textContent.trim(); return h.dataset.orig; }
+  function key(sec){ const h=sec.querySelector(":scope > div:first-child h2"); if(!h) return null; if(!h.dataset.orig) h.dataset.orig=hKey(h); return h.dataset.orig; }
   function topSecs(v){ return [...v.querySelectorAll("section")].filter(x=>key(x)); }
   window.applySecs=function(){ cardPrefs.secs=cardPrefs.secs||{}; cardPrefs.order=cardPrefs.order||{}; cardPrefs.tabs=cardPrefs.tabs||{};
     views.forEach(v=>{ topSecs(v).forEach(sec=>{ const k=key(sec), h=sec.querySelector(":scope > div:first-child h2"), p=cardPrefs.secs[k]||{};
@@ -1167,7 +1192,7 @@ setTimeout(function(){
       bar.querySelector('[data-sa=hide]').textContent=p.h?"↺":"✕"; });
       const ord=cardPrefs.order[v.id]; if(ord){ const all=topSecs(v); ord.forEach(k=>{ const a=all.find(x=>key(x)===k); if(!a) return; const sib=all.filter(x=>x.parentNode===a.parentNode); const last=sib[sib.length-1]; if(last!==a) last.after(a); all.splice(all.indexOf(a),1); all.push(a); }); }
     });
-    Object.entries(TABS).forEach(([k,[t]])=>{ const b=document.getElementById(t); if(!b.dataset.orig) b.dataset.orig=b.textContent.trim(); b.textContent=cardPrefs.tabs[k]||b.dataset.orig; });
+    Object.entries(TABS).forEach(([k,[t]])=>{ const b=document.getElementById(t); if(!b.dataset.orig) b.dataset.orig=(b.dataset.en||b.textContent.trim()); b.textContent=cardPrefs.tabs[k]||b.dataset.orig; });
     document.body.classList.toggle("nodesc",!!cardPrefs.nodesc); document.getElementById("ebDesc").textContent=cardPrefs.nodesc?"Show descriptions":"Hide descriptions";
     if(cardPrefs.zoom) document.documentElement.style.zoom=cardPrefs.zoom==1?"":String(cardPrefs.zoom);
   };
@@ -1384,7 +1409,7 @@ const SECTION_HINTS = {
     const d=daysSince(balStart.at); return [d>30?{tab:"bal",score:2000,t:`❗ Important: you haven't checked your accounts in ${d} days. Count your cash and check your bank app.`}
       :{tab:"bal",score:2000,t:`🔁 Check your total accounts once a week. Last checked ${d===0?"today":d+" day"+(d===1?"":"s")+" ago"}.`}]; },
   "Your money right now": ()=> window.lastBalance==null?[]:[{tab:"bal",score:2000,t:`💰 About ${fmt(window.lastBalance/Math.max(1,Math.ceil((nextSalaryDate()-new Date())/864e5)))} SAR a day keeps you safe until salary day.`}],
-  "Add money in": ()=>{ const l=income.slice().sort((a,b)=>b.date.localeCompare(a.date))[0]; return [{tab:"bal",score:2000,t: l?`💵 Last money in: ${fmt(l.amount)} SAR on ${l.date}. Log your salary on the 10th.`:"💵 Log your salary here on the 10th so your balance stays right."}]; },
+  "Add money in": ()=>{ const l=income.slice().sort((a,b)=>b.date.localeCompare(a.date))[0]; return [{tab:"bal",score:2000,t: l?`💵 Last money in: ${fmt(l.amount)} SAR on ${l.date}. Log your salary on the ${ordinal(SALARY_DAY)}.`:`💵 Log your salary here on the ${ordinal(SALARY_DAY)} so your balance stays right.`}]; },
   "Savings goals": ()=>{ const g=goals.filter(g=>g.saved<g.target).sort((a,b)=>(b.saved/b.target)-(a.saved/a.target))[0];
     return [{tab:"bal",score:2000,t: g?`🎯 ${g.name}: ${fmt(g.target-g.saved)} SAR to go. Putting in ${fmt((g.target-g.saved)/6)} a month finishes it in 6 months.`:"🎯 Add a goal, like an emergency fund. Saving is easier with a target."}]; },
   "Add a cost": ()=>{ const t=ymd(new Date()), es=entries.filter(e=>e.date===t); return [{tab:"plan",score:2000,t: es.length?`📅 Today: ${fmt(es.reduce((a,e)=>a+e.amount,0))} SAR in ${es.length} item${es.length===1?"":"s"}. Keep logging small things too.`:"📅 Nothing logged today yet. Even a coffee counts."}]; },
@@ -1842,7 +1867,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   }).catch(()=>{ window.uiLoaded=true; });
   try{
     const pr = await db.doc("settings/profile").get();
-    if(pr.exists){ const x=pr.data()||{}; if(Number(x.income)>0) INCOME=Number(x.income); if(Number(x.payday)>=1&&Number(x.payday)<=31) SALARY_DAY=Number(x.payday); if(x.special&&typeof x.special==="object") SPECIAL=x.special; if(x.name) document.getElementById("wTitle").textContent=String(x.name).slice(0,40)+"'s Wallet"; }
+    if(pr.exists){ const x=pr.data()||{}; if(Number(x.income)>0) INCOME=Number(x.income); if(Number(x.payday)>=1&&Number(x.payday)<=31) SALARY_DAY=Number(x.payday); if(x.special&&typeof x.special==="object") SPECIAL=x.special; if(x.name){ document.getElementById("wTitle").dataset.en=""; } if(x.name) document.getElementById("wTitle").textContent=String(x.name).slice(0,40)+"'s Wallet"; }
   }catch(e){}
   showSalary(); update();
   try{
@@ -1863,6 +1888,72 @@ document.getElementById("salV").addEventListener("click", async ()=>{
     setStatus(err && err.code==="permission_denied" ? "Only the owner of this page can log costs here." : "Lost connection to your saved data. Reload the page to try again.", true);
     document.getElementById("addBtn").disabled=true;
   });
+})();
+</script>
+
+
+<div id="setSheet" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle"><div class="sh">
+  <div class="grab"></div>
+  <div class="shTop"><h2 id="setTitle">Settings</h2><button class="btn" type="button" id="setDone">Done</button></div>
+  <div class="grp">My money</div>
+  <div class="list">
+    <button class="row" type="button" id="sName"><span>Name</span><span class="val" id="sNameV">–</span></button>
+    <button class="row" type="button" id="sSal"><span>Monthly salary</span><span class="val" id="sSalV">–</span></button>
+    <button class="row" type="button" id="sPay"><span>Payday</span><span class="val" id="sPayV">–</span></button>
+  </div>
+  <div class="grp">Display</div>
+  <div class="list">
+    <div class="row"><span>Language</span><span class="seg" data-noi18n><button class="btn" type="button" id="sEn">English</button><button class="btn" type="button" id="sAr">العربية</button></span></div>
+    <div class="row"><span>Text size</span><span class="seg" dir="ltr"><button class="btn" type="button" id="sSmall" aria-label="Smaller text">A−</button><button class="btn" type="button" id="sBig" aria-label="Bigger text">A+</button></span></div>
+    <label class="row"><span>Show descriptions</span><input type="checkbox" class="sw" id="sDesc"></label>
+    <button class="row" type="button" id="sEdit"><span>Rename, hide or move sections</span><span class="val"></span></button>
+    <button class="row" type="button" id="sReset"><span>Reset layout</span><span class="val"></span></button>
+  </div>
+  <div class="grp">App</div>
+  <div class="list">
+    <button class="row" type="button" id="sUpd"><span>Get the latest version</span><span class="val" id="sUpdV"></span></button>
+    <div class="row"><span>Signed in as</span><span style="color:var(--muted);overflow-wrap:anywhere;text-align:right" id="sEmail">–</span></div>
+  </div>
+  <div class="list" style="margin-top:16px"><button class="row danger" type="button" id="sOut">Sign out</button></div>
+  <p class="foot">Smart Wallet · your data syncs to your account</p>
+</div></div>
+<script>
+function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+(function(){
+  const sheet=document.getElementById("setSheet"), $=id=>document.getElementById(id);
+  const curName=()=>{ const t=$("wTitle").dataset.en||$("wTitle").textContent; return /'s Wallet$/.test(t)?t.replace(/'s Wallet$/,""):""; };
+  function fill(){
+    $("sNameV").textContent=curName()||"Add";
+    $("sSalV").textContent=fmt(INCOME)+" SAR";
+    $("sPayV").textContent=ordinal(SALARY_DAY)+" of the month";
+    $("sDesc").checked=!(cardPrefs&&cardPrefs.nodesc);
+    $("sEmail").textContent=(window.walletEmail&&window.walletEmail())||"–";
+    document.querySelectorAll(".payTxt").forEach(e=>e.textContent=ordinal(SALARY_DAY));
+  }
+  window.refreshSettings=fill;
+  function open(){ fill(); sheet.hidden=false; requestAnimationFrame(()=>sheet.classList.add("on")); document.body.style.overflow="hidden"; }
+  function close(){ sheet.classList.remove("on"); document.body.style.overflow=""; setTimeout(()=>{ sheet.hidden=true; },250); }
+  async function saveProfile(part){ if(!db) return; try{ const pr=await db.doc("settings/profile").get(); await db.doc("settings/profile").set(Object.assign(pr.exists?(pr.data()||{}):{}, part)); }catch(e){} }
+  $("setBtn").onclick=open; $("setDone").onclick=close;
+  sheet.addEventListener("click",e=>{ if(e.target===sheet) close(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!sheet.hidden) close(); });
+  let y0=null; const sh=sheet.querySelector(".sh");
+  sh.addEventListener("touchstart",e=>{ y0=sh.scrollTop<=0?e.touches[0].clientY:null; },{passive:true});
+  sh.addEventListener("touchend",e=>{ if(y0!=null && e.changedTouches[0].clientY-y0>90) close(); y0=null; },{passive:true});
+  $("sName").onclick=()=>{ const v=prompt("Your name (shown at the top)", curName()); if(v===null) return; const n=v.trim().slice(0,40);
+    $("wTitle").dataset.en=""; $("wTitle").textContent=n?n+"'s Wallet":"My Wallet"; saveProfile({name:n}); fill(); };
+  $("sSal").onclick=()=>{ const v=prompt("Your monthly salary (SAR)", String(INCOME)); const n=parseFloat(String(v||"").replace(/[^0-9.]/g,"")); if(!(n>0)) return;
+    INCOME=n; showSalary(); update(); saveProfile({income:n}); fill(); };
+  $("sPay").onclick=()=>{ const v=prompt("Which day of the month does your salary arrive? (1 to 31)", String(SALARY_DAY)); const n=parseInt(String(v||"").replace(/[^0-9]/g,""),10); if(!(n>=1&&n<=31)) return;
+    SALARY_DAY=n; saveProfile({payday:n}); fill(); try{ renderSalary(); renderDebts(); if(typeof renderBalance==="function") renderBalance(); buildHints(); }catch(e){} };
+  const lg=window.walletLang||"en"; $(lg==="ar"?"sAr":"sEn").classList.add("primary"); $("sEn").onclick=()=>{ if(lg!=="en") setWalletLang("en"); }; $("sAr").onclick=()=>{ if(lg!=="ar") setWalletLang("ar"); };
+  $("sSmall").onclick=()=>$("ebSmall").click(); $("sBig").onclick=()=>$("ebBig").click();
+  $("sDesc").onchange=()=>{ const want=!$("sDesc").checked; if(!!cardPrefs.nodesc!==want) $("ebDesc").click(); };
+  $("sEdit").onclick=()=>{ close(); setTimeout(()=>{ const b=$("editMode"); if(b.getAttribute("aria-pressed")!=="true") b.click(); window.scrollTo({top:0,behavior:"smooth"}); },260); };
+  $("sReset").onclick=()=>{ if(confirm("Put all sections back the way they were?")) $("ebReset").click(); };
+  $("sUpd").onclick=async()=>{ $("sUpdV").textContent=T("Updating…"); try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(); if(r) await r.update(); }catch(e){} location.reload(); };
+  $("sOut").onclick=()=>{ if(confirm("Sign out of your wallet?")) walletSignOut(); };
+  setTimeout(fill,1500); setTimeout(fill,5000);
 })();
 </script>
 
