@@ -1,0 +1,5 @@
+project_id = "rvqjjbgeossfygaglohe"
+
+[functions.ai]
+# The function checks the sign-in itself (works with Supabase's new signing keys).
+verify_jwt = false
