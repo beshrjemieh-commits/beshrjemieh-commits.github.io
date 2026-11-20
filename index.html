@@ -1126,7 +1126,7 @@ applyCards();
   function run(){ res.classList.remove("ai"); const q=inp.value.trim().toLowerCase(); if(q.length<2){ res.hidden=true; return; }
     const out=[];
     Object.entries(TABS).forEach(([tab,[,vid]])=>{ document.getElementById(vid).querySelectorAll("section").forEach(sec=>{
-      const h=sec.querySelector("h2"); const name=h?h.textContent.trim():""; const txt=(sec.innerText||sec.textContent||"").replace(/\s+/g," ");
+      const h=sec.querySelector("h2"); const name=h?hKey(h):""; const txt=(sec.innerText||sec.textContent||"").replace(/\s+/g," ");
       const lo=txt.toLowerCase(); let i=lo.indexOf(q), n=0;
       while(i>=0 && n<3){ const a=Math.max(0,i-30), b=Math.min(txt.length,i+q.length+40);
         out.push({tab,sec,name,snip:(a>0?"…":"")+txt.slice(a,i)+"<b>"+txt.slice(i,i+q.length)+"</b>"+txt.slice(i+q.length,b)+(b<txt.length?"…":"")}); n++; i=lo.indexOf(q,i+q.length); }
@@ -1142,7 +1142,7 @@ applyCards();
   document.addEventListener("click",e=>{ if(!e.target.closest("#gsBox") && !res.classList.contains("ai")) res.hidden=true; });
   /* ---- AI assistant ---- */
   const TABKEY={expenses:"plan",balance:"bal",prices:"prices",forsa:"forsa",plan:"plan",bal:"bal"};
-  function secs(){ const o=[]; Object.entries(TABS).forEach(([tab,[,vid]])=>document.getElementById(vid).querySelectorAll("section").forEach(sec=>{ const h=sec.querySelector("h2"); if(h) o.push({tab,sec,name:h.textContent.trim()}); })); return o; }
+  function secs(){ const o=[]; Object.entries(TABS).forEach(([tab,[,vid]])=>document.getElementById(vid).querySelectorAll("section").forEach(sec=>{ const h=sec.querySelector("h2"); if(h) o.push({tab,sec,name:hKey(h)}); })); return o; }
   function findSec(n){ n=String(n||"").toLowerCase().trim(); const all=secs(); return all.find(x=>x.name.toLowerCase()===n)||all.find(x=>x.name.toLowerCase().includes(n))||all.find(x=>n.includes(x.name.toLowerCase())); }
   function setOpen(x,open){ const h=x.sec.querySelector(":scope > div:first-child h2"); if(h && x.sec.classList.contains("collapsed")===open) h.click(); }
   function applyZoom(z){ document.documentElement.style.zoom = z==1?"":String(z); }
@@ -1339,13 +1339,13 @@ function generalHints(){
 
 function showHint(focusKey){
   const bar=document.getElementById("hintBar");
-  if(focusKey){ const i=hints.findIndex(h=>h.k===focusKey); if(i>=0) hIdx=i; else { const recs=prices.filter(p=>keyOf(p)===focusKey).sort((a,b)=>(b.date.localeCompare(a.date))||(b.createdAt-a.createdAt)); if(recs.length){ bar.hidden=false; document.getElementById("hText").textContent=`${norm(recs[0].item)}: ${hintFor(focusKey,recs).replace("💡 ","")}`; bar.dataset.k=focusKey; return; } } }
+  if(focusKey){ const i=hints.findIndex(h=>h.k===focusKey); if(i>=0) hIdx=i; else { const recs=prices.filter(p=>keyOf(p)===focusKey).sort((a,b)=>(b.date.localeCompare(a.date))||(b.createdAt-a.createdAt)); if(recs.length){ bar.hidden=false; document.getElementById("hText").textContent=`${norm(recs[0].item)}: ${(window.T||(x=>x))(hintFor(focusKey,recs)).replace("💡 ","")}`; bar.dataset.k=focusKey; return; } } }
   if(!hints.length){ bar.hidden=true; return; }
   const h=hints[hIdx]; markSeen(h.t); bar.hidden=false; bar.dataset.k=h.k||"";
   bar.classList.toggle("bad", /^(⚠️|👀)/.test(h.t)); bar.classList.toggle("good", /^(💡 Buy|💡 Good|🚭)/.test(h.t));
   bar.classList.remove("pop"); void bar.offsetWidth; bar.classList.add("pop");
   const pr=document.getElementById("hProg"); pr.classList.remove("run"); void pr.offsetWidth; if(!hPaused) pr.classList.add("run");
-  document.getElementById("hText").textContent = (h.item?`${h.item}: `:"")+h.t.replace("💡 ","💡 ");
+  document.getElementById("hText").textContent = (h.item?`${h.item}: `:"")+(window.T||(x=>x))(h.t);
   slideText();
 }
 
@@ -1358,7 +1358,7 @@ let tickTxt="", tickStart=performance.now();
 function slideText(){ const t=document.getElementById("hText"), bar=document.getElementById("hintBar"); hDur=6000;
   const pr=document.getElementById("hProg");
   if(!bar.classList.contains("open") && hints.length && !matchMedia("(prefers-reduced-motion: reduce)").matches){
-    const txt=hints.map(h=>(h.item?h.item+": ":"")+h.t).join("     •     ")+"     •     ";
+    const tt=window.T||(x=>x); const txt=hints.map(h=>(h.item?h.item+": ":"")+tt(h.t)).join("     •     ")+"     •     ";
     if(txt===tickTxt && t.querySelector(".mq.tick")){ pr.style.display="none"; clearTimeout(hTimer); return; }
     if(txt!==tickTxt) tickStart=performance.now();
     tickTxt=txt; t.innerHTML=""; const m=document.createElement("span"); m.className="mq tick"; m.textContent=txt+txt; t.appendChild(m);
@@ -1426,12 +1426,12 @@ const SECTION_HINTS = {
   "Price book": ()=> priceTimingHints().map(h=>Object.assign(h,{score:h.score+1000})),
 };
 function openSecs(){ const v=[...document.querySelectorAll(".view")].find(x=>!x.hidden); if(!v) return [];
-  return [...v.querySelectorAll("section:not(.collapsed)")].map(sec=>{ const h=sec.querySelector(":scope > div:first-child h2"); return h?h.textContent.trim():""; }).filter(Boolean); }
+  return [...v.querySelectorAll("section:not(.collapsed)")].map(sec=>{ const h=sec.querySelector(":scope > div:first-child h2"); return h?hKey(h):""; }).filter(Boolean); }
 function openHints(){ const out=[]; openSecs().forEach(n=>{ const f=SECTION_HINTS[n]; if(f){ try{ f().forEach(h=>out.push(Object.assign({k:"",item:""},h))); }catch(e){} } }); return out; }
 function contextHints(){ const f=SECTION_HINTS[curSection]; try{ return f?f().map(h=>Object.assign({k:"",item:""},h)):[]; }catch(e){ return []; } }
 const secObserver = new IntersectionObserver(es=>{
   const vis = es.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0]; if(!vis) return;
-  const h=vis.target.querySelector(":scope > div:first-child h2"); const name=h?h.textContent.trim():"";
+  const h=vis.target.querySelector(":scope > div:first-child h2"); const name=h?hKey(h):"";
   if(name && name!==curSection){ curSection=name; }
 },{rootMargin:"-30% 0px -50% 0px", threshold:[0,0.25,0.5]});
 document.querySelectorAll("section").forEach(sec=>secObserver.observe(sec));

@@ -46,6 +46,7 @@
   const MONTHS = {January:"يناير",February:"فبراير",March:"مارس",April:"أبريل",May:"مايو",June:"يونيو",July:"يوليو",August:"أغسطس",September:"سبتمبر",October:"أكتوبر",November:"نوفمبر",December:"ديسمبر"};
   const DAYS = {Sun:"الأحد",Mon:"الاثنين",Tue:"الثلاثاء",Wed:"الأربعاء",Thu:"الخميس",Fri:"الجمعة",Sat:"السبت"};
   const MON3 = {Jan:"يناير",Feb:"فبراير",Mar:"مارس",Apr:"أبريل",Jun:"يونيو",Jul:"يوليو",Aug:"أغسطس",Sep:"سبتمبر",Oct:"أكتوبر",Nov:"نوفمبر",Dec:"ديسمبر",May:"مايو"};
+  const WDAY = {Sunday:"الأحد",Monday:"الاثنين",Tuesday:"الثلاثاء",Wednesday:"الأربعاء",Thursday:"الخميس",Friday:"الجمعة",Saturday:"السبت",Sun:"الأحد",Mon:"الاثنين",Tue:"الثلاثاء",Wed:"الأربعاء",Thu:"الخميس",Fri:"الجمعة",Sat:"السبت"};
   const mon = s => s.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g, m=>MONTHS[m]);
   const dateTxt = s => s.replace(/\b(Sun|Mon|Tue|Wed|Thu|Fri|Sat), (\d+) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})\b/g, (m,d,n,mo,y)=>`${DAYS[d]} ${n} ${MON3[mo]} ${y}`);
   const RULES = [
@@ -75,6 +76,31 @@
     [/^💡 Buy at (.+): (.+) SAR cheaper than (.+)\.$/, m=>`💡 اشترِ من ${m[1]}: أرخص بـ ${m[2]} ريال من ${m[3]}.`],
     [/^💡 Good time to buy: this is the lowest price you've seen\.$/, ()=>"💡 وقت مناسب للشراء: هذا أقل سعر شفته."],
     [/^💡 Add this item's price from another store to compare\.$/, ()=>"💡 أضف سعر هذا الصنف من محل ثاني للمقارنة."],
+    [/^💡 Add the same item from a second store to get money-saving hints here\.$/, ()=>"💡 أضف نفس الصنف من محل ثاني لتظهر لك نصائح التوفير هنا."],
+    [/^👀 (.+): only (.+) SAR left this month\.$/, m=>`👀 ${D[m[1]]||m[1]}: باقي ${m[2]} ريال فقط هذا الشهر.`],
+    [/^📅 Today so far: (.+) SAR logged\.$/, m=>`📅 اليوم حتى الآن: ${m[1]} ريال مسجلة.`],
+    [/^📆 (.+) is usually cheapest on (\w+)\.$/, m=>`📆 ${m[1]} غالباً أرخص يوم ${WDAY[m[2]]||m[2]}.`],
+    [/^🔎 No deals yet\. Add what you want with "\+ Hunt for this" and tap Update hunt\.$/, ()=>"🔎 لا توجد عروض بعد. أضف ما تريده بزر «+ ابحث عن هذا» ثم اضغط حدّث البحث."],
+    [/^🍕 (.+?)(?: · code (.+))?$/, m=>`🍕 ${m[1]}${m[2]?" · كود "+m[2]:""}`],
+    [/^★ (\d+) saved deals?\. Check them before they're gone\.$/, m=>`★ ${m[1]} عرض محفوظ. شيّك عليها قبل ما تروح.`],
+    [/^👀 Always see the item and meet in a safe public place before paying\.$/, ()=>"👀 دائماً عاين الغرض وقابل البائع في مكان عام وآمن قبل الدفع."],
+    [/^❗ Important: set your starting point so your balance matches your real money\.$/, ()=>"❗ مهم: حدد نقطة البداية حتى يطابق رصيدك فلوسك الحقيقية."],
+    [/^❗ Important: you haven't checked your accounts in (\d+) days\. Count your cash and check your bank app\.$/, m=>`❗ مهم: لم تراجع حساباتك منذ ${m[1]} يوم. عُدّ الكاش وشيّك تطبيق البنك.`],
+    [/^🔁 Check your total accounts once a week\. Last checked (today|(\d+) days? ago)\.$/, m=>`🔁 راجع مجموع حساباتك مرة كل أسبوع. آخر مراجعة: ${m[2]?"قبل "+m[2]+" يوم":"اليوم"}.`],
+    [/^🎯 (.+): (.+) SAR to go\. Putting in (.+) a month finishes it in 6 months\.$/, m=>`🎯 ${m[1]}: باقي ${m[2]} ريال. لو حطيت ${m[3]} بالشهر تخلّصه في ٦ أشهر.`],
+    [/^🎯 Add a goal, like an emergency fund\. Saving is easier with a target\.$/, ()=>"🎯 أضف هدفاً، مثل صندوق طوارئ. الادخار أسهل لما يكون عندك هدف."],
+    [/^📅 Today: (.+) SAR in (\d+) items?\. Keep logging small things too\.$/, m=>`📅 اليوم: ${m[1]} ريال في ${m[2]} مصروف. استمر بتسجيل الأشياء الصغيرة.`],
+    [/^📅 Nothing logged today yet\. Even a coffee counts\.$/, ()=>"📅 لا شيء مسجل اليوم بعد. حتى القهوة تُحسب."],
+    [/^📊 (.+) takes (\d+)% of this month's spending \((.+) of (.+) SAR\)\.$/, m=>`📊 ${D[m[1]]||m[1]} يأخذ ${m[2]}% من مصاريف هذا الشهر (${m[3]} من ${m[4]} ريال).`],
+    [/^🔍 Most of your money is really going to (.+)\.$/, m=>`🔍 أغلب فلوسك تذهب فعلاً إلى ${m[1].split(", ").map(x=>{ const k=x.replace(/ \d+%$/,""); return (D[k]||k)+x.slice(k.length); }).join("، ")}.`],
+    [/^⛓️ (.+) SAR of debt left\. Paying the smallest first builds momentum\.$/, m=>`⛓️ باقي ${m[1]} ريال ديون. سداد الأصغر أولاً يعطيك دفعة.`],
+    [/^🎉 No debt left!$/, ()=>"🎉 ما عليك ديون!"],
+    [/^🧾 (\d+) bills? not read yet\. Tap Read items to add the prices\.$/, m=>`🧾 ${m[1]} فاتورة لم تُقرأ بعد. اضغط اقرأ الأصناف لإضافة الأسعار.`],
+    [/^🧾 More receipts mean smarter price hints\. Upload your next bill\.$/, ()=>"🧾 فواتير أكثر تعني نصائح أسعار أذكى. ارفع فاتورتك الجاية."],
+    [/^💡 Don't buy now if you can wait: it was (.+) on (.+), now (.+)\.$/, m=>`💡 لا تشترِ الآن لو تقدر تنتظر: كان ${m[1]} بتاريخ ${m[2]}، والآن ${m[3]}.`],
+    [/^💡 The (.+) pack is cheaper per (kg|litre) \((.+) vs (.+)\)\.$/, m=>`💡 عبوة ${m[1]} أرخص لكل ${m[2]==="kg"?"كيلو":"لتر"} (${m[3]} مقابل ${m[4]}).`],
+    [/^💡 Best value size: cheaper per (kg|litre) than the (.+) pack\.$/, m=>`💡 أفضل حجم قيمةً: أرخص لكل ${m[1]==="kg"?"كيلو":"لتر"} من عبوة ${m[2]}.`],
+    [/^(.+?): (💡.+|[^💡].+)$/, m=>{ const r=tr(m[2]); return r?`${m[1]}: ${r}`:null; }],
   ];
   function tr(s){
     const t = s.replace(/\s+/g," ").trim(); if(!t) return null;
@@ -92,6 +118,8 @@
 html[dir=rtl] .r,html[dir=rtl] th.r,html[dir=rtl] td.r{text-align:left}
 html[dir=rtl] .eyebrow,html[dir=rtl] .grp{letter-spacing:0}
 html[dir=rtl] #setSheet .row .val::after{content:" ‹"}
+@keyframes tickR{to{transform:translateX(50%)}}
+html[dir=rtl] .hintbar .mq.tick{animation-name:tickR!important}
 html[dir=rtl] .num,html[dir=rtl] input[type=number]{direction:ltr;unicode-bidi:isolate}`;
   (document.head||html).appendChild(css);
 
