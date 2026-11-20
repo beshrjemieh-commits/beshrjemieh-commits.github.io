@@ -27,11 +27,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return fail("invalid_request", "POST only", 405);
 
-  // Who is calling (the platform already rejected requests without a valid JWT).
-  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
-  });
-  const { data: { user } } = await sb.auth.getUser();
+  // Who is calling: check the user's sign-in token with Supabase Auth.
+  const jwt = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? req.headers.get("apikey") ?? "";
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, anon, { auth: { persistSession: false } });
+  const { data: { user } } = jwt ? await sb.auth.getUser(jwt) : { data: { user: null } };
   if (!user) return fail("session_expired", "Sign in again.", 401);
   const allowed = (Deno.env.get("ALLOWED_EMAILS") ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   if (allowed.length && !allowed.includes((user.email ?? "").toLowerCase())) return fail("not_granted", "AI is not enabled for this account.", 403);
