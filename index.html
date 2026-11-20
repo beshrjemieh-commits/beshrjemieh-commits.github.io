@@ -1848,7 +1848,8 @@ document.getElementById("salV").addEventListener("click", async ()=>{
 });
 /* ---------- connect to saved data ---------- */
 (async ()=>{
-  const timer = setTimeout(()=>{ if(!dbReady) setStatus("Still connecting… if this stays, reopen the page while signed in to Claude.", true); }, 10000);
+  const timer = setTimeout(()=>{ if(dbReady) return; setStatus("Still connecting… tap here to try again.", true); statusEl.style.cursor="pointer"; statusEl.onclick=()=>location.reload(); }, 10000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden && !dbReady && performance.now()>12000) location.reload(); });
   let handle = null;
   try{ handle = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ handle=null; }
   if(!handle){ clearTimeout(timer); pStatus("Saving isn't available here. Open this page while signed in to Claude.", true); setStatus("Saving isn't available here. Open this page while signed in to Claude to log costs.", true); return; }

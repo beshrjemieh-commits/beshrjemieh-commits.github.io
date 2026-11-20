@@ -4,7 +4,16 @@
 (function(){
   const SUPABASE_URL = "https://rvqjjbgeossfygaglohe.supabase.co";
   const SUPABASE_KEY = "sb_publishable_DSFK-TyIwyuAzYjF0mWWNA_vOedk4zz"; // publishable key: safe in the browser
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true}});
+  // Never let a request hang forever (iPhone can stall requests on weak 4G or after the app sleeps).
+  const timedFetch = (url, opts = {}) => {
+    const ac = new AbortController(), ms = /\/storage\/v1\//.test(String(url)) ? 120000 : 20000;
+    const t = setTimeout(() => ac.abort(), ms);
+    if(opts.signal){ if(opts.signal.aborted) ac.abort(); else opts.signal.addEventListener("abort", () => ac.abort()); }
+    return fetch(url, Object.assign({}, opts, {signal: ac.signal})).finally(() => clearTimeout(t));
+  };
+  // One app window only, so skip the browser lock that can freeze sign-in on iPhone after the app sleeps.
+  const noLock = async (name, timeout, fn) => fn();
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, lock:noLock}, global:{fetch:timedFetch}});
   window.__sb = sb;
   let user = null, readyResolve; const ready = new Promise(r => readyResolve = r);
 
