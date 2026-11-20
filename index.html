@@ -558,9 +558,11 @@ form.card .logform{row-gap:11px!important}
         <button class="btn" type="button" id="fWant">+ Hunt for this</button>
         <button class="btn" type="button" id="fUpd">🔄 Update hunt</button>
       </div>
+      <div id="fLinks" hidden></div>
       <div class="chips" id="fTerms" aria-label="What the hunt looks for"></div>
       <p class="sub" id="fMsg" style="margin:4px 0"></p>
       <div class="chips" id="fFilter" role="group" aria-label="Filter deals"></div>
+      <div class="chips" id="fCats" role="group" aria-label="Categories" style="margin-top:6px"></div>
       <div class="tablebox" id="fList"><div class="empty">No deals yet. The daily hunt will fill this list.</div></div>
     </section>
   </div>
@@ -1785,12 +1787,42 @@ function connectExtras(){
 }
 
 /* ---------- Forsa: deals found by the daily hunt (db "deals") ---------- */
-let deals=[], fShow="new";
-const FILTERS=[["new","New"],["high","High confidence"],["food","App offers"],["saved","Saved"],["all","All"]];
+let deals=[], fShow="all";
+const FILTERS=[["all","All"],["flip","💰 Forsa Flip"],["new","🆕 New"],["used","♻️ Used"],["saved","★ Saved"]];
 const fF=document.getElementById("fFilter");
 FILTERS.forEach(([k,l])=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.dataset.k=k; b.textContent=l; b.setAttribute("aria-pressed",k===fShow?"true":"false");
   b.addEventListener("click",()=>{ fShow=k; fF.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.k===k?"true":"false")); renderDeals(); }); fF.appendChild(b); });
+let fCat="";
+const FCATS=[["","All categories"],["electronics","📱 Electronics"],["clothes","👕 Clothes"],["food","🍕 Food"],["cars","🚗 Cars"],["home","🏠 Home"],["travel","✈️ Travel"],["shopping","🛍️ Shopping"],["custom","🔎 My searches"]];
+const CLOTHES_SRC=/zara|shein|namshi|max fashion|centrepoint|adidas|nike|h&m|6thstreet|styli|splash/i;
+function catOf(d){ const c=d.category;
+  if(c==="household") return "home"; if(c==="delivery") return "food";
+  if(c==="shopping") return CLOTHES_SRC.test(d.source)?"clothes":/jarir|extra|sharaf/i.test(d.source)?"electronics":"shopping";
+  return c||"custom"; }
+const fC=document.getElementById("fCats");
+function renderCats(){ const have=new Set(deals.filter(d=>d.status!=="hidden").map(catOf));
+  fC.innerHTML=FCATS.filter(([k])=>!k||have.has(k)||k===fCat).map(([k,l])=>`<button type="button" class="chip" data-c="${k}" aria-pressed="${k===fCat}">${l}</button>`).join(""); }
+fC.addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; fCat=b.dataset.c; renderDeals(); });
 const CONF_RANK={high:0,medium:1,low:2};
+/* Instant search help: what a search means (pizza, burger, shoes...) and where to order or shop for it right now. */
+const FTOPICS=[
+  {k:/pizza|بيتزا|بيتزا/i, src:["Pizza Hut","Domino's","HungerStation","ToYou","Careem","Talabat"], shops:[["Pizza Hut","https://www.pizzahut.com.sa/"],["Domino's","https://www.dominos.com.sa/"],["HungerStation","https://hungerstation.com/sa-en"],["Jahez","https://www.jahez.net/"]]},
+  {k:/burger|برجر|برغر|mcdonald|ماك/i, src:["McDonald's","HungerStation","ToYou","Careem","Talabat"], shops:[["McDonald's","https://www.mcdonalds.com/sa/en-sa.html"],["HungerStation","https://hungerstation.com/sa-en"],["Jahez","https://www.jahez.net/"]]},
+  {k:/food|meal|restaurant|chicken|shawarma|coffee|breakfast|dinner|lunch|delivery|أكل|اكل|مطعم|وجبة|دجاج|شاورما|قهوة|فطور|عشاء|غداء|توصيل/i, src:["Pizza Hut","Domino's","McDonald's","HungerStation","ToYou","Careem","Talabat"], shops:[["HungerStation","https://hungerstation.com/sa-en"],["Jahez","https://www.jahez.net/"],["ToYou","https://www.toyou.io/"]]},
+  {k:/flight|ticket|travel|hotel|طيران|تذكرة|تذاكر|سفر|فندق/i, src:["Almosafer","flynas","Saudia"], shops:[["Almosafer","https://www.almosafer.com/en"],["flynas","https://www.flynas.com/en"],["Saudia","https://www.saudia.com/"]]},
+];
+const FOOD_RE=/pizza|burger|food|meal|restaurant|chicken|shawarma|coffee|breakfast|dinner|lunch|delivery|بيتزا|برجر|برغر|أكل|اكل|مطعم|وجبة|دجاج|شاورما|قهوة|فطور|عشاء|غداء|توصيل/i;
+function fTopic(q){ return FTOPICS.find(t=>t.k.test(q)); }
+function renderLinks(){
+  const box=document.getElementById("fLinks"); const raw=(document.getElementById("fSearch").value||"").trim();
+  if(!raw){ box.hidden=true; box.innerHTML=""; return; }
+  const e=encodeURIComponent(raw), t=fTopic(raw);
+  let shops=t?t.shops.slice():[];
+  if(FOOD_RE.test(raw)) shops.push(["Nearby on Maps","https://www.google.com/maps/search/"+e+"+near+me"]);
+  else if(!t) shops=[["Noon","https://www.noon.com/saudi-en/search/?q="+e],["Amazon","https://www.amazon.sa/s?k="+e],["Haraj","https://haraj.com.sa/search/"+e],["OpenSooq","https://sa.opensooq.com/ar/find?term="+e]];
+  box.hidden=false;
+  box.innerHTML=`<p class="sub" style="margin:6px 0 4px">${FOOD_RE.test(raw)?"Order now:":"Shop now:"}</p><div class="chips">${shops.map(([n,u])=>`<a class="chip" href="${esc(u)}" target="_blank" rel="noopener" style="text-decoration:none">${esc(n)} ↗</a>`).join("")}</div>`;
+}
 function renderDeals(){
   const fresh=deals.filter(d=>d.status!=="hidden");
   document.getElementById("fNew").textContent=fresh.filter(d=>!d.status).length;
@@ -1798,16 +1830,18 @@ function renderDeals(){
   const last=deals.reduce((a,d)=>Math.max(a,d.foundAt),0);
   document.getElementById("fLast").textContent=last?new Date(last).toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+new Date(last).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}):"–";
   let list=fresh;
-  if(fShow==="new") list=list.filter(d=>!d.status); else if(fShow==="high") list=list.filter(d=>d.confidence==="high"); else if(fShow==="food") list=list.filter(d=>!d.market); else if(fShow==="saved") list=list.filter(d=>d.status==="saved");
-  list.sort((a,b)=>(CONF_RANK[a.confidence]??3)-(CONF_RANK[b.confidence]??3)||b.profit-a.profit);
+  if(fShow==="flip") list=list.filter(d=>d.market&&d.profit>0&&d.confidence!=="low"); else if(fShow==="new") list=list.filter(d=>!d.market); else if(fShow==="used") list=list.filter(d=>d.market); else if(fShow==="saved") list=list.filter(d=>d.status==="saved");
+  if(fCat) list=list.filter(d=>catOf(d)===fCat);
+  renderCats();
+  if(fShow==="used") list.sort((a,b)=>a.price-b.price); else list.sort((a,b)=>(CONF_RANK[a.confidence]??3)-(CONF_RANK[b.confidence]??3)||b.profit-a.profit);
   const q=(document.getElementById("fSearch").value||"").trim().toLowerCase();
-  if(q) list=list.filter(d=>(d.title+" "+d.source+" "+d.category+" "+d.offer+" "+d.city).toLowerCase().includes(q));
+  if(q){ const t=fTopic(q); list=list.filter(d=>(d.title+" "+d.source+" "+d.category+" "+d.offer+" "+d.city+" "+(d.match||"")).toLowerCase().includes(q)||(t&&!d.market&&t.src.includes(d.source))); }
   const box=document.getElementById("fList");
-  if(!list.length){ box.innerHTML=`<div class="empty">${deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
+  if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
   box.innerHTML=list.map(d=>`<div class="deal${d.status==="saved"?"":""}" data-d="${esc(d.id)}">
     <span class="t">${esc(d.title)}<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span></span><span class="num">${d.price?fmt(d.price)+" SAR":""}</span>
     <small>${d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`} · ${esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
-    <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">Open ad</a>`:""}<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button></span>
+    <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">${d.market?"Open ad":"Open offer"}</a>`:""}<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button></span>
   </div>`).join("");
 }
 document.getElementById("fList").addEventListener("click", async e=>{
@@ -1820,16 +1854,16 @@ function renderHunt(){ const t=document.getElementById("fTerms");
   t.innerHTML=hunt.terms.map(x=>`<button type="button" class="chip" data-term="${esc(x)}" aria-pressed="true">${esc(x)} ✕</button>`).join("");
   const ft=ms=>new Date(ms).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
   if(hunt.lastRunAt && hunt.lastRunAt>=hunt.requestedAt){ document.getElementById("fMsg").textContent="✓ Hunt updated "+ft(hunt.lastRunAt)+(hunt.lastRunSummary?". "+hunt.lastRunSummary:""); return; }
-  if(hunt.requestedAt){ document.getElementById("fMsg").textContent="⏳ Update requested "+ft(hunt.requestedAt)+". It runs at the next check (7:47 AM, 1:47 PM or 7:47 PM)."; return; }
+  if(hunt.requestedAt){ document.getElementById("fMsg").textContent="⏳ Update requested "+ft(hunt.requestedAt)+". It runs within the hour."; return; }
   document.getElementById("fMsg").textContent=hunt.requestedAt?("Update requested "+new Date(hunt.requestedAt).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+". New deals appear here after the next hunt."):(hunt.terms.length?"The hunt also looks for the items above.":""); }
 function saveHunt(){ if(db) db.doc("settings/hunt").set(hunt).catch(()=>{}); renderHunt(); }
-document.getElementById("fSearch").addEventListener("input",renderDeals);
-document.getElementById("fWant").addEventListener("click",()=>{ const v=document.getElementById("fSearch").value.trim(); if(!v||hunt.terms.includes(v)) return; hunt.terms=hunt.terms.concat(v).slice(-20); saveHunt(); });
+document.getElementById("fSearch").addEventListener("input",()=>{ renderDeals(); renderLinks(); });
+document.getElementById("fWant").addEventListener("click",()=>{ const v=document.getElementById("fSearch").value.trim(); if(!v||hunt.terms.includes(v)) return; hunt.terms=hunt.terms.concat(v).slice(-20); hunt.requestedAt=Date.now(); saveHunt(); });
 document.getElementById("fTerms").addEventListener("click",e=>{ const b=e.target.closest("[data-term]"); if(!b) return; hunt.terms=hunt.terms.filter(x=>x!==b.dataset.term); saveHunt(); });
 document.getElementById("fUpd").addEventListener("click",()=>{ hunt.requestedAt=Date.now(); saveHunt(); });
 function connectDeals(){
   db.doc("settings/hunt").onSnapshot(d=>{ const x=d&&d.exists?(d.data()||{}):{}; hunt={terms:Array.isArray(x.terms)?x.terms.map(String):[],requestedAt:Number(x.requestedAt)||0,lastRunAt:Number(x.lastRunAt)||0,lastRunSummary:String(x.lastRunSummary||"")}; renderHunt(); },()=>{});
-  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||"")}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
+  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||"")}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
 }
 function connectPrices(){
   db.collection("prices").onSnapshot(snap=>{
