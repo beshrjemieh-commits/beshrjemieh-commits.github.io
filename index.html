@@ -121,6 +121,11 @@ ol.todo b{font-weight:600}
 .catrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
 .catrow .prog{grid-column:1/-1}
 textarea{font:inherit;font-size:14px;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical;unicode-bidi:plaintext}
+.pastebox{display:flex;gap:6px;align-items:flex-start;margin-bottom:12px}
+.pastebox textarea{flex:1;min-width:0;min-height:40px;max-height:110px;resize:none;box-sizing:border-box;padding:9px 12px;border-radius:10px;line-height:1.4;font-size:14px;overflow:hidden}
+.pastebox .btn{height:40px;min-height:0;white-space:nowrap}
+#smsStatus:not([hidden]){display:block;margin:-6px 0 10px}
+#smsOut{margin-bottom:12px}
 .smsrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .smsrow .meta{min-width:0;overflow-wrap:anywhere}
 .smsrow .meta small{display:block;color:var(--muted)}
@@ -424,6 +429,15 @@ form.card .logform{row-gap:11px!important}
   <section id="log">
     <div><h2>Add a cost</h2><p class="sub">Takes 10 seconds. Try to add everything, even small things.</p></div>
     <form class="card" id="addForm" novalidate>
+      <div class="pastebox" id="smsCard">
+        <textarea id="smsIn" rows="1" placeholder="📋 Paste a bank message here (optional)" aria-label="Paste bank messages" autocomplete="off"></textarea>
+        <button class="btn" id="smsQuick" type="button">Paste</button>
+      </div>
+      <span class="status" id="smsStatus" hidden></span>
+      <div id="smsOut" hidden>
+        <div class="tablebox" id="smsList"></div>
+        <div class="row" style="margin-top:10px"><span class="tag">Check the category for each one, untick any you don't want, then add.</span><button class="btn primary" id="smsAdd" type="button">Add selected</button></div>
+      </div>
       <div class="logform">
         <div class="field amount"><label for="fAmount">Amount (SAR)</label><input id="fAmount" inputmode="decimal" placeholder="0" autocomplete="off"></div>
         <div class="field"><label for="fDate">Date</label><input id="fDate" type="date"></div>
@@ -435,16 +449,6 @@ form.card .logform{row-gap:11px!important}
         <button class="btn primary" id="addBtn" type="submit" disabled>Add cost</button>
       </div>
     </form>
-    <div class="card" id="smsCard">
-      <div><h2 style="font-size:16px">Paste bank messages</h2><p class="sub">Copy one or more payment SMS from your bank (long-press the message → Copy), paste here, and I'll read the amount, shop and date.</p></div>
-      <textarea id="smsIn" rows="4" placeholder="e.g. شراء عبر نقاط البيع&#10;مبلغ: SAR 45.00&#10;لدى: STARBUCKS&#10;في: 14/11/26 10:22" aria-label="Paste bank messages"></textarea>
-      <span class="field" style="gap:6px"><label id="smsCatLabel">Category</label><span class="chips" id="smsChips" role="group" aria-labelledby="smsCatLabel"></span></span>
-      <div class="row"><span class="status" id="smsStatus"></span><span style="display:flex;gap:6px"><button class="btn primary" id="smsQuick" type="button">📋 Paste &amp; add</button><button class="btn" id="smsRead" type="button">Read messages</button></span></div>
-      <div id="smsOut" hidden>
-        <div class="tablebox" id="smsList"></div>
-        <div class="row" style="margin-top:10px"><span class="tag">Check the category for each one, untick any you don't want, then add.</span><button class="btn primary" id="smsAdd" type="button">Add selected</button></div>
-      </div>
-    </div>
   </section>
 
   <section id="month">
@@ -936,24 +940,35 @@ function sortChips(){ const n={}; (typeof entries!=="undefined"?entries:[]).forE
   ["chips","smsChips"].forEach(id=>{ const box=document.getElementById(id); if(!box) return; const bs=[...box.querySelectorAll(".chip")];
     bs.sort((a,b)=>(a.dataset.k==="auto"?-1:0)-(b.dataset.k==="auto"?-1:0) || (n[b.dataset.k]||0)-(n[a.dataset.k]||0) || LOG_CATS.indexOf(a.dataset.k)-LOG_CATS.indexOf(b.dataset.k)).forEach(b=>box.appendChild(b)); }); }
 let smsItems = [], smsCat = "auto";
-const smsChips = document.getElementById("smsChips");
-["auto", ...LOG_CATS].forEach(k=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.dataset.k=k; b.textContent = k==="auto" ? "Auto-detect" : BY[k].s; b.setAttribute("aria-pressed", k===smsCat?"true":"false");
-  b.addEventListener("click",()=>{ smsCat=k; smsChips.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.k===k?"true":"false")); if(k!=="auto" && smsItems.length){ smsItems.forEach(it=>it.cat=k); renderSms(); } }); smsChips.appendChild(b); });
-document.getElementById("smsRead").addEventListener("click", ()=>{
-  const blocks = splitMessages(document.getElementById("smsIn").value);
-  const st = document.getElementById("smsStatus"); st.className="status";
-  if(!blocks.length){ st.textContent="Paste at least one message first."; st.className="status err"; return; }
+function smsSay(t,err){ const st=document.getElementById("smsStatus"); st.hidden=!t; st.textContent=t||""; st.className="status"+(err?" err":""); }
+function readSms(){
+  const box=document.getElementById("smsIn");
+  box.style.height="auto"; box.style.height=Math.min(110,box.scrollHeight+2)+"px"; box.style.overflow=box.scrollHeight>110?"auto":"hidden";
+  const blocks = splitMessages(box.value);
   smsItems = []; let skipped = 0;
+  if(!blocks.length){ smsSay(""); renderSms(); return; }
   blocks.forEach(b=>{
     const amount = parseAmount(b);
     if(!amount || isIncoming(b)){ skipped++; return; }
     const merchant = parseMerchant(b);
-    smsItems.push({amount, merchant, date:parseDate(b), cat: smsCat==="auto" ? guessCat(merchant+" "+b) : smsCat, on:true});
+    smsItems.push({amount, merchant, date:parseDate(b), cat: guessCat(merchant+" "+b), on:true});
   });
-  st.textContent = `Found ${smsItems.length} payment${smsItems.length===1?"":"s"}` + (skipped?`, skipped ${skipped} (no amount, or money coming in).`:".");
-  if(!smsItems.length) st.className="status err";
+  if(smsItems.length===1){ // one payment: fill the normal form, user taps Add cost
+    const it=smsItems[0]; smsItems=[]; renderSms();
+    document.getElementById("fAmount").value=String(Math.round(it.amount*100)/100);
+    document.getElementById("fDate").value=it.date;
+    document.getElementById("fNote").value=(it.merchant||"Bank SMS").slice(0,120);
+    const c=document.querySelector('#chips .chip[data-k="'+it.cat+'"]'); if(c) c.click();
+    smsSay("✓ Read from the bank message. Check it, then tap Add cost.");
+    return;
+  }
+  if(!smsItems.length){ smsSay(skipped?"No payment found in this text (no amount, or money coming in).":"", true); renderSms(); return; }
+  smsSay(`Found ${smsItems.length} payments` + (skipped?`, skipped ${skipped}.`:"."));
   renderSms();
-});
+}
+let smsT=null;
+document.getElementById("smsIn").addEventListener("input", ()=>{ clearTimeout(smsT); smsT=setTimeout(readSms,250); });
+document.getElementById("addForm").addEventListener("submit", ()=>{ setTimeout(()=>{ if(!document.getElementById("fAmount").value){ const b=document.getElementById("smsIn"); b.value=""; b.style.height=""; smsSay(""); } },800); });
 
 /* ?sms=<text> from the iPhone Shortcut: fill the bank-message box, read it, and wait for one tap */
 let smsFromLink=null;
@@ -965,19 +980,16 @@ function handleSmsLink(){
     try{ sessionStorage.removeItem("w-sms"); }catch(e){}
     showTab("plan");
     const sec=document.getElementById("log"); if(sec&&sec.classList.contains("collapsed")){ const h=sec.querySelector("h2"); if(h) h.click(); }
-    document.getElementById("smsIn").value=t;
-    document.getElementById("smsRead").click();
-    const target=document.getElementById(smsItems.length?"smsOut":"smsCard");
+    document.getElementById("smsIn").value=t; readSms();
+    const target=document.getElementById(smsItems.length?"smsOut":"addBtn");
     target.scrollIntoView({block:"center",behavior:"smooth"});
   },1200);
 }
 document.getElementById("smsQuick").addEventListener("click", async ()=>{
   const st=document.getElementById("smsStatus"); let txt="";
   try{ txt = await navigator.clipboard.readText(); }catch(e){ txt=""; }
-  if(!txt){ st.textContent="Couldn't read your clipboard here. Long-press the box above, tap Paste, then Read messages."; st.className="status err"; document.getElementById("smsIn").focus(); return; }
-  document.getElementById("smsIn").value = txt;
-  document.getElementById("smsRead").click();
-  if(smsItems.length===1){ document.getElementById("smsAdd").click(); }
+  if(!txt){ smsSay("Couldn't read your clipboard here. Long-press the box and tap Paste.", true); document.getElementById("smsIn").focus(); return; }
+  document.getElementById("smsIn").value = txt; readSms();
 });
 function renderSms(){
   const out=document.getElementById("smsOut"), list=document.getElementById("smsList");
@@ -997,7 +1009,7 @@ document.getElementById("smsList").addEventListener("change", e=>{
   else if(e.target.type==="date") smsItems[i].date=e.target.value;
 });
 document.getElementById("smsAdd").addEventListener("click", async ()=>{
-  const st=document.getElementById("smsStatus");
+  const st=document.getElementById("smsStatus"); st.hidden=false;
   if(!db){ st.textContent="Saving isn't connected yet. Wait a moment and try again."; st.className="status err"; return; }
   const chosen = smsItems.filter(x=>x.on); if(!chosen.length){ st.textContent="Nothing selected."; return; }
   const btn=document.getElementById("smsAdd"); btn.disabled=true; let ok=0;
@@ -1007,7 +1019,7 @@ document.getElementById("smsAdd").addEventListener("click", async ()=>{
   btn.disabled=false;
   st.className = ok===chosen.length ? "status" : "status err";
   st.textContent = ok===chosen.length ? `Added ${ok} payment${ok===1?"":"s"}.` : `Added ${ok} of ${chosen.length}. Try the rest again.`;
-  if(ok===chosen.length){ smsItems=[]; renderSms(); document.getElementById("smsIn").value=""; }
+  if(ok===chosen.length){ smsItems=[]; renderSms(); document.getElementById("smsIn").value=""; document.getElementById("smsIn").style.height=""; }
 });
 
 /* ---------- salary day + debt schedule ---------- */
