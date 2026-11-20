@@ -275,6 +275,11 @@ body.editing .sedit{display:flex}
 body.editing #chips .chip{outline:1px dashed var(--line);position:relative;padding-right:26px}
 #chips .cx{display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--line);color:var(--fg);font-size:11px;line-height:18px;text-align:center}
 body.editing #chips .cx{display:block}
+#chips,#smsChips,#inChips,#fFilter,#fCats{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 24px 4px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+[dir=rtl] #chips,[dir=rtl] #smsChips,[dir=rtl] #inChips,[dir=rtl] #fFilter,[dir=rtl] #fCats{padding:2px 0 4px 24px;-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent)}
+#chips::-webkit-scrollbar,#smsChips::-webkit-scrollbar,#inChips::-webkit-scrollbar,#fFilter::-webkit-scrollbar,#fCats::-webkit-scrollbar{display:none}
+.chips>.chip{flex:none;white-space:nowrap}
+.field{min-width:0}
 #chips .chip.c-off{display:none}
 #chips .chip.c-add{display:none;border-style:dashed;color:var(--muted)}
 body.editing #chips .chip.c-add{display:inline-block;padding-right:12px}
