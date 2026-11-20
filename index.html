@@ -1,10 +1,15 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script>/* stuck-screen clue: shows where loading stopped */
 (function(){ window.__stage="page"; window.__errs=[]; var t0=Date.now();
+  try{ if(/[?&]reset\b/.test(location.search)){ /* clear this phone's saved layout/cache, keep sign-in */
+    Object.keys(localStorage).forEach(function(k){ if(/^w-/.test(k)) localStorage.removeItem(k); }); sessionStorage.clear();
+    if(window.caches) caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); });
+    if(navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); });
+    history.replaceState(null,"",location.pathname); } }catch(e){}
   window.addEventListener("error",function(e){ window.__errs.push((e.message||"error")+(e.lineno?" @"+(e.filename||"").split("/").pop()+":"+e.lineno:"")); });
   window.addEventListener("unhandledrejection",function(e){ var r=e.reason; window.__errs.push("promise: "+(r&&r.message||String(r))); });
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
-    el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(-2).join(" | "):"")+" · v6 · tap to retry"; }, 14000);
+    el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(-2).join(" | "):"")+" · v7 · tap to retry"; }, 14000);
 })();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
