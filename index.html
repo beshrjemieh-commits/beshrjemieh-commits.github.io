@@ -892,6 +892,22 @@ document.getElementById("smsRead").addEventListener("click", ()=>{
   renderSms();
 });
 
+/* ?sms=<text> from the iPhone Shortcut: fill the bank-message box, read it, and wait for one tap */
+let smsFromLink=null;
+try{ const u=new URL(location.href); const v=u.searchParams.get("sms"); if(v!==null){ u.searchParams.delete("sms"); history.replaceState(null,"",u.pathname+u.search+u.hash); try{ sessionStorage.setItem("w-sms",v); }catch(e){} smsFromLink=v; } }catch(e){}
+if(!smsFromLink){ try{ smsFromLink=sessionStorage.getItem("w-sms"); }catch(e){} }
+function handleSmsLink(){
+  if(!smsFromLink) return; const t=smsFromLink; smsFromLink=null;
+  setTimeout(()=>{
+    try{ sessionStorage.removeItem("w-sms"); }catch(e){}
+    showTab("plan");
+    const sec=document.getElementById("log"); if(sec&&sec.classList.contains("collapsed")){ const h=sec.querySelector("h2"); if(h) h.click(); }
+    document.getElementById("smsIn").value=t;
+    document.getElementById("smsRead").click();
+    const target=document.getElementById(smsItems.length?"smsOut":"smsCard");
+    target.scrollIntoView({block:"center",behavior:"smooth"});
+  },1200);
+}
 document.getElementById("smsQuick").addEventListener("click", async ()=>{
   const st=document.getElementById("smsStatus"); let txt="";
   try{ txt = await navigator.clipboard.readText(); }catch(e){ txt=""; }
@@ -1840,7 +1856,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   db.collection("expenses").onSnapshot(snap=>{
     clearTimeout(timer);
     entries = snap.docs.map(d=>{ const x=d.data()||{}; return {id:d.id, date:String(x.date||""), amount:Number(x.amount)||0, cat:BY[x.cat]?String(x.cat):"flex", note:String(x.note||""), createdAt:Number(x.createdAt)||0}; });
-    if(!dbReady){ dbReady=true; setStatus(""); document.getElementById("addBtn").disabled=false; }
+    if(!dbReady){ dbReady=true; setStatus(""); document.getElementById("addBtn").disabled=false; handleSmsLink(); }
     renderMonth(); renderDebts(); if(typeof renderBalance==="function") renderBalance(); renderStreak(); buildHints(); sortChips();
   }, err=>{
     clearTimeout(timer);
