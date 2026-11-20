@@ -1433,7 +1433,8 @@ function priceTimingHints(){
 const SECTION_HINTS = {
   "Forsa · deals below market": ()=>{ const out=[], live=(typeof deals!=="undefined"?deals:[]).filter(d=>d.status!=="hidden");
     if(!live.length) return [{tab:"forsa",score:500,t:"🔎 No deals yet. Add what you want with \"+ Hunt for this\" and tap Update hunt."}];
-    const res=live.filter(d=>d.market>0).sort((a,b)=>b.profit-a.profit), off=live.filter(d=>!d.market);
+    const res=live.filter(d=>d.market>0).sort((a,b)=>b.profit-a.profit), off=live.filter(d=>!d.market&&!d.paid), chp=live.filter(d=>d.paid>0).sort((a,b)=>b.profit-a.profit);
+    if(chp[0]) out.push({tab:"forsa",score:950,t:`🧾 ${chp[0].title} is ${money(chp[0].profit)} SAR cheaper at ${chp[0].source} than you paid.`});
     if(res[0]) out.push({tab:"forsa",score:900,t:`💡 Best flip: ${res[0].title}, +${fmt(res[0].profit)} SAR (${res[0].pct}% below market).`});
     const hi=live.filter(d=>d.confidence==="high"&&!d.status).length; if(hi) out.push({tab:"forsa",score:800,t:`✅ ${hi} high-confidence deal${hi>1?"s":""} waiting for you.`});
     if(off[0]) out.push({tab:"forsa",score:700,t:`🍕 ${off[0].source}: ${off[0].offer||off[0].title}${off[0].code?" · code "+off[0].code:""}`});
@@ -1822,7 +1823,7 @@ function connectExtras(){
 
 /* ---------- Forsa: deals found by the daily hunt (db "deals") ---------- */
 let deals=[], fShow="all";
-const FILTERS=[["all","All"],["flip","💰 Forsa Flip"],["new","🆕 New"],["used","♻️ Used"],["saved","★ Saved"]];
+const FILTERS=[["all","All"],["cheaper","🧾 Cheaper than I paid"],["flip","💰 Forsa Flip"],["new","🆕 New"],["used","♻️ Used"],["saved","★ Saved"]];
 const fF=document.getElementById("fFilter");
 FILTERS.forEach(([k,l])=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.dataset.k=k; b.textContent=l; b.setAttribute("aria-pressed",k===fShow?"true":"false");
   b.addEventListener("click",()=>{ fShow=k; fF.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.k===k?"true":"false")); renderDeals(); }); fF.appendChild(b); });
@@ -1837,10 +1838,10 @@ const fC=document.getElementById("fCats");
 function renderCats(){ const have=new Set(deals.filter(d=>d.status!=="hidden").map(catOf));
   fC.innerHTML=FCATS.filter(([k])=>!k||have.has(k)||k===fCat).map(([k,l])=>`<button type="button" class="chip" data-c="${k}" aria-pressed="${k===fCat}">${l}</button>`).join(""); }
 fC.addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; fCat=b.dataset.c; renderDeals(); });
-function fType(list,k){ return k==="flip"?list.filter(d=>d.market&&d.profit>0&&d.confidence!=="low"):k==="new"?list.filter(d=>!d.market):k==="used"?list.filter(d=>d.market):k==="saved"?list.filter(d=>d.status==="saved"):list; }
+function fType(list,k){ return k==="cheaper"?list.filter(d=>d.paid>0):k==="flip"?list.filter(d=>d.market&&d.profit>0&&d.confidence!=="low"):k==="new"?list.filter(d=>!d.market):k==="used"?list.filter(d=>d.market):k==="saved"?list.filter(d=>d.status==="saved"):list; }
 /* Filter words typed in the search box (English or Arabic) act like tapping that filter. */
 const FWORDS=[
-  ["type","flip",/\b(flip|forsa flip|resell|profit)\b|فرصة للبيع|ربح/i],["type","new",/\b(new|brand new|offers?)\b|جديد|عروض|عرض/i],["type","used",/\b(used|second ?hand)\b|مستعمل/i],["type","saved",/\bsaved\b|محفوظ/i],
+  ["type","flip",/\b(flip|forsa flip|resell|profit)\b|فرصة للبيع|ربح/i],["type","new",/\b(new|brand new|offers?)\b|جديد|عروض|عرض/i],["type","used",/\b(used|second ?hand)\b|مستعمل/i],["type","saved",/\bsaved\b|محفوظ/i],["type","cheaper",/\b(cheaper|paid|bought)\b|أرخص|ارخص|دفعت|اشتريت/i],
   ["cat","electronics",/\b(electronics?|phones?|mobiles?|games?|gaming|consoles?|laptops?)\b|إلكترونيات|الكترونيات|جوال|جوالات|ألعاب|العاب|لابتوب/i],
   ["cat","clothes",/\b(clothes|clothing|cloths|fashion|shoes|dress)\b|ملابس|أزياء|ازياء|أحذية|احذية/i],
   ["cat","food",/\b(food|restaurants?|meals?)\b|أكل|اكل|مطاعم|مطعم|وجبات/i],["cat","cars",/\b(cars?|vehicles?)\b|سيارات|سيارة/i],
@@ -1890,9 +1891,9 @@ function renderDeals(){
   const box=document.getElementById("fList");
   if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
   box.innerHTML=list.map(d=>`<div class="deal${d.status==="saved"?"":""}" data-d="${esc(d.id)}">
-    <span class="t">${esc(d.title)}<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span></span><span class="num">${d.price?fmt(d.price)+" SAR":""}</span>
-    <small>${d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`} · ${esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
-    <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">${d.market?"Open ad":"Open offer"}</a>`:""}<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button></span>
+    <span class="t">${esc(d.title)}${d.paid?"":`<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span>`}</span><span class="num">${d.price?(d.paid?money(d.price):fmt(d.price))+" SAR":""}</span>
+    <small>${d.paid?`<span>${esc("Found at "+d.source)}</span> · <span>${esc(`You paid ${money(d.paid)} SAR${d.paidStore?" at "+d.paidStore:""}`)}</span> · <b class="diff-down">${esc(`Save ${money(d.profit)} SAR (${d.pct}%)`)}</b>`:d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`}${d.paid?"":" · "+esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
+    <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">${d.market?"Open ad":d.paid?"See price":"Open offer"}</a>`:""}<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button></span>
   </div>`).join("");
 }
 document.getElementById("fList").addEventListener("click", async e=>{
@@ -1914,7 +1915,7 @@ document.getElementById("fTerms").addEventListener("click",e=>{ const b=e.target
 document.getElementById("fUpd").addEventListener("click",()=>{ hunt.requestedAt=Date.now(); saveHunt(); });
 function connectDeals(){
   db.doc("settings/hunt").onSnapshot(d=>{ const x=d&&d.exists?(d.data()||{}):{}; hunt={terms:Array.isArray(x.terms)?x.terms.map(String):[],requestedAt:Number(x.requestedAt)||0,lastRunAt:Number(x.lastRunAt)||0,lastRunSummary:String(x.lastRunSummary||"")}; renderHunt(); },()=>{});
-  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||"")}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
+  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||""),paid:Number(v.paid)||0,paidStore:String(v.paidStore||"")}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
 }
 function connectPrices(){
   db.collection("prices").onSnapshot(snap=>{
