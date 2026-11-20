@@ -73,7 +73,8 @@
   /* ---------- receipt and product photos: private storage, one folder per user ---------- */
   const assets = {
     async upload(blob){
-      const type = blob.type || "application/octet-stream", ext = (type.split("/")[1] || "bin").replace(/[^a-z0-9]/gi, "").slice(0, 5);
+      const byExt = {png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", webp:"image/webp", gif:"image/gif", heic:"image/heic", heif:"image/heif", pdf:"application/pdf"};
+      const type = blob.type || byExt[String(blob.name || "").split(".").pop().toLowerCase()] || "application/octet-stream", ext = (type.split("/")[1] || "bin").replace(/[^a-z0-9]/gi, "").slice(0, 5);
       const path = user.id + "/" + newId() + "." + ext;
       const {error} = await sb.storage.from("receipts").upload(path, blob, {contentType: type});
       if(error) throw err(error);
@@ -96,11 +97,16 @@
       if (blob.size > 20e6) throw err("image_rejected","Image over 20 MB");
       let bmp;
       try { bmp = await createImageBitmap(blob, {imageOrientation:"from-image"}); }
-      catch { throw err("image_rejected","Could not open that image"); }
+      catch {
+        // Fallback (e.g. HEIC or a file with no type): let the browser decode it as an <img>
+        bmp = await new Promise((ok, no) => { const u = URL.createObjectURL(blob), im = new Image();
+          im.onload = () => { URL.revokeObjectURL(u); ok({width: im.naturalWidth, height: im.naturalHeight, img: im}); };
+          im.onerror = () => { URL.revokeObjectURL(u); no(err("image_rejected","Could not open that image")); }; im.src = u; });
+      }
       const k = Math.min(1, Math.sqrt(1.2e6 / (bmp.width * bmp.height)));
       const c = document.createElement("canvas");
       c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
-      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      c.getContext("2d").drawImage(bmp.img || bmp, 0, 0, c.width, c.height);
       const url = c.toDataURL("image/jpeg", 0.85);
       return {type:"image", source:{type:"base64", media_type:"image/jpeg", data:url.slice(url.indexOf(",")+1)}};
     }
