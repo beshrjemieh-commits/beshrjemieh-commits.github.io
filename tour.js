@@ -3,16 +3,14 @@
   const S = {
     en: { close:"Close", back:"Back", next:"Next", done:"Done", of:(a,b)=>a+" of "+b, slides:[
       ["Balance","See how much money you have right now. Set your starting point once, then add money in when you get paid."],
-      ["Budget","Plan your month: bills, where your salary goes, salary day and debts. Spent and Left update by themselves."],
+      ["Budget","Plan your month: bills, where your salary goes, salary day, debts and savings goals. Spent and Left update by themselves."],
       ["Expenses","Log every cost here. Paste a bank message and the app fills it in. This month shows where your money went."],
-      ["Goals","Save for what you want, like Umrah or a new phone. Your emergency fund and smoking tracker live here too."],
       ["Prices Log","Upload receipts and save prices. The app shows which store is cheapest for what you buy."],
       ["Forsa","Deals below market price and app offers, checked during the day. Add anything you're looking for."]]},
     ar: { close:"إغلاق", back:"رجوع", next:"التالي", done:"تم", of:(a,b)=>a+" من "+b, slides:[
       ["الرصيد","شوف كم معك فلوس الحين. حدد نقطة البداية مرة وحدة، وبعدها أضف الفلوس الداخلة لما ينزل راتبك."],
-      ["الميزانية","خطط شهرك: الفواتير، وين يروح راتبك، يوم الراتب والديون. المصروف والمتبقي يتحدثون لحالهم."],
+      ["الميزانية","خطط شهرك: الفواتير، وين يروح راتبك، يوم الراتب، الديون وأهداف الادخار. المصروف والمتبقي يتحدثون لحالهم."],
       ["المصاريف","سجّل كل مصروف هنا. الصق رسالة البنك والتطبيق يعبّيها لك. هذا الشهر يوضح وين راحت فلوسك."],
-      ["الأهداف","ادّخر للي تبيه، مثل عمرة أو جوال جديد. صندوق الطوارئ ومتابعة التدخين هنا بعد."],
       ["سجل الأسعار","ارفع الفواتير واحفظ الأسعار. التطبيق يوضح لك أي محل أرخص للي تشتريه."],
       ["فرصة","عروض أقل من سعر السوق وعروض التطبيقات، تنفحص خلال اليوم. أضف أي شي تدور عليه."]]}
   };
