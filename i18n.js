@@ -8,7 +8,7 @@
   const D = {
 "Smart Wallet":"المحفظة الذكية","Personal finance · SAR":"مالي الشخصي · ريال","+ All":"+ الكل","− All":"− الكل","✏️ Edit":"✏️ تعديل","✓ Done":"✓ تم",
 "My Wallet":"محفظتي","Your balance, daily spending, price book and best deals, in one place.":"رصيدك ومصاريفك اليومية ودفتر الأسعار وأفضل العروض، في مكان واحد.",
-"Balance":"الرصيد","Expenses":"المصاريف","Prices":"الأسعار","Forsa":"فرصة",
+"Balance":"الرصيد","Budget":"الميزانية","Expenses":"المصاريف","Prices":"الأسعار","Forsa":"فرصة",
 "Tap a category to rename · ✕ remove · + Add. Tap ✓ Done to save.":"اضغط على الفئة لتغيير اسمها · ✕ حذف · + إضافة. اضغط ✓ تم للحفظ.",
 "Hide descriptions":"إخفاء الشرح","Show descriptions":"إظهار الشرح","Reset layout":"إعادة الترتيب الأصلي","Sign out":"تسجيل الخروج","✨ Ask":"✨ اسأل",
 "Add a cost":"أضف مصروف","Takes 10 seconds. Try to add everything, even small things.":"تأخذ ١٠ ثوانٍ. حاول تسجيل كل شيء، حتى الأشياء الصغيرة.",

@@ -266,7 +266,7 @@ h2,.tabs,.chip,.btn{-webkit-user-select:none;user-select:none}
 .view{gap:12px!important}
 h1{font-size:24px}
 header p{margin:2px 0 0}
-.tabs [role=tab]{padding-left:8px!important;padding-right:8px!important;font-size:13px;flex:1 1 auto;min-width:0}
+.tabs [role=tab]{padding-left:5px!important;padding-right:5px!important;font-size:12.5px;flex:1 1 auto;min-width:0;white-space:nowrap}
 #expAll,#colAll{flex:0 0 auto;padding:1px 7px!important;font-size:10px!important;line-height:1.4!important;min-height:0!important;height:auto!important;border-radius:999px!important}
 .btn.primary{padding:7px 14px!important;font-size:13px!important;width:auto!important;min-height:0!important}
 /* compact, tidy forms on phones */
@@ -444,8 +444,9 @@ form.card .logform{row-gap:11px!important}
 
   <nav class="tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabBal" aria-controls="viewBal" aria-selected="false">Balance</button>
-    <button type="button" role="tab" id="tabGoals" aria-controls="viewGoals" aria-selected="false">Goals</button>
     <button type="button" role="tab" id="tabPlan" aria-controls="viewPlan" aria-selected="true">Expenses</button>
+    <button type="button" role="tab" id="tabBudget" aria-controls="viewBudget" aria-selected="false">Budget</button>
+    <button type="button" role="tab" id="tabGoals" aria-controls="viewGoals" aria-selected="false">Goals</button>
     <button type="button" role="tab" id="tabPrices" aria-controls="viewPrices" aria-selected="false">Prices</button>
     <button type="button" role="tab" id="tabForsa" aria-controls="viewForsa" aria-selected="false">Forsa</button>
   </nav>
@@ -499,7 +500,38 @@ form.card .logform{row-gap:11px!important}
   </section>
 
 
-  <!-- PLAN -->
+
+
+  <section>
+    <div><h2>Emergency fund</h2><p class="sub">Three months of your essential costs, so a surprise (car repair, job gap) doesn't become debt.</p></div>
+    <div class="card">
+      <div class="row"><span>Target</span><span class="num" id="efTarget"></span></div>
+      <div class="row"><span>Saving each month</span><span class="num" id="efMonthly"></span></div>
+      <p id="efWhen" class="sub"></p>
+    </div>
+  </section>
+
+  <section id="salary">
+    <div><h2>Salary day</h2><p class="sub">Your salary arrives on the <span class="payTxt">10th</span>. Make these transfers the same day, before spending anything.</p></div>
+    <div class="card" id="salaryCard"></div>
+  </section>
+
+
+  <section>
+    <div><h2>Smoking</h2><p class="sub">You said smoking and fun together come to about 40 SAR a day. Move the slider to see what cutting back gives you.</p></div>
+    <div class="card" id="streakCard" style="border-color:var(--accent)"><span class="tag">Smoke-free streak</span><span class="num" id="streakDays" style="font-size:30px;font-weight:600">–</span><span class="sub" id="streakNote">Counts from the last time you logged Smoking.</span></div>
+    <div class="card">
+      <div class="row"><label for="smk">Daily spend</label><span class="num" id="smkVal">40 SAR</span></div>
+      <input type="range" id="smk" min="0" max="60" step="5" value="40">
+      <div class="row"><span>Per month</span><span class="num" id="smkMonth"></span></div>
+      <div class="row"><span>Per year</span><span class="num" id="smkYear"></span></div>
+      <div class="row"><span>Saved per year vs. 40 SAR/day</span><span class="num diff-down" id="smkSaved"></span></div>
+    </div>
+  </section>
+
+  </div><!-- /viewPlan -->
+
+  <div class="view" id="viewBudget" role="tabpanel" aria-labelledby="tabBudget" hidden>
   <section id="salSec">
     <div><h2>Where your salary goes</h2><p class="sub">Your <span class="num" id="salTxt">–</span> SAR salary (tap the Salary tile to change it). Left: what you spend now. Right: the plan.</p></div>
     <div class="tiles">
@@ -513,7 +545,6 @@ form.card .logform{row-gap:11px!important}
       <div class="tablebox"><table class="gtable"><thead><tr><th>Group</th><th class="r">Before</th><th class="r">Plan</th></tr></thead><tbody id="gRows"></tbody></table></div>
     </div>
   </section>
-
   <section>
     <div class="row" style="align-items:end">
       <div><h2>Monthly budget</h2><p class="sub">“Spent” and “Left” fill in by themselves from your daily log for the month shown above. Your plan amounts stay as they are until you change them.</p></div>
@@ -536,21 +567,6 @@ form.card .logform{row-gap:11px!important}
       </table>
     </div>
   </section>
-
-  <section>
-    <div><h2>Emergency fund</h2><p class="sub">Three months of your essential costs, so a surprise (car repair, job gap) doesn't become debt.</p></div>
-    <div class="card">
-      <div class="row"><span>Target</span><span class="num" id="efTarget"></span></div>
-      <div class="row"><span>Saving each month</span><span class="num" id="efMonthly"></span></div>
-      <p id="efWhen" class="sub"></p>
-    </div>
-  </section>
-
-  <section id="salary">
-    <div><h2>Salary day</h2><p class="sub">Your salary arrives on the <span class="payTxt">10th</span>. Make these transfers the same day, before spending anything.</p></div>
-    <div class="card" id="salaryCard"></div>
-  </section>
-
   <section id="debts">
     <div><h2>Debts to repay</h2><p class="sub">Record each repayment here. Debts are paid from the “Debt repayment” line in your plan, smallest first.</p></div>
     <div class="tiles">
@@ -561,20 +577,8 @@ form.card .logform{row-gap:11px!important}
     <div class="card edit-only" id="debtAdd" style="gap:6px;align-items:center;flex-wrap:wrap"><input id="daName" placeholder="Who / what" maxlength="60" style="flex:2;min-width:120px;height:36px"><input id="daAmt" type="number" inputmode="decimal" placeholder="SAR" style="flex:1;min-width:80px;height:36px"><button class="btn" type="button" id="daAdd">+ Add debt</button></div>
     <div class="card" id="debtList"><p class="sub">Your debts will appear here once your saved data loads.</p></div>
   </section>
+  </div><!-- /viewBudget -->
 
-  <section>
-    <div><h2>Smoking</h2><p class="sub">You said smoking and fun together come to about 40 SAR a day. Move the slider to see what cutting back gives you.</p></div>
-    <div class="card" id="streakCard" style="border-color:var(--accent)"><span class="tag">Smoke-free streak</span><span class="num" id="streakDays" style="font-size:30px;font-weight:600">–</span><span class="sub" id="streakNote">Counts from the last time you logged Smoking.</span></div>
-    <div class="card">
-      <div class="row"><label for="smk">Daily spend</label><span class="num" id="smkVal">40 SAR</span></div>
-      <input type="range" id="smk" min="0" max="60" step="5" value="40">
-      <div class="row"><span>Per month</span><span class="num" id="smkMonth"></span></div>
-      <div class="row"><span>Per year</span><span class="num" id="smkYear"></span></div>
-      <div class="row"><span>Saved per year vs. 40 SAR/day</span><span class="num diff-down" id="smkSaved"></span></div>
-    </div>
-  </section>
-
-  </div><!-- /viewPlan -->
 
   <div class="view" id="viewBal" role="tabpanel" aria-labelledby="tabBal" hidden>
     <section>
@@ -1284,7 +1288,7 @@ applyCards();
     res.hidden=true; setTimeout(()=>r.sec.scrollIntoView({behavior:"smooth",block:"start"}),60); });
   document.addEventListener("click",e=>{ if(!e.target.closest("#gsBox") && !res.classList.contains("ai")) res.hidden=true; });
   /* ---- AI assistant ---- */
-  const TABKEY={expenses:"plan",balance:"bal",prices:"prices",forsa:"forsa",plan:"plan",bal:"bal"};
+  const TABKEY={expenses:"plan",budget:"budget",goals:"goals",balance:"bal",prices:"prices",forsa:"forsa",plan:"plan",bal:"bal"};
   function secs(){ const o=[]; Object.entries(TABS).forEach(([tab,[,vid]])=>document.getElementById(vid).querySelectorAll("section").forEach(sec=>{ const h=sec.querySelector("h2"); if(h) o.push({tab,sec,name:hKey(h)}); })); return o; }
   function findSec(n){ n=String(n||"").toLowerCase().trim(); const all=secs(); return all.find(x=>x.name.toLowerCase()===n)||all.find(x=>x.name.toLowerCase().includes(n))||all.find(x=>n.includes(x.name.toLowerCase())); }
   function setOpen(x,open){ const h=x.sec.querySelector(":scope > div:first-child h2"); if(h && x.sec.classList.contains("collapsed")===open) h.click(); }
@@ -1294,7 +1298,7 @@ applyCards();
     {name:"list_sections",description:"List every tab and section of the wallet app with whether it is open.",execute:()=>secs().map(x=>({tab:TABNAME[x.tab],section:x.name,open:!x.sec.classList.contains("collapsed")}))},
     {name:"read_section",description:"Read the visible text (numbers, rows) of one section by name.",inputSchema:{type:"object",properties:{section:{type:"string"}},required:["section"]},execute:({section})=>{ const x=findSec(section); if(!x) throw new Error("No such section"); return (x.sec.innerText||x.sec.textContent||"").replace(/\s+/g," ").slice(0,3500); }},
     {name:"search_app",description:"Find text across all tabs. Returns section names with snippets.",inputSchema:{type:"object",properties:{query:{type:"string"}},required:["query"]},execute:({query})=>{ const q=String(query).toLowerCase(); return secs().filter(x=>(x.sec.innerText||x.sec.textContent||"").toLowerCase().includes(q)).map(x=>{ const t=(x.sec.innerText||x.sec.textContent||"").replace(/\s+/g," "); const i=t.toLowerCase().indexOf(q); return {tab:TABNAME[x.tab],section:x.name,snippet:t.slice(Math.max(0,i-80),i+160)}; }).slice(0,12); }},
-    {name:"show_tab",description:"Switch the app to a tab: Expenses, Balance, Prices or Forsa.",inputSchema:{type:"object",properties:{tab:{type:"string"}},required:["tab"]},execute:({tab})=>{ const k=TABKEY[String(tab).toLowerCase()]; if(!k) throw new Error("Unknown tab"); showTab(k); return "ok"; }},
+    {name:"show_tab",description:"Switch the app to a tab: Balance, Expenses, Budget, Goals, Prices or Forsa.",inputSchema:{type:"object",properties:{tab:{type:"string"}},required:["tab"]},execute:({tab})=>{ const k=TABKEY[String(tab).toLowerCase()]; if(!k) throw new Error("Unknown tab"); showTab(k); return "ok"; }},
     {name:"open_section",description:"Go to a section, open (maximize) it and scroll to it. Use this to show the user what they asked about.",inputSchema:{type:"object",properties:{section:{type:"string"}},required:["section"]},execute:({section})=>{ const x=findSec(section); if(!x) throw new Error("No such section"); showTab(x.tab); setOpen(x,true); setTimeout(()=>x.sec.scrollIntoView({behavior:"smooth",block:"start"}),80); return "opened "+x.name; }},
     {name:"close_section",description:"Minimize a section.",inputSchema:{type:"object",properties:{section:{type:"string"}},required:["section"]},execute:({section})=>{ const x=findSec(section); if(!x) throw new Error("No such section"); setOpen(x,false); return "closed "+x.name; }},
     {name:"open_all",description:"Open or minimize all sections on the current tab.",inputSchema:{type:"object",properties:{open:{type:"boolean"}},required:["open"]},execute:({open})=>{ setAll(!!open); return "ok"; }},
@@ -1400,7 +1404,7 @@ document.getElementById("ceSave").addEventListener("click",async()=>{ ceDraft.na
   try{ sessionStorage.setItem("w-cards-reload","1"); }catch(e){}
   location.reload(); });
 /* ---------- tabs ---------- */
-const TABS = {plan:["tabPlan","viewPlan"], bal:["tabBal","viewBal"], goals:["tabGoals","viewGoals"], prices:["tabPrices","viewPrices"], forsa:["tabForsa","viewForsa"]};
+const TABS = {plan:["tabPlan","viewPlan"], budget:["tabBudget","viewBudget"], bal:["tabBal","viewBal"], goals:["tabGoals","viewGoals"], prices:["tabPrices","viewPrices"], forsa:["tabForsa","viewForsa"]};
 function showTab(name){
   if(!TABS[name]) name="plan";
   for(const [k,[t,v]] of Object.entries(TABS)){ document.getElementById(v).hidden = k!==name; document.getElementById(t).setAttribute("aria-selected", String(k===name)); }
@@ -1593,11 +1597,11 @@ const SECTION_HINTS = {
   "This month": ()=>{ const m=monthSums(), tot=Object.values(m).reduce((a,b)=>a+b,0); const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
     return top?[{tab:"plan",score:2000,t:`📊 ${BY[top[0]].s} takes ${Math.round(top[1]/tot*100)}% of this month's spending (${fmt(top[1])} of ${fmt(tot)} SAR).`}]:[]; },
   "Where your salary goes": ()=>{ const m=monthSums(), tot=Object.values(m).reduce((a,b)=>a+b,0); const top=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    return top.length?[{tab:"plan",score:2000,t:`🔍 Most of your money is really going to ${top.map(([k,v])=>`${BY[k].s} ${Math.round(v/tot*100)}%`).join(", ")}.`}]:[]; },
+    return top.length?[{tab:"budget",score:2000,t:`🔍 Most of your money is really going to ${top.map(([k,v])=>`${BY[k].s} ${Math.round(v/tot*100)}%`).join(", ")}.`}]:[]; },
   "Monthly budget": ()=>{ const m=monthSums(); const over=ITEMS.filter(i=>(m[i.k]||0)>state[i.k].plan && state[i.k].plan>0).sort((a,b)=>((m[b.k]-state[b.k].plan)-(m[a.k]-state[a.k].plan)));
-    return [{tab:"plan",score:2000,t: over.length?`⚠️ Over budget: ${over.slice(0,3).map(i=>`${i.s} +${fmt(m[i.k]-state[i.k].plan)}`).join(", ")} SAR.`:"✅ Every category is within budget this month."}]; },
+    return [{tab:"budget",score:2000,t: over.length?`⚠️ Over budget: ${over.slice(0,3).map(i=>`${i.s} +${fmt(m[i.k]-state[i.k].plan)}`).join(", ")} SAR.`:"✅ Every category is within budget this month."}]; },
   "Salary day": ()=>{ const d=Math.ceil((nextSalaryDate()-new Date())/864e5); return [{tab:"plan",score:2000,t:`🗓️ ${d} day${d===1?"":"s"} until salary. Make the transfers on the same day, before spending.`}]; },
-  "Debts to repay": ()=>{ const left=debts.reduce((a,d)=>a+Math.max(0,d.total-d.paid),0); return [{tab:"plan",score:2000,t: left?`⛓️ ${fmt(left)} SAR of debt left. Paying the smallest first builds momentum.`:"🎉 No debt left!"}]; },
+  "Debts to repay": ()=>{ const left=debts.reduce((a,d)=>a+Math.max(0,d.total-d.paid),0); return [{tab:"budget",score:2000,t: left?`⛓️ ${fmt(left)} SAR of debt left. Paying the smallest first builds momentum.`:"🎉 No debt left!"}]; },
   "Smoking": ()=>{ const sm=entries.filter(e=>e.cat==="smoke"&&e.date.slice(0,7)===ymd(new Date()).slice(0,7)).reduce((a,e)=>a+e.amount,0); return [{tab:"plan",score:2000,t:`🚭 Cigarettes this month: ${fmt(sm)} SAR. That's ${fmt(sm*12)} SAR a year at this rate.`}]; },
   "Bills": ()=>{ const n=bills.filter(b=>!b.added).length; return [{tab:"prices",score:2000,t: n?`🧾 ${n} bill${n===1?"":"s"} not read yet. Tap Read items to add the prices.`:"🧾 More receipts mean smarter price hints. Upload your next bill."}]; },
   "Price book": ()=> priceTimingHints().map(h=>Object.assign(h,{score:h.score+1000})),
