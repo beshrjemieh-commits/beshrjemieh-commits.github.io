@@ -11,18 +11,18 @@
   const pick = (arr, salt) => arr.length ? arr[Math.floor(((seed * 9301 + (salt || 0) * 49297) % 1) * arr.length) % arr.length] : null;
 
   const CARDS = [
-    {tab:"bal",    title:L("Balance","الرصيد"),          icon:"wallet",  c:"#7c5cff"},
-    {tab:"budget", title:L("Budget","الميزانية"),        icon:"pie",     c:"#b18cff"},
-    {tab:"plan",   title:L("Expenses","المصاريف"),       icon:"receipt", c:"#4fc3ff"},
-    {tab:"prices", title:L("Prices Log","سجل الأسعار"),  icon:"tag",     c:"#ffb35c"},
-    {tab:"forsa",  title:L("Forsa","فرصة"),              icon:"spark",   c:"#ff6fa8"}
+    {tab:"bal",    title:L("Balance","الرصيد"),          icon:"wallet",  c:"#0F2A4A"},
+    {tab:"budget", title:L("Budget","الميزانية"),        icon:"pie",     c:"#2563EB"},
+    {tab:"plan",   title:L("Expenses","المصاريف"),       icon:"receipt", c:"#DC2626"},
+    {tab:"prices", title:L("Prices Log","سجل الأسعار"),  icon:"tag",     c:"#16A34A"},
+    {tab:"forsa",  title:L("Forsa","فرصة"),              icon:"spark",   c:"#F59E0B"}
   ];
   const ICON = {
     wallet:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18v3"/><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="13.5" r="1.2"/>',
     pie:'<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/>',
     receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
     tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
-    spark:'<path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/>'
+    spark:'<path d="M12 3c.8 3.8 5 5.3 5 10a5 5 0 0 1-10 0c0-2.6 1.5-3.8 2-6 1 1 1.6 2 2.6 2.4C12 7.4 11 5.2 12 3z"/>'
   };
   const svg = k => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 
@@ -134,7 +134,10 @@
       const b = window.lastBalance;
       if(b == null) return {big: L("Set your starting point","حدد نقطة البداية"), sub: L("Count your cash and bank once, then the app keeps track.","احسب الكاش والبنك مرة وحدة، والتطبيق يتابع بعدها."), small:true};
       const nsd = g("nextSalaryDate"), days = nsd ? Math.max(1, Math.ceil((nsd() - new Date()) / 864e5)) : 30;
-      return {big: b < 0 ? neg(-b) : sar(b), sub: L(`About ${fmt(b / days)} SAR a day for ${days} day${days===1?"":"s"} until payday`, `حوالي ${fmt(b / days)} ريال باليوم لمدة ${days} يوم حتى الراتب`), bad: b < 0};
+      const mk = (g("ymd") || (d => d.toISOString().slice(0,10)))(new Date()).slice(0,7);
+      const inM = (g("income") || []).filter(x => x.date.slice(0,7) === mk).reduce((a,x) => a + x.amount, 0), outM = (g("entries") || []).filter(x => x.date.slice(0,7) === mk).reduce((a,x) => a + x.amount, 0), net = inM - outM;
+      const netTxt = net >= 0 ? `<span class="gain">▲ +${fmt(net)} ${L("this month","هذا الشهر")}</span>` : `<span class="loss">▼ −${fmt(-net)} ${L("this month","هذا الشهر")}</span>`;
+      return {big: b < 0 ? neg(-b) : sar(b), subHtml: `<bdi>${netTxt}</bdi> · ` + L(`${fmt(b / days)} SAR/day for ${days} day${days===1?"":"s"}`, `${fmt(b / days)} ريال/يوم لمدة ${days} يوم`), bad: b < 0};
     }
     if(tab === "budget"){
       const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {};
@@ -146,7 +149,7 @@
       const c = cats.slice().sort((a,b) => a.left / (state[a.i.k].plan || 1) - b.left / (state[b.i.k].plan || 1))[0];
       const catTxt = c ? `<span>${esc(c.i.s)}</span>: ${c.left < 0 ? L(`${fmt(-c.left)} SAR over`, `متجاوز ${fmt(-c.left)} ريال`) : L(`${fmt(c.left)} SAR left`, `باقي ${fmt(c.left)} ريال`)}` : "";
       return {big: (left < 0 ? neg(-perDay) : sar(perDay)) + L(" / day", " / يوم"), bad: left < 0,
-        subHtml: (left < 0 ? L(`${fmt(-left)} SAR over this month`, `متجاوز ${fmt(-left)} ريال هذا الشهر`) : L(`${fmt(left)} SAR left this month`, `باقي ${fmt(left)} ريال هذا الشهر`)) + (catTxt ? " · " + catTxt : "")};
+        subHtml: (left < 0 ? `<span class="loss">▼ ` + L(`${fmt(-left)} SAR over this month`, `متجاوز ${fmt(-left)} ريال هذا الشهر`) + `</span>` : L(`${fmt(left)} SAR left this month`, `باقي ${fmt(left)} ريال هذا الشهر`)) + (catTxt ? " · " + catTxt : "")};
     }
     if(tab === "plan"){
       const es = (g("entries") || []).slice().sort((a,b) => (b.date.localeCompare(a.date)) || (b.createdAt - a.createdAt)), BY = g("BY") || {};
@@ -161,8 +164,8 @@
       const multi = groups.map(r => { const best = new Map(); r.forEach(p => { const s = p.store || "?"; if(!best.has(s) || p.price < best.get(s).price) best.set(s, p); }); return [...best.values()].sort((a,b) => a.price - b.price); }).filter(r => r.length >= 2);
       if(multi.length){ multi.sort((a,b) => (b[b.length-1].price - b[0].price) - (a[a.length-1].price - a[0].price)); const r = pick(multi.slice(0, 3), 5), lo = r[0], hi = r[r.length-1], save = hi.price - lo.price;
         return {big: `${esc(lo.item)}${lo.size ? " · " + esc(lo.size) : ""}`, mid:true,
-          subHtml: L(`<b>${money(lo.price)}</b> at ${esc(lo.store)} vs ${money(hi.price)} at ${esc(hi.store)} · save ${money(save)} SAR (${Math.round(save / hi.price * 100)}%)`,
-                     `<b>${money(lo.price)}</b> في ${esc(lo.store)} مقابل ${money(hi.price)} في ${esc(hi.store)} · توفّر ${money(save)} ريال (${Math.round(save / hi.price * 100)}٪)`)}; }
+          subHtml: L(`<b>${money(lo.price)}</b> at ${esc(lo.store)} vs ${money(hi.price)} at ${esc(hi.store)} · <span class="gain">▼ ${Math.round(save / hi.price * 100)}% (−${money(save)})</span>`,
+                     `<b>${money(lo.price)}</b> في ${esc(lo.store)} مقابل ${money(hi.price)} في ${esc(hi.store)} · <span class="gain">▼ ${Math.round(save / hi.price * 100)}٪ (−${money(save)})</span>`)}; }
       const all = groups.flat(); if(!all.length) return {big: L("Start your price book","ابدأ دفتر الأسعار"), sub: L("Save what things cost and where.","سجّل أسعار الأشياء وأين."), small:true};
       const p = pick(all, 5);
       return {big: `${esc(p.item)}${p.size ? " · " + esc(p.size) : ""}`, mid:true, subHtml: L(`${money(p.price)} SAR at ${esc(p.store || "?")} on ${esc(p.date)}`, `${money(p.price)} ريال في ${esc(p.store || "?")} بتاريخ ${esc(p.date)}`)};
@@ -214,25 +217,38 @@
   #tabHome{flex:0 0 auto!important;width:44px;display:inline-flex;align-items:center;justify-content:center}
   #tabHome::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 11 12 4l8.5 7'/%3E%3Cpath d='M5.5 9.5V20h13V9.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 11 12 4l8.5 7'/%3E%3Cpath d='M5.5 9.5V20h13V9.5'/%3E%3C/svg%3E") center/contain no-repeat}
   .hgreet{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:12.5px;padding:0 2px}
-  /* Violet glow look */
+  /* Beshr's palette: navy balance card, white cards, amber only for deals, green/red only for money in/out */
   .hgreet{display:none!important}
   .hcard::before{display:none!important}
   .hcard .hh .go{display:none}
-  .hcard{border:none!important}
 #viewHome{gap:8px!important}
-.hcard{border-radius:20px!important;padding:10px 14px!important;background:#211f42!important;box-shadow:inset 0 0 0 1px #3b3970!important}
-.hcard[data-go=bal]{background:linear-gradient(135deg,#7c5cff 0%,#4f7bff 55%,#22c1ee 100%)!important;box-shadow:0 16px 34px -16px #6b5cff!important;padding:12px 14px!important}
-.hcard[data-go=bal] .hh{flex-wrap:wrap;color:rgba(255,255,255,.85)!important}
+.hcard{--hc:var(--navy);border:1px solid var(--card-line)!important;border-radius:18px!important;padding:10px 14px!important;background:var(--card)!important;color:var(--fg)!important;box-shadow:var(--shadow)!important}
+.hcard .hh{color:var(--tabink)!important;font-weight:600!important}
+.hcard .hh .big{color:var(--fg)!important}
+.hcard .hh .big.bad{color:var(--loss)!important}
+.hcard .hh .ic{border-radius:50%!important;width:26px!important;height:26px!important;background:var(--navy-soft)!important;color:var(--fg)!important}
+.hcard .sub{color:var(--muted)!important}.hcard .sub b{color:var(--fg)!important}
+.hcard .hint{background:var(--chip)!important;color:var(--ink2)!important;border-radius:999px!important;padding:4px 10px!important}
+.hcard .hint>svg{color:var(--muted)!important}
+.hcard[data-go=bal]{background:var(--navy)!important;border:none!important;padding:13px 15px!important}
+.hcard[data-go=bal] .hh{flex-wrap:wrap;color:var(--navy-sub)!important;font-weight:500!important}
 .hcard[data-go=bal] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:30px!important;color:#fff!important;margin-top:0;line-height:1.15}
-.hcard[data-go=bal] .sub{color:rgba(255,255,255,.85)!important}
-.hcard[data-go=bal] .hint{background:rgba(0,0,0,.18)!important}
-.hcard[data-go=bal] .ic{background:rgba(255,255,255,.22)!important;color:#fff!important}
-.hcard .hh .ic{border-radius:50%!important;width:26px!important;height:26px!important;background:var(--hc)!important;color:#fff!important}
-.hcard .hint{background:#2d2b58!important;border-radius:999px!important;padding:4px 10px!important}
-.hcard[data-go=budget]{--hc:#a970ff}.hcard[data-go=plan]{--hc:#2fb5ff}.hcard[data-go=prices]{--hc:#ff9f1a}.hcard[data-go=forsa]{--hc:#ff4f8b}
+.hcard[data-go=bal] .hh .big.bad{color:#FCA5A5!important}
+.hcard[data-go=bal] .sub{color:var(--navy-sub)!important}
+.hcard[data-go=bal] .hint{background:rgba(255,255,255,.1)!important;color:#E2E8F0!important}
+.hcard[data-go=bal] .hint>svg{color:var(--navy-sub)!important}
+.hcard[data-go=bal] .ic{background:rgba(255,255,255,.12)!important;color:#fff!important}
+.hcard[data-go=plan] .hh .big{color:var(--loss)!important}
+.hcard .gain{color:var(--gain)!important;font-weight:600}.hcard[data-go=bal] .gain{color:var(--gain-on-navy)!important}
+.hcard .loss{color:var(--loss)!important;font-weight:600}
+.hcard[data-go=forsa]{background:var(--deal-soft)!important;border-color:var(--deal-line)!important}
+.hcard[data-go=forsa] .hh,.hcard[data-go=forsa] .hh .big{color:var(--deal-ink)!important}
+.hcard[data-go=forsa] .sub{color:var(--deal-ink)!important;opacity:.85}.hcard[data-go=forsa] .sub b{color:var(--deal-ink)!important}
+.hcard[data-go=forsa] .hint{background:color-mix(in srgb,var(--deal) 16%,transparent)!important;color:var(--deal-ink)!important}
+.hcard[data-go=forsa] .hint>svg{color:var(--deal)!important}
+.hcard[data-go=forsa] .ic{background:var(--deal)!important;color:#fff!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
-  .hcard .hint>svg{flex:none;width:14px;height:14px;color:var(--hc)}
-  .hcard[data-go=bal] .hint>svg{color:#fff}
+  .hcard .hint>svg{flex:none;width:14px;height:14px}
   .hcard .hint>span{flex:1;min-width:0}`;
 
   const lastHint = {};
