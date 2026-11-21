@@ -1913,17 +1913,18 @@ document.getElementById("inForm").addEventListener("submit", async e=>{
 });
 document.getElementById("startForm").addEventListener("submit", async e=>{
   e.preventDefault(); if(!db) return;
-  const cash=parseFloat(document.getElementById("stCash").value)||0, bank=parseFloat(document.getElementById("stBank").value)||0;
+  const cE=document.getElementById("stCash"), bE=document.getElementById("stBank");
   const st=document.getElementById("stStatus");
+  if(cE.value.trim()===""||bE.value.trim()===""){ st.textContent="Enter both cash and bank (0 if none)."; st.className="status err"; (cE.value.trim()===""?cE:bE).focus(); return; }
+  const cash=parseFloat(cE.value)||0, bank=parseFloat(bE.value)||0;
   try{ await db.doc("settings/balance").set({cash:Math.round(cash*100)/100, bank:Math.round(bank*100)/100, asOf:ymd(new Date()), at:Date.now()});
-    st.textContent="Saved. Your balance now counts from this moment."; st.className="status"; }
+    st.textContent="Saved. Your balance now counts from this moment."; st.className="status"; cE.value=""; bE.value=""; }
   catch(err){ st.textContent="Couldn't save. Try again."; st.className="status err"; }
 });
 function connectBalance(){
   db.doc("settings/balance").onSnapshot(d=>{
     const x = d && d.exists ? (d.data()||{}) : null;
     balStart = x ? {cash:Number(x.cash)||0, bank:Number(x.bank)||0, asOf:String(x.asOf||"0000-00-00"), at:Number(x.at)||0} : null;
-    if(balStart){ document.getElementById("stCash").value=balStart.cash||""; document.getElementById("stBank").value=balStart.bank||""; }
     document.getElementById("stSave").disabled=false;
     renderBalance();
   }, ()=>{});
@@ -2196,6 +2197,12 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"＋ Add money in"); }); })();</script>
 <script>(function(){ const b=document.getElementById("stToggle"), box=document.getElementById("stBox"); if(!b||!box) return;
   b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"🏁 Starting point"); }); })();</script>
+<script>/* start fresh: empty every search / entry box when the app opens or comes back after a while */
+(function(){ function clear(){ ["gSearch","fSearch","pSearch","smsIn","fAmount","fAmount2","fNote","fNote2","stCash","stBank","inAmt","inNote","gName","gTarget","pPrice","pSize","ceName","daName","daAmt"].forEach(id=>{ const el=document.getElementById(id); if(!el||el===document.activeElement) return; if(el.value){ el.value=""; if(el.tagName==="TEXTAREA") el.style.height=""; } });
+    const r=document.getElementById("gsRes"); if(r) r.hidden=true; }
+  setTimeout(clear,0); window.addEventListener("pageshow",e=>{ if(e.persisted) clear(); });
+  let hidAt=0; document.addEventListener("visibilitychange",()=>{ if(document.hidden) hidAt=Date.now(); else if(hidAt && Date.now()-hidAt>5*60e3) clear(); }); })();
+</script>
 <div id="setSheet" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle"><div class="sh">
   <div class="grab"></div>
   <div class="shTop"><h2 id="setTitle">Settings</h2><button class="btn" type="button" id="setDone">Done</button></div>
