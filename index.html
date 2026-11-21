@@ -449,8 +449,8 @@ form.card .logform{row-gap:11px!important}
   <nav class="tabs" role="tablist" aria-label="Pages">
     <div class="tabgrp">
     <button type="button" role="tab" id="tabBal" aria-controls="viewBal" aria-selected="false">Balance</button>
-    <button type="button" role="tab" id="tabPlan" aria-controls="viewPlan" aria-selected="true">Expenses</button>
     <button type="button" role="tab" id="tabBudget" aria-controls="viewBudget" aria-selected="false">Budget</button>
+    <button type="button" role="tab" id="tabPlan" aria-controls="viewPlan" aria-selected="true">Expenses</button>
     <button type="button" role="tab" id="tabGoals" aria-controls="viewGoals" aria-selected="false">Goals</button>
     </div>
     <div class="tabgrp">
@@ -1310,7 +1310,7 @@ applyCards();
     {name:"list_sections",description:"List every tab and section of the wallet app with whether it is open.",execute:()=>secs().map(x=>({tab:TABNAME[x.tab],section:x.name,open:!x.sec.classList.contains("collapsed")}))},
     {name:"read_section",description:"Read the visible text (numbers, rows) of one section by name.",inputSchema:{type:"object",properties:{section:{type:"string"}},required:["section"]},execute:({section})=>{ const x=findSec(section); if(!x) throw new Error("No such section"); return (x.sec.innerText||x.sec.textContent||"").replace(/\s+/g," ").slice(0,3500); }},
     {name:"search_app",description:"Find text across all tabs. Returns section names with snippets.",inputSchema:{type:"object",properties:{query:{type:"string"}},required:["query"]},execute:({query})=>{ const q=String(query).toLowerCase(); return secs().filter(x=>(x.sec.innerText||x.sec.textContent||"").toLowerCase().includes(q)).map(x=>{ const t=(x.sec.innerText||x.sec.textContent||"").replace(/\s+/g," "); const i=t.toLowerCase().indexOf(q); return {tab:TABNAME[x.tab],section:x.name,snippet:t.slice(Math.max(0,i-80),i+160)}; }).slice(0,12); }},
-    {name:"show_tab",description:"Switch the app to a tab: Balance, Expenses, Budget, Goals, Prices or Forsa.",inputSchema:{type:"object",properties:{tab:{type:"string"}},required:["tab"]},execute:({tab})=>{ const k=TABKEY[String(tab).toLowerCase()]; if(!k) throw new Error("Unknown tab"); showTab(k); return "ok"; }},
+    {name:"show_tab",description:"Switch the app to a tab: Balance, Budget, Expenses, Goals, Prices or Forsa.",inputSchema:{type:"object",properties:{tab:{type:"string"}},required:["tab"]},execute:({tab})=>{ const k=TABKEY[String(tab).toLowerCase()]; if(!k) throw new Error("Unknown tab"); showTab(k); return "ok"; }},
     {name:"open_section",description:"Go to a section, open (maximize) it and scroll to it. Use this to show the user what they asked about.",inputSchema:{type:"object",properties:{section:{type:"string"}},required:["section"]},execute:({section})=>{ const x=findSec(section); if(!x) throw new Error("No such section"); showTab(x.tab); setOpen(x,true); setTimeout(()=>x.sec.scrollIntoView({behavior:"smooth",block:"start"}),80); return "opened "+x.name; }},
     {name:"close_section",description:"Minimize a section.",inputSchema:{type:"object",properties:{section:{type:"string"}},required:["section"]},execute:({section})=>{ const x=findSec(section); if(!x) throw new Error("No such section"); setOpen(x,false); return "closed "+x.name; }},
     {name:"open_all",description:"Open or minimize all sections on the current tab.",inputSchema:{type:"object",properties:{open:{type:"boolean"}},required:["open"]},execute:({open})=>{ setAll(!!open); return "ok"; }},
