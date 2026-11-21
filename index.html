@@ -437,6 +437,7 @@ form.card .logform{row-gap:11px!important}
 
   <nav class="tabs" role="tablist" aria-label="Pages">
     <button type="button" role="tab" id="tabBal" aria-controls="viewBal" aria-selected="false">Balance</button>
+    <button type="button" role="tab" id="tabGoals" aria-controls="viewGoals" aria-selected="false">Goals</button>
     <button type="button" role="tab" id="tabPlan" aria-controls="viewPlan" aria-selected="true">Expenses</button>
     <button type="button" role="tab" id="tabPrices" aria-controls="viewPrices" aria-selected="false">Prices</button>
     <button type="button" role="tab" id="tabForsa" aria-controls="viewForsa" aria-selected="false">Forsa</button>
@@ -574,14 +575,23 @@ form.card .logform{row-gap:11px!important}
     <section>
       <div><h2>Your money right now</h2><p class="sub">Starts from the cash and bank money you have, adds every bit of money that comes in, and takes away every cost you log in Expenses.</p></div>
       <div class="balhero"><span class="hrow" style="justify-content:center"><span class="tag" style="font-size:14px;font-weight:600">Current balance</span><button type="button" class="ibtn" aria-label="More info"><svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="10" cy="10" r="8.6" fill="currentColor" opacity=".16"/><circle cx="10" cy="10" r="8.6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="6.2" r="1.15" fill="currentColor"/><rect x="9.05" y="8.6" width="1.9" height="6" rx=".95" fill="currentColor"/></svg></button></span><span class="v" id="balNow">–</span><span class="tag desc" id="balNote"></span></div>
+      <div style="display:flex;justify-content:center;margin-top:-4px"><button class="btn" type="button" id="stToggle" aria-expanded="false" style="min-height:30px;height:30px;padding:0 12px;font-size:12px;border-radius:999px">🏁 Starting point</button></div>
+      <div id="stBox" hidden style="display:flex;flex-direction:column;gap:8px">
+        <p class="tag" style="margin:0">Count the cash in your wallet and check your bank app, then save. Do this again any time to reset the balance to the real number.</p>
+      <form class="card" id="startForm" novalidate>
+        <div class="logform">
+          <div class="field"><label for="stCash">Cash on hand (SAR)</label><input id="stCash" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></div>
+          <div class="field"><label for="stBank">Bank balance (SAR)</label><input id="stBank" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div class="row"><span class="status" id="stStatus"></span><button class="btn primary" id="stSave" type="submit" disabled>Save starting point</button></div>
+      </form>
+      </div>
       <div class="balgrid">
         <div class="tile balwide"><span class="tag">Starting amount</span><span class="v" id="balStart">0</span></div>
-        <div class="tile"><span class="tag">Money in</span><span class="v diff-down" id="balIn">0</span></div>
+        <div class="tile"><span class="tag">Money in</span><span class="v diff-down" id="balIn">0</span><button class="btn" type="button" id="inToggle" aria-expanded="false" style="margin-top:6px;min-height:30px;height:30px;padding:0 10px;font-size:12px;border-radius:999px;align-self:flex-start">＋ Add money in</button></div>
         <div class="tile"><span class="tag">Money out</span><span class="v diff-up" id="balOut">0</span><span class="tag" id="balLast"></span></div>
       </div>
-    </section>
-    <section>
-      <div><h2>Add money in</h2><p class="sub">Salary, a transfer someone sent you, a refund, cash you got back: anything that comes in.</p></div>
+      <div id="inBox" hidden style="display:flex;flex-direction:column;gap:10px">
       <form class="card" id="inForm" novalidate>
         <div class="logform">
           <div class="field amount"><label for="inAmt">Amount (SAR)</label><input id="inAmt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></div>
@@ -592,7 +602,11 @@ form.card .logform{row-gap:11px!important}
         <div class="row"><span class="status" id="inStatus">Connecting to your saved data…</span><button class="btn primary" id="inAdd" type="submit" disabled>Add money in</button></div>
       </form>
       <div class="tablebox" id="inList"><div class="empty">Nothing added yet.</div></div>
+      </div>
     </section>
+  </div>
+
+  <div class="view" id="viewGoals" role="tabpanel" aria-labelledby="tabGoals" hidden>
     <section>
       <div><h2>Savings goals</h2><p class="sub">Name something you're saving for, set the amount, and add money to it as you put it aside.</p></div>
       <form class="card" id="goalForm" novalidate>
@@ -603,16 +617,6 @@ form.card .logform{row-gap:11px!important}
         <div class="row"><span class="status" id="gStatus"></span><button class="btn primary" type="submit">Add goal</button></div>
       </form>
       <div id="goalList" style="display:flex;flex-direction:column;gap:10px"></div>
-    </section>
-    <section>
-      <div><h2>Starting point</h2><p class="sub">Count the cash in your wallet and check your bank app, then save. Do this again any time to reset the balance to the real number.</p></div>
-      <form class="card" id="startForm" novalidate>
-        <div class="logform">
-          <div class="field"><label for="stCash">Cash on hand (SAR)</label><input id="stCash" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></div>
-          <div class="field"><label for="stBank">Bank balance (SAR)</label><input id="stBank" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>
-        </div>
-        <div class="row"><span class="status" id="stStatus"></span><button class="btn primary" id="stSave" type="submit" disabled>Save starting point</button></div>
-      </form>
     </section>
   </div>
 
@@ -1255,7 +1259,7 @@ applyCards();
 /* ---------- global search ---------- */
 (function(){
   const inp=document.getElementById("gSearch"), res=document.getElementById("gsRes");
-  const TABNAME={plan:"Expenses",bal:"Balance",prices:"Prices",forsa:"Forsa"};
+  const TABNAME={plan:"Expenses",bal:"Balance",goals:"Goals",prices:"Prices",forsa:"Forsa"};
   function run(){ res.classList.remove("ai"); const q=inp.value.trim().toLowerCase(); if(q.length<2){ res.hidden=true; return; }
     const out=[];
     Object.entries(TABS).forEach(([tab,[,vid]])=>{ document.getElementById(vid).querySelectorAll("section").forEach(sec=>{
@@ -1390,7 +1394,7 @@ document.getElementById("ceSave").addEventListener("click",async()=>{ ceDraft.na
   try{ sessionStorage.setItem("w-cards-reload","1"); }catch(e){}
   location.reload(); });
 /* ---------- tabs ---------- */
-const TABS = {plan:["tabPlan","viewPlan"], bal:["tabBal","viewBal"], prices:["tabPrices","viewPrices"], forsa:["tabForsa","viewForsa"]};
+const TABS = {plan:["tabPlan","viewPlan"], bal:["tabBal","viewBal"], goals:["tabGoals","viewGoals"], prices:["tabPrices","viewPrices"], forsa:["tabForsa","viewForsa"]};
 function showTab(name){
   if(!TABS[name]) name="plan";
   for(const [k,[t,v]] of Object.entries(TABS)){ document.getElementById(v).hidden = k!==name; document.getElementById(t).setAttribute("aria-selected", String(k===name)); }
@@ -2177,6 +2181,10 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>setTimeout(apply,0)); else setTimeout(apply,0);
   setTimeout(apply,1500); })();
 </script>
+<script>(function(){ const b=document.getElementById("inToggle"), box=document.getElementById("inBox"); if(!b||!box) return;
+  b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"＋ Add money in"); if(open){ box.scrollIntoView({block:"nearest",behavior:"smooth"}); const a=document.getElementById("inAmt"); if(a) setTimeout(()=>a.focus(),250); } }); })();</script>
+<script>(function(){ const b=document.getElementById("stToggle"), box=document.getElementById("stBox"); if(!b||!box) return;
+  b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"🏁 Starting point"); if(open) box.scrollIntoView({block:"nearest",behavior:"smooth"}); }); })();</script>
 <div id="setSheet" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle"><div class="sh">
   <div class="grab"></div>
   <div class="shTop"><h2 id="setTitle">Settings</h2><button class="btn" type="button" id="setDone">Done</button></div>
