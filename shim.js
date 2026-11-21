@@ -250,7 +250,7 @@
   }
   window.walletEmail = () => (user && user.email) || "";
   window.walletSignOut = async () => { await sb.auth.signOut(); location.reload(); };
-  window.walletDeleteData = async () => { if(!user) throw new Error("not signed in"); const {data:{session}} = await sb.auth.getSession(); const token = session && session.access_token; if(!token) throw new Error("session expired"); const r = await fetch(SUPABASE_URL + "/functions/v1/delete-account", {method:"POST", headers:{"Authorization":"Bearer "+token, "apikey":SUPABASE_KEY, "Content-Type":"application/json"}, body:"{}"}); if(!r.ok) throw new Error("delete-account failed: "+r.status); await sb.auth.signOut(); location.reload(); };
+  window.walletDeleteData = async () => { if(!user) throw new Error("not signed in"); const {data:{session}} = await sb.auth.getSession(); const token = session && session.access_token; if(!token) throw new Error("session expired"); const r = await fetch(SUPABASE_URL + "/functions/v1/delete-account", {method:"POST", headers:{"Authorization":"Bearer "+token, "apikey":SUPABASE_KEY, "Content-Type":"application/json"}, body:"{}"}); if(!r.ok) throw new Error("delete-account failed: "+r.status); try{ Object.keys(localStorage).forEach(k=>{ if(/^w-/.test(k)) localStorage.removeItem(k); }); sessionStorage.clear(); }catch(e){} await sb.auth.signOut(); location.reload(); };
   window.__stage="checking sign-in";
   sb.auth.getSession().then(({data, error}) => { if(error) (window.__errs||[]).push("session: "+error.message); start(data && data.session && data.session.user); })
     .catch(e => { (window.__errs||[]).push("session: "+(e && e.message || e)); start(null); });
