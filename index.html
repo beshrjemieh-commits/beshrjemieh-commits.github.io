@@ -521,6 +521,7 @@ form.card .logform{row-gap:11px!important}
       <div><h2>Monthly budget</h2><p class="sub">“Spent” and “Left” fill in by themselves from your daily log for the month shown above. Your plan amounts stay as they are until you change them.</p></div>
       <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn" id="editCats" type="button">✏️ Edit categories</button><button class="btn" id="reset" type="button">Reset to original numbers</button></span>
     </div>
+    <div id="budgetWarn" class="note" role="alert" hidden style="margin:8px 0"></div>
     <div class="card" id="catEditor" hidden>
       <b>Edit categories</b>
       <p class="sub" style="margin:2px 0 8px">Rename, remove or add categories. Removed ones keep their past entries.</p>
@@ -901,6 +902,9 @@ function renderMonth(){
   });
   const ts=document.getElementById("totSpent"), tl=document.getElementById("totLeft");
   if(ts){ ts.textContent=fmt(tSpent); tl.textContent=(tLeft<0?"−":"")+fmt(Math.abs(tLeft)); tl.className="r num "+(tLeft<0?"diff-up":"diff-down"); }
+  const planLog = LOG_CATS.reduce((a,k)=>a+(state[k]?state[k].plan:0),0), overBy = tSpent-planLog;
+  const bw=document.getElementById("budgetWarn");
+  if(bw){ bw.hidden = !(planLog>0 && overBy>0); if(!bw.hidden) bw.textContent=`⚠️ Over budget this month by ${fmt(overBy)} SAR. Spent ${fmt(tSpent)} of ${fmt(planLog)} planned.`; }
   const flexKeys = ITEMS.filter(i=>i.daily).map(i=>i.k);
   const flexPlan = flexKeys.reduce((a,k)=>a+state[k].plan,0), flexSpent = flexKeys.reduce((a,k)=>a+(sums[k]||0),0);
   const left = flexPlan-flexSpent;
