@@ -22,30 +22,36 @@
 #expAll,#colAll,#editMode,#setBtn{width:28px!important;height:28px!important;padding:0!important;display:inline-flex!important;align-items:center;justify-content:center;border-radius:999px!important;color:var(--muted)!important}
 #editMode[aria-pressed="true"]{color:var(--accent-fg)!important}
 #expAll svg,#colAll svg,#editMode svg{width:15px!important;height:15px!important;flex:none}
+/* iPhone native look: Apple system font, true black, iOS colours */
+body{-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;letter-spacing:-.005em}
+.diff-down,.tile.good .v{color:#30d158!important}
+.card,.tile,.donut,.tablebox{border-radius:14px}
+.btn{border-radius:10px}
+.btn.primary{border-radius:12px}
+.field input,.field select{border-radius:10px}
 </style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wallet">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#121614">
+<meta name="theme-color" content="#000000">
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one narrow column; daily log on top (used every day), then this month vs plan, then the plan itself and reference sections */
 :root{
   --bg:#f6f7f4; --surface:#ffffff; --fg:#1d2420; --muted:#5f6b64; --line:#dde2dc;
   --accent:#1f6f5c; --accent-fg:#ffffff; --accent-soft:#e3f0eb; --warn:#b5651d; --warn-soft:#fbeee1; --bad:#b23a3a;
-  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Arabic",system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,"Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121614; --surface:#1a201d; --fg:#e7ece8; --muted:#9aa69f; --line:#2c3531;
-  --accent:#5fc3a6; --accent-fg:#0f1a16; --accent-soft:#1d3a31; --warn:#e7a35f; --warn-soft:#3a2b1c; --bad:#f07b7b; color-scheme:dark}}
+  --bg:#000000; --surface:#1c1c1e; --fg:#ffffff; --muted:#98989f; --line:#38383a;
+  --accent:#0a84ff; --accent-fg:#ffffff; --accent-soft:#0b2a4d; --warn:#ff9f0a; --warn-soft:#3a2a0e; --bad:#ff453a; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#121614; --surface:#1a201d; --fg:#e7ece8; --muted:#9aa69f; --line:#2c3531;
-  --accent:#5fc3a6; --accent-fg:#0f1a16; --accent-soft:#1d3a31; --warn:#e7a35f; --warn-soft:#3a2b1c; --bad:#f07b7b; color-scheme:dark}
+  --bg:#000000; --surface:#1c1c1e; --fg:#ffffff; --muted:#98989f; --line:#38383a;
+  --accent:#0a84ff; --accent-fg:#ffffff; --accent-soft:#0b2a4d; --warn:#ff9f0a; --warn-soft:#3a2a0e; --bad:#ff453a; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55}
 .wrap{max-width:760px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:36px}
@@ -2209,7 +2215,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
 })();
 </script>
 <script>/* per-section colour + icon so sections look different */
-(function(){ const M={"Add a cost":["#5fc3a6","➕"],"This month":["#6aa9ff","📅"],"Where your salary goes":["#b18cff","💸"],"Emergency fund":["#4fd1d9","🛟"],"Salary day":["#a7d65a","💵"],"Debts to repay":["#f07b7b","💳"],"Smoking":["#ff9f5a","🚭"],"Your money right now":["#5fc3a6","💰"],"Add money in":["#a7d65a","📥"],"Savings goals":["#f2b35b","🎯"],"Starting point":["#6aa9ff","🏁"],"Forsa · deals below market":["#ff9f5a","🔥"],"Bills":["#b18cff","📸"],"Price book":["#f2b35b","🏷️"],"My items":["#ff8fc7","🛒"],"Budget":["#ff8fc7","📊"]};
+(function(){ const M={"Add a cost":["#0a84ff","➕"],"This month":["#6aa9ff","📅"],"Where your salary goes":["#b18cff","💸"],"Emergency fund":["#4fd1d9","🛟"],"Salary day":["#a7d65a","💵"],"Debts to repay":["#ff453a","💳"],"Smoking":["#ff9f5a","🚭"],"Your money right now":["#0a84ff","💰"],"Add money in":["#a7d65a","📥"],"Savings goals":["#f2b35b","🎯"],"Starting point":["#6aa9ff","🏁"],"Forsa · deals below market":["#ff9f5a","🔥"],"Bills":["#b18cff","📸"],"Price book":["#f2b35b","🏷️"],"My items":["#ff8fc7","🛒"],"Budget":["#ff8fc7","📊"]};
   const P=["#6aa9ff","#f2b35b","#b18cff","#ff8fc7","#4fd1d9","#a7d65a","#ff9f5a"];
   function apply(){ document.querySelectorAll("section").forEach((sec,i)=>{ const d=sec.querySelector(":scope > div:first-child"), h=d&&d.querySelector("h2"); if(!h) return;
     const k=h.dataset.orig||h.dataset.en||h.textContent.trim(); const m=M[k]||[P[i%P.length],"📌"]; sec.style.setProperty("--sec",m[0]);

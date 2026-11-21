@@ -143,8 +143,8 @@
 
   const html = document.documentElement; html.lang = "ar"; html.dir = "rtl";
   const css = document.createElement("style");
-  css.textContent = `@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap");
-:root{--sans:"IBM Plex Sans Arabic","IBM Plex Sans",system-ui,-apple-system,sans-serif}
+  css.textContent = `
+:root{--sans:-apple-system,BlinkMacSystemFont,"SF Arabic","SF Pro Text",system-ui,"Segoe UI",Tahoma,sans-serif}
 html[dir=rtl] .r,html[dir=rtl] th.r,html[dir=rtl] td.r{text-align:left}
 html[dir=rtl] .eyebrow,html[dir=rtl] .grp{letter-spacing:0}
 html[dir=rtl] #setSheet .row .val::after{content:" ‹"}

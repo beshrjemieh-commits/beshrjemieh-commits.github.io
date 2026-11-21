@@ -14,24 +14,24 @@
       ["سجل الأسعار","ارفع الفواتير واحفظ الأسعار. التطبيق يوضح لك أي محل أرخص للي تشتريه."],
       ["فرصة","عروض أقل من سعر السوق وعروض التطبيقات، تنفحص خلال اليوم. أضف أي شي تدور عليه."]]}
   };
-  const css = `#tour{position:fixed;inset:0;z-index:960;background:var(--bg,#121614);color:var(--fg,#e7ece8);display:flex;flex-direction:column;
+  const css = `#tour{position:fixed;inset:0;z-index:960;background:var(--bg,#000000);color:var(--fg,#ffffff);display:flex;flex-direction:column;
     padding:calc(10px + env(safe-area-inset-top,0px)) 0 calc(14px + env(safe-area-inset-bottom,0px));opacity:0;transition:opacity .2s}
   #tour.on{opacity:1}
-  #tour .tt{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;font-size:14px;color:var(--muted,#9aa69f)}
+  #tour .tt{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;font-size:14px;color:var(--muted,#98989f)}
   #tour .x{background:none;border:none;color:inherit;font-size:22px;width:44px;height:44px;cursor:pointer}
   #tour .track{flex:1;min-height:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   #tour .track::-webkit-scrollbar{display:none}
   #tour .sl{flex:0 0 100%;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 20px;box-sizing:border-box;min-height:0}
-  #tour .ph{flex:1;min-height:0;width:100%;max-width:330px;border-radius:22px;border:1px solid var(--line,#2c3531);overflow:hidden;background:#0d100f;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  #tour .ph{flex:1;min-height:0;width:100%;max-width:330px;border-radius:22px;border:1px solid var(--line,#38383a);overflow:hidden;background:#0d100f;box-shadow:0 12px 40px rgba(0,0,0,.45)}
   #tour .ph img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
   #tour h2{margin:0;font-size:22px;text-align:center}
-  #tour p{margin:0;text-align:center;color:var(--muted,#9aa69f);font-size:15px;line-height:1.5;max-width:34ch;min-height:4.5em}
+  #tour p{margin:0;text-align:center;color:var(--muted,#98989f);font-size:15px;line-height:1.5;max-width:34ch;min-height:4.5em}
   #tour .dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
-  #tour .dots i{width:7px;height:7px;border-radius:4px;background:var(--line,#2c3531);transition:width .2s}
-  #tour .dots i.on{width:20px;background:var(--accent,#5fc3a6)}
+  #tour .dots i{width:7px;height:7px;border-radius:4px;background:var(--line,#38383a);transition:width .2s}
+  #tour .dots i.on{width:20px;background:var(--accent,#0a84ff)}
   #tour .nav{display:flex;gap:8px;padding:0 16px}
-  #tour .nav button{flex:1;height:50px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;cursor:pointer;border:1px solid var(--line,#2c3531);background:var(--surface,#1a201d);color:inherit}
-  #tour .nav .go{flex:2;background:var(--accent,#5fc3a6);color:var(--accent-fg,#0f1a16);border:none}
+  #tour .nav button{flex:1;height:50px;border-radius:12px;font:inherit;font-size:16px;font-weight:600;cursor:pointer;border:1px solid var(--line,#38383a);background:var(--surface,#1c1c1e);color:inherit}
+  #tour .nav .go{flex:2;background:var(--accent,#0a84ff);color:var(--accent-fg,#ffffff);border:none}
   #tour .nav button[disabled]{visibility:hidden}`;
   let st = null;
   window.showTour = function(){
