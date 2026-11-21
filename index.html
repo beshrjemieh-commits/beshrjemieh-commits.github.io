@@ -121,6 +121,8 @@ ol.todo b{font-weight:600}
 .catrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
 .catrow .prog{grid-column:1/-1}
 textarea{font:inherit;font-size:14px;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical;unicode-bidi:plaintext}
+.splitbox{gap:8px;border:1px dashed var(--accent);border-radius:12px;padding:10px 12px}
+#splitBtn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
 .pastebox{display:flex;gap:6px;align-items:flex-start;margin-bottom:12px}
 .pastebox textarea{flex:1;min-width:0;min-height:40px;max-height:110px;resize:none;box-sizing:border-box;padding:9px 12px;border-radius:10px;line-height:1.4;font-size:14px;overflow:hidden}
 .pastebox .btn{height:40px;min-height:0;white-space:nowrap}
@@ -280,9 +282,9 @@ body.editing .sedit{display:flex}
 body.editing #chips .chip{outline:1px dashed var(--line);position:relative;padding-right:26px}
 #chips .cx{display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--line);color:var(--fg);font-size:11px;line-height:18px;text-align:center}
 body.editing #chips .cx{display:block}
-#chips,#smsChips,#inChips,#fFilter,#fCats{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 24px 4px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
-[dir=rtl] #chips,[dir=rtl] #smsChips,[dir=rtl] #inChips,[dir=rtl] #fFilter,[dir=rtl] #fCats{padding:2px 0 4px 24px;-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent)}
-#chips::-webkit-scrollbar,#smsChips::-webkit-scrollbar,#inChips::-webkit-scrollbar,#fFilter::-webkit-scrollbar,#fCats::-webkit-scrollbar{display:none}
+#chips,#chips2,#smsChips,#inChips,#fFilter,#fCats{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 24px 4px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+[dir=rtl] #chips,[dir=rtl] #chips2,[dir=rtl] #smsChips,[dir=rtl] #inChips,[dir=rtl] #fFilter,[dir=rtl] #fCats{padding:2px 0 4px 24px;-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent)}
+#chips::-webkit-scrollbar,#chips2::-webkit-scrollbar,#smsChips::-webkit-scrollbar,#inChips::-webkit-scrollbar,#fFilter::-webkit-scrollbar,#fCats::-webkit-scrollbar{display:none}
 .chips>.chip{flex:none;white-space:nowrap}
 .field{min-width:0}
 #chips .chip.c-off{display:none}
@@ -441,7 +443,14 @@ form.card .logform{row-gap:11px!important}
       <div class="logform">
         <div class="field amount"><label for="fAmount">Amount (SAR)</label><input id="fAmount" inputmode="decimal" placeholder="0" autocomplete="off"></div>
         <div class="field"><label for="fDate">Date</label><input id="fDate" type="date"></div>
-        <div class="field wide"><span class="field" style="gap:6px"><label id="catLabel">Category</label><span class="chips" id="chips" role="group" aria-labelledby="catLabel"></span></span></div>
+        <div class="field wide"><span class="field" style="gap:6px"><span class="hrow" style="justify-content:space-between"><label id="catLabel">Category</label><button class="btn" type="button" id="splitBtn" aria-pressed="false" style="min-height:28px;height:28px;padding:0 10px;font-size:13px">➗ Split in 2</button></span><span class="chips" id="chips" role="group" aria-labelledby="catLabel"></span></span></div>
+        <div class="field wide splitbox" id="splitBox" hidden>
+          <div class="hrow" style="justify-content:space-between"><label for="fAmount2">Part 2 amount (SAR)</label><span class="tag" id="splitRest"></span></div>
+          <input id="fAmount2" inputmode="decimal" placeholder="0" autocomplete="off">
+          <span class="chips" id="chips2" role="group" aria-label="Part 2 category"></span>
+          <input id="fNote2" placeholder="Note for part 2 (optional)" maxlength="120" autocomplete="off">
+          <span class="tag" id="autoHint2" hidden style="color:var(--accent)"></span>
+        </div>
         <div class="field wide"><label for="fNote">Note (optional) <span class="tag" id="autoHint" hidden style="margin-left:6px;color:var(--accent)"></span></label><input id="fNote" placeholder="e.g. lunch with work, Jahez, petrol" maxlength="120" autocomplete="off"></div>
       </div>
       <div class="row">
@@ -791,6 +800,26 @@ document.getElementById("fDate").value = ymd(new Date());
 let catTouched=false, noteT=null, noteSeq=0;
 chips.addEventListener("click", e=>{ if(e.isTrusted && e.target.closest(".chip") && !document.body.classList.contains("editing")){ catTouched=true; const h=document.getElementById("autoHint"); if(h) h.hidden=true; } });
 function pickCat(k, why){ const c=chips.querySelector('.chip[data-k="'+k+'"]'); if(!c) return; c.click(); c.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); const h=document.getElementById("autoHint"); if(h){ h.textContent="✨ Auto: "+BY[k].s; h.hidden=false; } }
+let cat2="flex", cat2Touched=false, note2Seq=0, note2T=null;
+const chips2=document.getElementById("chips2");
+function splitOn(){ return !document.getElementById("splitBox").hidden; }
+function splitAmt2(){ return parseFloat(String(document.getElementById("fAmount2").value).replace(/,/g,".").replace(/[^0-9.]/g,""))||0; }
+function setCat2(k,auto){ cat2=k; chips2.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.k===k?"true":"false")); const c=chips2.querySelector('.chip[data-k="'+k+'"]'); if(c&&auto) c.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); const h=document.getElementById("autoHint2"); h.hidden=!auto; if(auto) h.textContent="✨ Auto: "+BY[k].s; }
+function splitRest(){ const t=parseFloat(String(document.getElementById("fAmount").value).replace(/,/g,".").replace(/[^0-9.]/g,""))||0, a2=splitAmt2(); const el=document.getElementById("splitRest");
+  el.textContent = t>0 ? `Part 1: ${fmt(Math.round((t-a2)*100)/100)} SAR · ${BY[cat].s}` : ""; el.style.color = (a2>0 && a2>=t) ? "var(--bad,#e66)" : ""; }
+function setSplit(on){ const box=document.getElementById("splitBox"), b=document.getElementById("splitBtn"); box.hidden=!on; b.setAttribute("aria-pressed",on?"true":"false");
+  if(on){ chips2.innerHTML=""; chips.querySelectorAll(".chip:not(.c-add):not(.c-off)").forEach(c=>{ if(!c.dataset.k) return; const n=document.createElement("button"); n.type="button"; n.className="chip"; n.dataset.k=c.dataset.k; n.textContent=BY[c.dataset.k]?BY[c.dataset.k].s:c.textContent; chips2.appendChild(n); });
+    cat2Touched=false; { let last=null; try{ last=JSON.parse(localStorage.getItem("w-split2")||"null"); }catch(e){} const d=(last&&last[cat]&&last[cat]!==cat)?last[cat]:(["grocery","market","coffee","fuel"].includes(cat)&&cat!=="smoke"?"smoke":"flex"); setCat2(chips2.querySelector('.chip[data-k="'+d+'"]')?d:"flex",false); const c=chips2.querySelector('[aria-pressed="true"]'); if(c) setTimeout(()=>c.scrollIntoView({block:"nearest",inline:"center"}),50); }
+    const t=parseFloat(String(document.getElementById("fAmount").value).replace(/,/g,".").replace(/[^0-9.]/g,""))||0; document.getElementById("fAmount2").value = t>0 ? String(Math.round(t/2*100)/100) : "";
+    splitRest(); document.getElementById("fAmount2").focus(); document.getElementById("fAmount2").select(); }
+  else { document.getElementById("fAmount2").value=""; document.getElementById("fNote2").value=""; document.getElementById("autoHint2").hidden=true; } }
+document.getElementById("splitBtn").addEventListener("click", ()=>setSplit(!splitOn()));
+chips2.addEventListener("click", e=>{ const c=e.target.closest(".chip"); if(!c) return; cat2Touched=true; setCat2(c.dataset.k,false); });
+document.getElementById("fAmount2").addEventListener("input", splitRest);
+document.getElementById("fAmount").addEventListener("input", ()=>{ if(splitOn()) splitRest(); });
+chips.addEventListener("click", ()=>{ if(splitOn()) setTimeout(splitRest,0); });
+document.getElementById("fNote2").addEventListener("input", ()=>{ if(cat2Touched) return; clearTimeout(note2T); const seq=++note2Seq;
+  note2T=setTimeout(async ()=>{ const t=document.getElementById("fNote2").value.trim(); if(t.length<2) return; const k=await autoCat(t); if(seq===note2Seq && !cat2Touched) setCat2(k,true); },600); });
 document.getElementById("fNote").addEventListener("input", ()=>{ if(catTouched) return; clearTimeout(noteT); const seq=++noteSeq;
   noteT=setTimeout(async ()=>{ const t=document.getElementById("fNote").value.trim(); if(t.length<2) return; const k=await autoCat(t); if(seq===noteSeq && !catTouched) pickCat(k); }, 600); });
 let lastToday = ymd(new Date());
@@ -877,11 +906,17 @@ document.getElementById("addForm").addEventListener("submit", async ev=>{
   if(!(amount>0)){ setStatus("Enter an amount above 0.", true); amtEl.focus(); return; }
   const date = document.getElementById("fDate").value || ymd(new Date());
   const note = document.getElementById("fNote").value.trim().slice(0,120);
+  const split=splitOn(), a2=split?splitAmt2():0;
+  if(split && !(a2>0 && a2<amount)){ setStatus("Part 2 must be more than 0 and less than the total.", true); document.getElementById("fAmount2").focus(); return; }
+  const note2 = split ? (document.getElementById("fNote2").value.trim().slice(0,120) || note) : "";
   const btn=document.getElementById("addBtn"); btn.disabled=true;
   try{
-    await db.collection("expenses").add({date, amount:Math.round(amount*100)/100, cat, note, createdAt:Date.now()});
+    const r2=x=>Math.round(x*100)/100, now=Date.now();
+    await db.collection("expenses").add({date, amount:r2(amount-a2), cat, note, createdAt:now});
+    if(split) await db.collection("expenses").add({date, amount:r2(a2), cat:cat2, note:note2, createdAt:now+1});
     amtEl.value=""; document.getElementById("fNote").value=""; catTouched=false; noteSeq++; { const h=document.getElementById("autoHint"); if(h) h.hidden=true; }
-    setStatus(`Saved ${fmt(amount)} SAR · ${BY[cat].s}`);
+    setStatus(split ? `Saved ${fmt(r2(amount-a2))} SAR · ${BY[cat].s} + ${fmt(r2(a2))} SAR · ${BY[cat2].s}` : `Saved ${fmt(amount)} SAR · ${BY[cat].s}`);
+    if(split){ try{ const m=JSON.parse(localStorage.getItem("w-split2")||"{}")||{}; m[cat]=cat2; localStorage.setItem("w-split2",JSON.stringify(m)); }catch(e){} setSplit(false); }
     if(!date.startsWith(viewMonth)){ viewMonth=date.slice(0,7); renderMonth(); }
     amtEl.focus();
   }catch(e){ setStatus("Couldn't save. Check your connection and try again.", true); }
