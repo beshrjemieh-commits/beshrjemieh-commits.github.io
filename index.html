@@ -285,11 +285,11 @@ form.card .row .status:empty{display:none}
 #rows tr{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 8px;padding:8px 10px;border-bottom:1px solid var(--line)}
 #rows tr > td{display:block;padding:0!important;border:none!important;min-width:0}
 #rows tr > td:first-child{grid-column:1/-1;font-weight:600;font-size:14px}
-#rows tr > td[data-l]::before{content:attr(data-l);display:block;font-size:10px;color:var(--muted);text-align:left;font-family:inherit;font-weight:500}
-#rows tr > td[data-l]{text-align:left!important;font-size:14px}
+#rows tr > td[data-l]::before{content:attr(data-l);display:block;font-size:10px;color:var(--muted);text-align:start;font-family:inherit;font-weight:500}
+#rows tr > td[data-l]{text-align:start!important;font-size:14px}
 #rows tr > td.num[data-l]{line-height:34px}
 #rows tr > td.num[data-l]::before{line-height:1.3}
-#rows input.amt{width:100%!important;height:34px!important;padding:4px 6px;text-align:left}
+#rows input.amt{width:100%!important;height:34px!important;padding:4px 6px;text-align:start}
 #rows tr.group{display:block;padding:6px 10px;background:var(--bg)}
 #rows tr.group td{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 #rows tr.total{background:var(--bg)}
@@ -311,6 +311,11 @@ body.editing .sedit{display:flex}
 body.editing #chips .chip{outline:1px dashed var(--line);position:relative;padding-right:26px}
 #chips .cx{display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--line);color:var(--fg);font-size:11px;line-height:18px;text-align:center}
 body.editing #chips .cx{display:block}
+[dir=rtl] body.editing #chips .chip{padding-right:12px;padding-left:26px}
+[dir=rtl] #chips .cx{right:auto;left:4px}
+[dir=rtl] .sedit{right:auto;left:6px}
+[dir=rtl] .tedit{right:auto;left:4px}
+[dir=rtl] body.editing .tile > span:first-child,[dir=rtl] body.editing .tile.custom .v{padding-right:0;padding-left:44px}
 #chips,#chips2,#smsChips,#inChips,#fFilter,#fCats{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 24px 4px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
 [dir=rtl] #chips,[dir=rtl] #chips2,[dir=rtl] #smsChips,[dir=rtl] #inChips,[dir=rtl] #fFilter,[dir=rtl] #fCats{padding:2px 0 4px 24px;-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(270deg,#000 calc(100% - 28px),transparent)}
 #chips::-webkit-scrollbar,#chips2::-webkit-scrollbar,#smsChips::-webkit-scrollbar,#inChips::-webkit-scrollbar,#fFilter::-webkit-scrollbar,#fCats::-webkit-scrollbar{display:none}
@@ -488,7 +493,7 @@ form.card .logform{row-gap:11px!important}
           <input id="fNote2" hidden placeholder="Note for part 2 (optional)" maxlength="120" autocomplete="off">
           <span class="tag" id="autoHint2" hidden style="color:var(--accent)"></span>
         </div>
-        <div class="field wide"><label for="fNote">Note (optional) <span class="tag" id="autoHint" hidden style="margin-left:6px;color:var(--accent)"></span></label><input id="fNote" placeholder="e.g. lunch with work, Jahez, petrol" maxlength="120" autocomplete="off"></div>
+        <div class="field wide"><label for="fNote">Note (optional) <span class="tag" id="autoHint" hidden style="margin-left:6px;color:var(--accent)"></span></label><input id="fNote" dir="auto" placeholder="e.g. lunch with work, Jahez, petrol" maxlength="120" autocomplete="off"></div>
       </div>
       <div class="row">
         <span class="status" id="status">Connecting to your saved data…</span>
@@ -2239,7 +2244,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   <div class="grp">App</div>
   <div class="list">
     <button class="row" type="button" id="sUpd"><span>Get the latest version</span><span class="val" id="sUpdV"></span></button>
-    <div class="row"><span>Signed in as</span><span style="color:var(--muted);overflow-wrap:anywhere;text-align:right" id="sEmail">–</span></div>
+    <div class="row"><span>Signed in as</span><span style="color:var(--muted);overflow-wrap:anywhere;text-align:start" id="sEmail">–</span></div>
   </div>
   <div class="list" style="margin-top:16px"><button class="row danger" type="button" id="sOut">Sign out</button></div>
   <div class="list" style="margin-top:8px"><button class="row danger" type="button" id="sDel">Delete account</button></div>
