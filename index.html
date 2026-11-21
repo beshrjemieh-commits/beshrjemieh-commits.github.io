@@ -502,32 +502,9 @@ form.card .logform{row-gap:11px!important}
 
 
 
-  <section>
-    <div><h2>Emergency fund</h2><p class="sub">Three months of your essential costs, so a surprise (car repair, job gap) doesn't become debt.</p></div>
-    <div class="card">
-      <div class="row"><span>Target</span><span class="num" id="efTarget"></span></div>
-      <div class="row"><span>Saving each month</span><span class="num" id="efMonthly"></span></div>
-      <p id="efWhen" class="sub"></p>
-    </div>
-  </section>
-
-  <section id="salary">
-    <div><h2>Salary day</h2><p class="sub">Your salary arrives on the <span class="payTxt">10th</span>. Make these transfers the same day, before spending anything.</p></div>
-    <div class="card" id="salaryCard"></div>
-  </section>
 
 
-  <section>
-    <div><h2>Smoking</h2><p class="sub">You said smoking and fun together come to about 40 SAR a day. Move the slider to see what cutting back gives you.</p></div>
-    <div class="card" id="streakCard" style="border-color:var(--accent)"><span class="tag">Smoke-free streak</span><span class="num" id="streakDays" style="font-size:30px;font-weight:600">–</span><span class="sub" id="streakNote">Counts from the last time you logged Smoking.</span></div>
-    <div class="card">
-      <div class="row"><label for="smk">Daily spend</label><span class="num" id="smkVal">40 SAR</span></div>
-      <input type="range" id="smk" min="0" max="60" step="5" value="40">
-      <div class="row"><span>Per month</span><span class="num" id="smkMonth"></span></div>
-      <div class="row"><span>Per year</span><span class="num" id="smkYear"></span></div>
-      <div class="row"><span>Saved per year vs. 40 SAR/day</span><span class="num diff-down" id="smkSaved"></span></div>
-    </div>
-  </section>
+
 
   <section id="debts">
     <div><h2>Debts to repay</h2><p class="sub">Record each repayment here. Debts are paid from the “Debt repayment” line in your plan, smallest first.</p></div>
@@ -575,6 +552,29 @@ form.card .logform{row-gap:11px!important}
     <div style="display:flex;flex-direction:column;gap:8px">
       <div class="donuts"><figure class="donut" id="dnNow"></figure><figure class="donut" id="dnPlan"></figure></div>
       <div class="tablebox"><table class="gtable"><thead><tr><th>Group</th><th class="r">Before</th><th class="r">Plan</th></tr></thead><tbody id="gRows"></tbody></table></div>
+    </div>
+  </section>
+  <section>
+    <div><h2>Emergency fund</h2><p class="sub">Three months of your essential costs, so a surprise (car repair, job gap) doesn't become debt.</p></div>
+    <div class="card">
+      <div class="row"><span>Target</span><span class="num" id="efTarget"></span></div>
+      <div class="row"><span>Saving each month</span><span class="num" id="efMonthly"></span></div>
+      <p id="efWhen" class="sub"></p>
+    </div>
+  </section>
+  <section id="salary">
+    <div><h2>Salary day</h2><p class="sub">Your salary arrives on the <span class="payTxt">10th</span>. Make these transfers the same day, before spending anything.</p></div>
+    <div class="card" id="salaryCard"></div>
+  </section>
+  <section>
+    <div><h2>Smoking</h2><p class="sub">You said smoking and fun together come to about 40 SAR a day. Move the slider to see what cutting back gives you.</p></div>
+    <div class="card" id="streakCard" style="border-color:var(--accent)"><span class="tag">Smoke-free streak</span><span class="num" id="streakDays" style="font-size:30px;font-weight:600">–</span><span class="sub" id="streakNote">Counts from the last time you logged Smoking.</span></div>
+    <div class="card">
+      <div class="row"><label for="smk">Daily spend</label><span class="num" id="smkVal">40 SAR</span></div>
+      <input type="range" id="smk" min="0" max="60" step="5" value="40">
+      <div class="row"><span>Per month</span><span class="num" id="smkMonth"></span></div>
+      <div class="row"><span>Per year</span><span class="num" id="smkYear"></span></div>
+      <div class="row"><span>Saved per year vs. 40 SAR/day</span><span class="num diff-down" id="smkSaved"></span></div>
     </div>
   </section>
   </div><!-- /viewBudget -->
@@ -1600,9 +1600,9 @@ const SECTION_HINTS = {
     return top.length?[{tab:"budget",score:2000,t:`🔍 Most of your money is really going to ${top.map(([k,v])=>`${BY[k].s} ${Math.round(v/tot*100)}%`).join(", ")}.`}]:[]; },
   "Monthly budget": ()=>{ const m=monthSums(); const over=ITEMS.filter(i=>(m[i.k]||0)>state[i.k].plan && state[i.k].plan>0).sort((a,b)=>((m[b.k]-state[b.k].plan)-(m[a.k]-state[a.k].plan)));
     return [{tab:"budget",score:2000,t: over.length?`⚠️ Over budget: ${over.slice(0,3).map(i=>`${i.s} +${fmt(m[i.k]-state[i.k].plan)}`).join(", ")} SAR.`:"✅ Every category is within budget this month."}]; },
-  "Salary day": ()=>{ const d=Math.ceil((nextSalaryDate()-new Date())/864e5); return [{tab:"plan",score:2000,t:`🗓️ ${d} day${d===1?"":"s"} until salary. Make the transfers on the same day, before spending.`}]; },
+  "Salary day": ()=>{ const d=Math.ceil((nextSalaryDate()-new Date())/864e5); return [{tab:"budget",score:2000,t:`🗓️ ${d} day${d===1?"":"s"} until salary. Make the transfers on the same day, before spending.`}]; },
   "Debts to repay": ()=>{ const left=debts.reduce((a,d)=>a+Math.max(0,d.total-d.paid),0); return [{tab:"plan",score:2000,t: left?`⛓️ ${fmt(left)} SAR of debt left. Paying the smallest first builds momentum.`:"🎉 No debt left!"}]; },
-  "Smoking": ()=>{ const sm=entries.filter(e=>e.cat==="smoke"&&e.date.slice(0,7)===ymd(new Date()).slice(0,7)).reduce((a,e)=>a+e.amount,0); return [{tab:"plan",score:2000,t:`🚭 Cigarettes this month: ${fmt(sm)} SAR. That's ${fmt(sm*12)} SAR a year at this rate.`}]; },
+  "Smoking": ()=>{ const sm=entries.filter(e=>e.cat==="smoke"&&e.date.slice(0,7)===ymd(new Date()).slice(0,7)).reduce((a,e)=>a+e.amount,0); return [{tab:"budget",score:2000,t:`🚭 Cigarettes this month: ${fmt(sm)} SAR. That's ${fmt(sm*12)} SAR a year at this rate.`}]; },
   "Bills": ()=>{ const n=bills.filter(b=>!b.added).length; return [{tab:"prices",score:2000,t: n?`🧾 ${n} bill${n===1?"":"s"} not read yet. Tap Read items to add the prices.`:"🧾 More receipts mean smarter price hints. Upload your next bill."}]; },
   "Price book": ()=> priceTimingHints().map(h=>Object.assign(h,{score:h.score+1000})),
 };
