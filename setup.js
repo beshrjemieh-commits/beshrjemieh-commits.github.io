@@ -10,7 +10,7 @@
   /* ---------- words ---------- */
   const W = {
     en: {
-      lang: 'العربية', sar: 'SAR', start: 'Start', next: 'Continue', open: 'Open my wallet', skip: 'Skip setup', saving: 'Setting up your wallet…', failed: 'Couldn\'t save. Check your connection and try again.',
+      lang: 'العربية', pvDone: 'Close tutorial', pvSkip: 'Close', pvNote: 'Practice run: nothing you enter here is saved.', sar: 'SAR', start: 'Start', next: 'Continue', open: 'Open my wallet', skip: 'Skip setup', saving: 'Setting up your wallet…', failed: 'Couldn\'t save. Check your connection and try again.',
       k1: 'Welcome', h1: 'Let\'s make your money make sense.', l1: 'Four quick questions. One minute.',
       q1: 'First, honestly: last month, could you say where all of your salary went?', a1: ['Yes, all of it', 'Some of it', 'Honestly, no'],
       k2: '1 of 4', h2: 'How much lands in your account each month?', l2: 'Your salary after deductions.', payday: 'It arrives on the',
@@ -28,7 +28,7 @@
       before: 'Before', now: 'Now', nowLine: s => `Every riyal of ${s} has a job`,
     },
     ar: {
-      lang: 'English', sar: 'ريال', start: 'ابدأ', next: 'متابعة', open: 'افتح محفظتي', skip: 'تخطّ الإعداد', saving: 'جاري تجهيز محفظتك…', failed: 'ما قدرنا نحفظ. تأكد من الاتصال وحاول مرة ثانية.',
+      lang: 'English', pvDone: 'أغلق الشرح', pvSkip: 'إغلاق', pvNote: 'تجربة فقط: ما تدخله هنا لا يُحفظ.', sar: 'ريال', start: 'ابدأ', next: 'متابعة', open: 'افتح محفظتي', skip: 'تخطّ الإعداد', saving: 'جاري تجهيز محفظتك…', failed: 'ما قدرنا نحفظ. تأكد من الاتصال وحاول مرة ثانية.',
       k1: 'أهلاً', h1: 'خلّنا نخلي فلوسك واضحة.', l1: 'أربعة أسئلة سريعة. دقيقة وحدة.',
       q1: 'أول شيء، بصراحة: الشهر الماضي، تقدر تقول وين راح راتبك كله؟', a1: ['إيه، كله', 'بعضه', 'بصراحة، لا'],
       k2: '١ من ٤', h2: 'كم ينزل في حسابك كل شهر؟', l2: 'راتبك بعد الخصومات.', payday: 'ينزل يوم',
@@ -67,6 +67,10 @@
 
   /* ---------- state ---------- */
   const startLang = window.walletLang === 'ar' ? 'ar' : 'en';
+  let PREVIEW = false;
+  const fresh = () => ({ lang: window.walletLang === 'ar' ? 'ar' : 'en', i: 0, knew: null, salary: '', payday: 27, addingBill: false, addingGoal: false, busy: false, err: '',
+    bills: [{ id: 'rent', amt: 2500 }, { id: 'power', amt: 330 }, { id: 'phone', amt: 345 }, { id: 'cart', amt: 900 }],
+    goals: [{ type: 'trip', name: '', target: 4600, months: 6 }] });
   const S = { lang: startLang, i: 0, knew: null, salary: '', payday: 27, addingBill: false, addingGoal: false, busy: false, err: '',
     bills: [{ id: 'rent', amt: 2500 }, { id: 'power', amt: 330 }, { id: 'phone', amt: 345 }, { id: 'cart', amt: 900 }],
     goals: [{ type: 'trip', name: '', target: 4600, months: 6 }] };
@@ -115,7 +119,7 @@
       <p class="q1">${t('q1')}</p>
       <div class="opts">${t('a1').map((a, i) => `<button class="opt" data-knew="${i}" aria-pressed="${S.knew === i}">${a}</button>`).join('')}</div>
       <div class="grow"></div><button class="cta" data-go="next" ${S.knew === null ? 'disabled' : ''}>${t('start')}</button>
-      <button class="quiet" data-skip="1">${t('skip')}</button>`,
+      ${PREVIEW ? `<p class="lede" style="text-align:center;max-width:none">${t('pvNote')}</p>` : ''}<button class="quiet" data-skip="1">${PREVIEW ? t('pvSkip') : t('skip')}</button>`,
     salary: () => `<span class="k">${t('k2')}</span><h1>${t('h2')}</h1><p class="lede">${t('l2')}</p>
       <label class="big"><input id="swSal" inputmode="numeric" value="${S.salary}" placeholder="0" aria-label="${t('h2')}"><span>${t('sar')}</span></label>
       <span class="lbl">${t('payday')}</span>
@@ -156,7 +160,7 @@
       ${F.squeezed ? `<p class="note">${t('kept')(`<b>${money(F.keep)}</b>`)}</p>` : ''}
       <div class="contrast"><div class="was"><small>${t('before')}</small><span>“${t('a1')[S.knew ?? 2]}”</span></div><div><small class="mint">${t('now')}</small><span>${t('nowLine')(money(sal))}</span></div></div>
       ${S.err ? `<p class="note warn">${S.err}</p>` : ''}
-      <div class="grow"></div><button class="cta" data-finish="1" ${S.busy ? 'disabled' : ''}>${S.busy ? t('saving') : t('open')}</button>`;
+      <div class="grow"></div><button class="cta" data-finish="1" ${S.busy ? 'disabled' : ''}>${S.busy ? t('saving') : PREVIEW ? t('pvDone') : t('open')}</button>`;
     },
   };
 
@@ -262,6 +266,7 @@
   /* ---------- saving into the app ---------- */
   async function getDoc(db, path) { try { const d = await db.doc(path).get(); return d && d.exists ? (d.data() || {}) : null; } catch (e) { return null; } }
   async function finish(db) {
+    if (PREVIEW) { close(); return; }
     S.busy = true; S.err = ''; render();
     try {
       const F = fit(), r = n => Math.round(+n || 0);
@@ -294,10 +299,11 @@
     } catch (e) { S.busy = false; S.err = t('failed'); render(); }
   }
   async function skip(db) {
+    if (PREVIEW) { close(); return; }
     try { const profile = await getDoc(db, 'settings/profile') || {}; await db.doc('settings/profile').set(Object.assign(profile, { setup: { at: Date.now(), skipped: true } })); } catch (e) {}
     close();
   }
-  function close() { if (root) root.remove(); document.documentElement.style.overflow = ''; if (FORCE) history.replaceState(null, '', location.pathname); }
+  function close() { PREVIEW = false; if (root) root.remove(); root = null; document.documentElement.style.overflow = ''; if (FORCE) history.replaceState(null, '', location.pathname); }
 
   function open(db) {
     const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
@@ -334,6 +340,13 @@
     });
     render();
   }
+
+  /* Practice run from Settings: the same screens, but nothing is saved. */
+  window.showSetupTour = async () => {
+    if (root) return; let db = null; try { db = await window.claude.use('db'); } catch (e) {}
+    PREVIEW = true; Object.assign(S, fresh());
+    const go = () => open(db); if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+  };
 
   /* ---------- when to show: after sign-in, only for a new account ---------- */
   (async () => {

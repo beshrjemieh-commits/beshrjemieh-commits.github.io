@@ -2240,6 +2240,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   <div class="grp">App</div>
   <div class="list">
     <button class="row" type="button" id="sTour"><span>Replay tutorial</span><span class="val"></span></button>
+    <button class="row" type="button" id="sSetupTour"><span>Replay setup questions</span><span class="val"></span></button>
     <button class="row" type="button" id="sUpd"><span>Get the latest version</span><span class="val" id="sUpdV"></span></button>
     <div class="row"><span>Signed in as</span><span style="color:var(--muted);overflow-wrap:anywhere;text-align:right" id="sEmail">–</span></div>
   </div>
@@ -2283,6 +2284,7 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
   $("sEdit").onclick=()=>{ close(); setTimeout(()=>{ const b=$("editMode"); if(b.getAttribute("aria-pressed")!=="true") b.click(); window.scrollTo({top:0,behavior:"smooth"}); },260); };
   $("sReset").onclick=()=>{ if(confirm("Put all sections back the way they were?")) $("ebReset").click(); };
   $("sUpd").onclick=async()=>{ $("sUpdV").textContent=T("Updating…"); try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(); if(r) await r.update(); }catch(e){} location.reload(); };
+  $("sSetupTour").onclick=()=>{ close(); setTimeout(()=>window.showSetupTour&&window.showSetupTour(),260); };
   $("sTour").onclick=()=>{ close(); setTimeout(()=>window.showTour&&window.showTour(),260); };
   $("sOut").onclick=()=>{ if(confirm("Sign out of your wallet?")) walletSignOut(); };
   let delArm=0, delT=null; const del=$("sDel"), delSt=$("sDelSt");
