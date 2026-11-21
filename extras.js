@@ -4,7 +4,7 @@
   const T = s => (window.T ? window.T(s) : s);
 
   /* ---- look: Light (default, even when the iPhone is in dark mode), Dark, or True black (Beshr 2026-11-22: "it feels so dark") ---- */
-  const theme = () => { const t = LS.get("w-theme"); if(t === "dark" || t === "black") return t; return LS.get("w-black") === "1" ? "black" : "light"; };
+  const theme = () => { const t = LS.get("w-theme2"); if(t === "dark" || t === "black") return t; return "light"; };
   const off = new WeakSet();
   function fixRules(list){ if(!list) return; for(const r of list){
       if(r.media && r.conditionText !== undefined && /prefers-color-scheme:\s*dark/.test(r.media.mediaText) && !off.has(r)){ off.add(r); r._orig = r.media.mediaText; }
@@ -14,14 +14,14 @@
     const t = theme(), h = document.documentElement;
     h.classList.toggle("oled", t === "black"); h.classList.toggle("force-light", t === "light");
     for(const sh of document.styleSheets){ try { fixRules(sh.cssRules); } catch(e){} }
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const isLight = !/^#[0-9A-F]{6}$/i.test(m.content) || m.content.toUpperCase() === "#D6E8FF"; m.setAttribute("media", (t === "light") === isLight ? "all" : "not all"); });
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const isLight = !/^#[0-9A-F]{6}$/i.test(m.content) || m.content.toUpperCase() === "#F5F0FF"; m.setAttribute("media", (t === "light") === isLight ? "all" : "not all"); });
   }
   applyTheme();
   // styles keep arriving while the page loads (and from other scripts): re-apply when a <style> is added
   new MutationObserver(ms => { if(ms.some(m => [...m.addedNodes].some(n => n.nodeName === "STYLE" || n.nodeName === "LINK"))) applyTheme(); })
     .observe(document.documentElement, {childList:true, subtree:true});
   document.addEventListener("DOMContentLoaded", applyTheme); window.addEventListener("load", applyTheme);
-  window.walletTheme = t => { LS.set("w-theme", t); LS.set("w-black", t === "black" ? "1" : "0"); applyTheme(); };
+  window.walletTheme = t => { LS.set("w-theme2", t); LS.set("w-black", t === "black" ? "1" : "0"); applyTheme(); };
   window.walletThemeNow = theme;
   const st = document.createElement("style");
   st.textContent = `@media (prefers-color-scheme: dark){html.oled:root:not([data-theme="light"]){--bg:#000!important;--surface:#121212!important;--card:#121212!important;--card-line:#262626!important;--line:#262626!important;--chip:#1C1C1C!important;--field-line:#333!important}html.oled body{background:#000!important}}
