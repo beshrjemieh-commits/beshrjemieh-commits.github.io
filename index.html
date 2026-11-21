@@ -357,15 +357,15 @@ form.card .logform{row-gap:11px!important}
 #cats .catrow{flex:0 0 46%;max-width:170px;scroll-snap-align:start;display:flex!important;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);border-bottom:1px solid var(--line)!important}
 #cats .catrow .prog{width:100%}
 .tiles.slim .tile{padding:8px 10px}.tiles.slim .v{font-size:17px}
-.hintbar{background:rgba(242,242,247,.75)!important;color:#1c1c1e;box-shadow:0 6px 20px rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.06)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.hintbar{background:rgba(236,236,242,.97)!important;color:#1c1c1e;box-shadow:0 6px 20px rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.06)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;transform:translateZ(0);contain:layout paint}
 .hintbar #hText,.hintbar button{color:#000!important;text-shadow:0 0 6px rgba(255,255,255,.6)}
 .hintbar .hprog{background:#000}
 .hintbar{width:min(640px,calc(100% - 24px))!important;max-width:none!important}
 .hintbar #hText{text-overflow:clip!important}
-.hintbar .mq{display:inline-block;white-space:nowrap;will-change:transform}
+.hintbar .mq{display:inline-block;white-space:nowrap;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .hintbar.open .mq{animation:none!important;white-space:normal}
 @keyframes slide{to{transform:translateX(var(--d))}}
-@keyframes tick{to{transform:translateX(-50%)}}
+@keyframes tick{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 .hintbar .mq.tick{white-space:pre}
 .hintbar:not(.open){width:min(300px,calc(100% - 24px))!important;min-width:0!important}
 .hintbar::before{background:#ff9f0a;box-shadow:none}
