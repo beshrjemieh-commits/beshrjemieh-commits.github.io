@@ -220,16 +220,16 @@
   .hcard .hh .go{display:none}
   .hcard{border:none!important}
 #viewHome{gap:8px!important}
-.hcard{border-radius:20px!important;padding:10px 14px!important;background:rgba(255,255,255,.05)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)!important}
+.hcard{border-radius:20px!important;padding:10px 14px!important;background:#211f42!important;box-shadow:inset 0 0 0 1px #3b3970!important}
 .hcard[data-go=bal]{background:linear-gradient(135deg,#7c5cff 0%,#4f7bff 55%,#22c1ee 100%)!important;box-shadow:0 16px 34px -16px #6b5cff!important;padding:12px 14px!important}
 .hcard[data-go=bal] .hh{flex-wrap:wrap;color:rgba(255,255,255,.85)!important}
 .hcard[data-go=bal] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:30px!important;color:#fff!important;margin-top:0;line-height:1.15}
 .hcard[data-go=bal] .sub{color:rgba(255,255,255,.85)!important}
 .hcard[data-go=bal] .hint{background:rgba(0,0,0,.18)!important}
 .hcard[data-go=bal] .ic{background:rgba(255,255,255,.22)!important;color:#fff!important}
-.hcard .hh .ic{border-radius:50%!important;width:26px!important;height:26px!important;background:color-mix(in srgb,var(--hc) 25%,transparent)!important}
-.hcard .hint{background:rgba(255,255,255,.06)!important;border-radius:999px!important;padding:4px 10px!important}
-.hcard[data-go=budget]{--hc:#b18cff}.hcard[data-go=plan]{--hc:#4fc3ff}.hcard[data-go=prices]{--hc:#ffb35c}.hcard[data-go=forsa]{--hc:#ff6fa8}
+.hcard .hh .ic{border-radius:50%!important;width:26px!important;height:26px!important;background:var(--hc)!important;color:#fff!important}
+.hcard .hint{background:#2d2b58!important;border-radius:999px!important;padding:4px 10px!important}
+.hcard[data-go=budget]{--hc:#a970ff}.hcard[data-go=plan]{--hc:#2fb5ff}.hcard[data-go=prices]{--hc:#ff9f1a}.hcard[data-go=forsa]{--hc:#ff4f8b}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px;color:var(--hc)}
   .hcard[data-go=bal] .hint>svg{color:#fff}

@@ -38,23 +38,27 @@ html,body{max-width:100%;overflow-x:hidden}
 img,svg,video,canvas{max-width:100%}
 @media (max-width:360px){#expAll,#colAll,#editMode,#setBtn{width:26px!important;height:26px!important}header .toprow>span{gap:2px!important}}
 /* ===== Violet glow theme (chosen 2026-11-22) ===== */
-:root[data-theme="dark"],:root:not([data-theme="light"]){--bg:#0b0a16!important;--surface:#16152a!important;--fg:#ffffff!important;--muted:#a3a0c4!important;--line:#2a2843!important;
+:root[data-theme="dark"],:root:not([data-theme="light"]){--bg:#07061a!important;--surface:#16152a!important;--fg:#ffffff!important;--muted:#cbc8ea!important;--line:#2a2843!important;
  --accent:#7c5cff!important;--accent-fg:#ffffff!important;--accent-soft:#251d55!important;--warn:#ffb35c!important;--warn-soft:#3a2a12!important;--bad:#ff5c7a!important;--glow:linear-gradient(135deg,#7c5cff 0%,#4f7bff 55%,#22c1ee 100%)}
 body{background:var(--bg)!important}
+body section > div:first-child{background:#211f42!important;border:1px solid #3b3970!important;border-inline-start:4px solid var(--sec)!important}
+body header #editMode svg,body header #expAll svg,body header #colAll svg{width:17px!important;height:17px!important}
+.card,.tile,.donut,.tablebox,section > div:first-child,.tabs .tabgrp{box-shadow:0 8px 24px -14px rgba(0,0,0,.9)}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 55% at 90% -8%,#2f2080 0%,rgba(11,10,22,0) 62%),radial-gradient(90% 45% at -10% 105%,#122a5c 0%,rgba(11,10,22,0) 60%)}
-.card,.tile,.donut,.tablebox{background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:20px!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-section > div:first-child{border-radius:20px!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-.secico{border-radius:50%!important;color:var(--sec)}
+.card,.tile,.donut,.tablebox{background:#211f42!important;border:1px solid #3b3970!important;border-radius:20px!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+section > div:first-child{background:#211f42!important;border-color:#3b3970!important;border-radius:20px!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.secico{border-radius:50%!important;color:#fff;background:var(--sec)!important}
+section > div:first-child h2{color:#fff!important}
 .secico svg{width:17px;height:17px}
 .tabs{background:transparent!important;box-shadow:none!important}
-.tabs .tabgrp{background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:16px!important}
-.tabs button{border-radius:12px!important}
+.tabs .tabgrp{background:#211f42!important;border:1px solid #3b3970!important;border-radius:16px!important}
+.tabs button{border-radius:12px!important;color:#e4e2ff!important}
 .tabs button[aria-selected="true"]{background:var(--glow)!important;color:#fff!important;box-shadow:0 6px 18px -8px #6b5cff}
 .btn.primary{background:var(--glow)!important;border:none!important;color:#fff!important;box-shadow:0 10px 24px -12px #6b5cff;border-radius:14px!important}
-.btn,.chip{border-radius:999px!important;background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.1)!important}
+.btn,.chip{border-radius:999px!important;background:#24234a!important;border-color:#46448a!important;color:#fff!important}
 .chip[aria-pressed="true"]{background:rgba(124,92,255,.25)!important;border-color:#7c5cff!important}
-.field input,.field select,textarea,input.amt,#gsBox input{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:14px!important;color:#fff}
-#expAll,#colAll,#editMode,#setBtn{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.1)!important}
+.field input,.field select,textarea,input.amt,#gsBox input{background:#211f42!important;border:1px solid #46448a!important;border-radius:14px!important;color:#fff}
+#expAll,#colAll,#editMode,#setBtn{background:#211f42!important;border:1px solid #46448a!important;color:#fff!important}
 .prog span{background:var(--glow)!important}
 input[type=range]{accent-color:#7c5cff}
 #expAll svg,#colAll svg,#editMode svg{width:16px!important;height:16px!important}
