@@ -211,6 +211,11 @@ section.collapsed > div:first-child h2::after{transform:translateY(-50%) rotate(
 [dir=rtl] section.collapsed > div:first-child h2::after{transform:translateY(-50%) rotate(90deg)}
 section > div:first-child .desc{margin-top:8px}
 section:not(.collapsed){margin-bottom:10px}
+section{--sec:var(--accent)}
+section > div:first-child{background:color-mix(in srgb,var(--sec) 13%,var(--surface))!important;border-color:color-mix(in srgb,var(--sec) 35%,var(--line))!important;border-inline-start:4px solid var(--sec)!important}
+section > div:first-child h2::after{color:var(--sec)!important}
+.secico{flex:none;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;background:color-mix(in srgb,var(--sec) 26%,transparent);margin-inline-end:2px}
+section:not(.collapsed) > .card,section:not(.collapsed) > div:not(:first-child) > .card{border-top:2px solid color-mix(in srgb,var(--sec) 70%,transparent)}
 section.collapsed > *:not(:first-child), section.collapsed > div:first-child p, section.collapsed .monthnav, section.collapsed #reset{display:none!important}
 /* Dynamic-island hint pill */
 .hintbar{top:auto;bottom:max(14px,env(safe-area-inset-bottom,0px))!important;width:auto!important;max-width:min(560px,calc(100% - 24px));min-width:180px;
@@ -2162,6 +2167,15 @@ document.getElementById("salV").addEventListener("click", async ()=>{
     const sec=b.closest("section"); if(sec&&sec.classList.contains("collapsed")&&!box.classList.contains("balhero")){ const h=sec.querySelector("h2"); if(h) h.click(); box.classList.add("info-open"); return; }
     box.classList.toggle("info-open"); }, true);
 })();
+</script>
+<script>/* per-section colour + icon so sections look different */
+(function(){ const M={"Add a cost":["#5fc3a6","➕"],"This month":["#6aa9ff","📅"],"Where your salary goes":["#b18cff","💸"],"Emergency fund":["#4fd1d9","🛟"],"Salary day":["#a7d65a","💵"],"Debts to repay":["#f07b7b","💳"],"Smoking":["#ff9f5a","🚭"],"Your money right now":["#5fc3a6","💰"],"Add money in":["#a7d65a","📥"],"Savings goals":["#f2b35b","🎯"],"Starting point":["#6aa9ff","🏁"],"Forsa · deals below market":["#ff9f5a","🔥"],"Bills":["#b18cff","📸"],"Price book":["#f2b35b","🏷️"],"My items":["#ff8fc7","🛒"],"Budget":["#ff8fc7","📊"]};
+  const P=["#6aa9ff","#f2b35b","#b18cff","#ff8fc7","#4fd1d9","#a7d65a","#ff9f5a"];
+  function apply(){ document.querySelectorAll("section").forEach((sec,i)=>{ const d=sec.querySelector(":scope > div:first-child"), h=d&&d.querySelector("h2"); if(!h) return;
+    const k=h.dataset.orig||h.dataset.en||h.textContent.trim(); const m=M[k]||[P[i%P.length],"📌"]; sec.style.setProperty("--sec",m[0]);
+    if(!d.querySelector(".secico")){ if(!h.parentNode.classList.contains("hrow")){ const w=document.createElement("span"); w.className="hrow"; h.parentNode.insertBefore(w,h); w.appendChild(h); } const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.textContent=m[1]; h.parentNode.insertBefore(ic,h); } }); }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>setTimeout(apply,0)); else setTimeout(apply,0);
+  setTimeout(apply,1500); })();
 </script>
 <div id="setSheet" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle"><div class="sh">
   <div class="grab"></div>
