@@ -53,58 +53,58 @@
       const b = window.lastBalance, nsd = g("nextSalaryDate"), days = nsd ? Math.max(1, Math.ceil((nsd() - now) / 864e5)) : 30;
       if(b != null && avgDay > 0){
         const spare = b - avgDay * days;
-        out.push(spare >= 0 ? L(`🔮 At your usual pace you reach payday with about ${fmt(spare)} SAR spare.`, `🔮 بنفس صرفك المعتاد بتوصل للراتب ومعك حوالي ${fmt(spare)} ريال زيادة.`)
-                            : L(`🔮 At your usual pace you'd run short by about ${fmt(-spare)} SAR before payday. Slow down a little.`, `🔮 بنفس صرفك المعتاد بينقصك حوالي ${fmt(-spare)} ريال قبل الراتب. خفف شوي.`));
-        out.push(L(`⏳ Your balance covers about ${Math.floor(b / avgDay)} days of normal spending.`, `⏳ رصيدك يكفي تقريباً ${Math.floor(b / avgDay)} يوم من صرفك العادي.`));
+        out.push(spare >= 0 ? L(`🔮 About ${fmt(spare)} SAR spare at payday`, `🔮 بيتبقى لك ${fmt(spare)} ريال يوم الراتب`)
+                            : L(`🔮 ${fmt(-spare)} SAR short before payday`, `🔮 بينقصك ${fmt(-spare)} ريال قبل الراتب`));
+        out.push(L(`⏳ Lasts about ${Math.floor(b / avgDay)} days at your pace`, `⏳ يكفيك تقريباً ${Math.floor(b / avgDay)} يوم`));
       }
       const inc = (g("income") || []).filter(x => x.date.slice(0,7) === mk).reduce((a,x) => a + x.amount, 0);
-      if(inc || spentM) out.push(L(`↕️ This month: ${fmt(inc)} SAR in, ${fmt(spentM)} SAR out.`, `↕️ هذا الشهر: دخل ${fmt(inc)} ريال، وطلع ${fmt(spentM)} ريال.`));
+      if(inc || spentM) out.push(L(`↕️ Month: +${fmt(inc)} in, −${fmt(spentM)} out`, `↕️ الشهر: +${fmt(inc)} دخل، −${fmt(spentM)} صرف`));
       const wk = es.filter(e => (now - new Date(e.date + "T12:00")) / 864e5 < 7).sort((a,b) => b.amount - a.amount)[0];
-      if(wk) out.push(L(`🏷️ Biggest cost this week: ${fmt(wk.amount)} SAR on ${cat(wk.cat)}${wk.note ? " (" + wk.note + ")" : ""}.`, `🏷️ أكبر مصروف هذا الأسبوع: ${fmt(wk.amount)} ريال على ${cat(wk.cat)}${wk.note ? " (" + wk.note + ")" : ""}.`));
+      if(wk) out.push(L(`🏷️ Top cost this week: ${fmt(wk.amount)} SAR`, `🏷️ أكبر مصروف بالأسبوع: ${fmt(wk.amount)} ريال`));
     }
     if(tab === "budget"){
       const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {};
       const flex = ITEMS.filter(i => i.daily && state[i.k] && +state[i.k].plan > 0), plan = flex.reduce((a,i) => a + +state[i.k].plan, 0);
       const fs = flex.reduce((a,i) => a + (sums[i.k] || 0), 0);
       if(plan){ const pu = Math.round(fs / plan * 100), pt = Math.round(dayOfM / daysInM * 100);
-        out.push(pu <= pt ? L(`🎯 ${pt}% of the month is gone and you've used ${pu}% of your budget. On track.`, `🎯 مضى ${pt}٪ من الشهر واستخدمت ${pu}٪ من ميزانيتك. ماشي صح.`)
-                          : L(`🚦 ${pt}% of the month is gone but ${pu}% of your budget is used. Ease off for a few days.`, `🚦 مضى ${pt}٪ من الشهر واستخدمت ${pu}٪ من الميزانية. خفف كم يوم.`)); }
+        out.push(pu <= pt ? L(`🎯 On track: ${pu}% used, ${pt}% of month gone`, `🎯 ماشي صح: صرفت ${pu}٪ ومضى ${pt}٪`)
+                          : L(`🚦 ${pu}% used, only ${pt}% of month gone`, `🚦 صرفت ${pu}٪ ومضى ${pt}٪ بس`)); }
       const room = flex.map(i => ({i, left: state[i.k].plan - (sums[i.k] || 0)})).sort((a,b) => b.left - a.left)[0];
-      if(room && room.left > 0) out.push(L(`🟢 Most room left: ${room.i.s}, ${fmt(room.left)} SAR.`, `🟢 أكثر بند فيه مجال: ${room.i.s}، باقي ${fmt(room.left)} ريال.`));
+      if(room && room.left > 0) out.push(L(`🟢 Most left: ${room.i.s}, ${fmt(room.left)} SAR`, `🟢 أكثر باقي: ${room.i.s}، ${fmt(room.left)} ريال`));
       const food = last30.filter(e => e.cat === "food"); if(food.length >= 2){ const avg = food.reduce((a,e) => a + e.amount, 0) / food.length;
-        out.push(L(`🍔 One less meal out this week keeps about ${fmt(avg)} SAR in your pocket.`, `🍔 وجبة أقل برا هذا الأسبوع تخلي معك حوالي ${fmt(avg)} ريال.`)); }
+        out.push(L(`🍔 One less meal out saves ${fmt(avg)} SAR`, `🍔 وجبة أقل برا توفر ${fmt(avg)} ريال`)); }
       const we = [0,0], wd = [0,0]; last30.forEach(e => { const d = new Date(e.date + "T12:00").getDay(); if(d === 5 || d === 6){ we[0] += e.amount; } else { wd[0] += e.amount; } });
-      if(we[0] && wd[0]){ const r = (we[0] / 8) / (wd[0] / 22); if(r > 1.2) out.push(L(`📆 Your weekends cost ${Math.round((r - 1) * 100)}% more per day than weekdays.`, `📆 يوم الويكند يكلفك ${Math.round((r - 1) * 100)}٪ أكثر من أيام الأسبوع.`)); }
+      if(we[0] && wd[0]){ const r = (we[0] / 8) / (wd[0] / 22); if(r > 1.2) out.push(L(`📆 Weekends cost you ${Math.round((r - 1) * 100)}% more`, `📆 الويكند يكلفك ${Math.round((r - 1) * 100)}٪ أكثر`)); }
     }
     if(tab === "plan"){
       const notes = {}; month.forEach(e => { const n = (e.note || "").trim(); if(n) notes[n] = (notes[n] || 0) + 1; });
       const top = Object.entries(notes).sort((a,b) => b[1] - a[1])[0];
-      if(top && top[1] >= 2) out.push(L(`🔁 Your most frequent buy this month: ${top[0]} (${top[1]} times).`, `🔁 أكثر شي تشتريه هذا الشهر: ${top[0]} (${top[1]} مرات).`));
+      if(top && top[1] >= 2) out.push(L(`🔁 Most bought: ${top[0]} (${top[1]}×)`, `🔁 الأكثر شراء: ${top[0]} (${top[1]}×)`));
       const byDay = [0,0,0,0,0,0,0]; last30.forEach(e => { byDay[new Date(e.date + "T12:00").getDay()] += e.amount; });
-      const mx = byDay.indexOf(Math.max(...byDay)); if(byDay[mx] > 0) out.push(L(`📅 ${DAYS_EN[mx]} is your biggest spending day lately.`, `📅 يوم ${DAYS_AR[mx]} هو أكثر يوم تصرف فيه مؤخراً.`));
-      const small = month.filter(e => e.amount < 30); if(small.length >= 3) out.push(L(`🪙 ${small.length} small buys under 30 SAR added up to ${fmt(small.reduce((a,e) => a + e.amount, 0))} SAR this month.`, `🪙 ${small.length} مشتريات صغيرة تحت 30 ريال وصلت ${fmt(small.reduce((a,e) => a + e.amount, 0))} ريال هذا الشهر.`));
-      const cof = month.filter(e => e.cat === "coffee"); if(cof.length) { const t = cof.reduce((a,e) => a + e.amount, 0); out.push(L(`☕ Coffee this month: ${fmt(t)} SAR. That's about ${fmt(t * 12)} SAR a year.`, `☕ القهوة هذا الشهر: ${fmt(t)} ريال. يعني حوالي ${fmt(t * 12)} ريال بالسنة.`)); }
+      const mx = byDay.indexOf(Math.max(...byDay)); if(byDay[mx] > 0) out.push(L(`📅 You spend most on ${DAYS_EN[mx]}s`, `📅 أكثر صرفك يوم ${DAYS_AR[mx]}`));
+      const small = month.filter(e => e.amount < 30); if(small.length >= 3) out.push(L(`🪙 Small buys added up to ${fmt(small.reduce((a,e) => a + e.amount, 0))} SAR`, `🪙 المشتريات الصغيرة: ${fmt(small.reduce((a,e) => a + e.amount, 0))} ريال`));
+      const cof = month.filter(e => e.cat === "coffee"); if(cof.length) { const t = cof.reduce((a,e) => a + e.amount, 0); out.push(L(`☕ Coffee: about ${fmt(t * 12)} SAR a year`, `☕ القهوة: حوالي ${fmt(t * 12)} ريال بالسنة`)); }
       let streak = 0; for(let i = 0; i < 60; i++){ const d = new Date(now); d.setDate(d.getDate() - i); if(es.some(e => e.date === ymd(d))) streak++; else if(i) break; }
-      if(streak >= 3) out.push(L(`🔥 You've logged costs ${streak} days in a row. Keep it going.`, `🔥 سجلت مصاريفك ${streak} أيام ورا بعض. استمر.`));
+      if(streak >= 3) out.push(L(`🔥 ${streak}-day logging streak`, `🔥 سجلت ${streak} أيام ورا بعض`));
     }
     if(tab === "prices"){
       const groups = [...priceGroups().values()], ps = groups.flat();
       const wins = {}; groups.forEach(r => { if(new Set(r.map(p => p.store)).size < 2) return; const lo = r.slice().sort((a,b) => a.price - b.price)[0]; wins[lo.store] = (wins[lo.store] || 0) + 1; });
       const w = Object.entries(wins).sort((a,b) => b[1] - a[1])[0];
-      if(w && w[1] >= 2) out.push(L(`🏆 ${w[0]} is cheapest for ${w[1]} of your items.`, `🏆 ${w[0]} الأرخص في ${w[1]} من أصنافك.`));
+      if(w && w[1] >= 2) out.push(L(`🏆 ${w[0]} is cheapest for ${w[1]} items`, `🏆 ${w[0]} الأرخص في ${w[1]} أصناف`));
       const swing = groups.map(r => { const a = r.map(p => p.price); return {p: r[0], lo: Math.min(...a), hi: Math.max(...a)}; }).filter(x => x.hi > x.lo).sort((a,b) => (b.hi - b.lo) / b.hi - (a.hi - a.lo) / a.hi)[0];
-      if(swing) out.push(L(`📉 ${swing.p.item} has ranged from ${money(swing.lo)} to ${money(swing.hi)} SAR. Buy it at the low end.`, `📉 سعر ${swing.p.item} تراوح بين ${money(swing.lo)} و ${money(swing.hi)} ريال. اشتريه بالأرخص.`));
-      if(ps.length) out.push(L(`📒 Your price book has ${ps.length} prices from ${new Set(ps.map(p => p.store)).size} stores.`, `📒 دفتر أسعارك فيه ${ps.length} سعر من ${new Set(ps.map(p => p.store)).size} محلات.`));
+      if(swing) out.push(L(`📉 ${swing.p.item}: ${money(swing.lo)}–${money(swing.hi)} SAR`, `📉 ${swing.p.item}: ${money(swing.lo)}–${money(swing.hi)} ريال`));
+      if(ps.length) out.push(L(`📒 ${ps.length} prices from ${new Set(ps.map(p => p.store)).size} stores`, `📒 ${ps.length} سعر من ${new Set(ps.map(p => p.store)).size} محلات`));
     }
     if(tab === "forsa"){
       const live = (g("deals") || []).filter(d => d.status !== "hidden"), terms = ((g("hunt") || {}).terms || []);
       const today = live.filter(d => now - d.foundAt < 864e5);
-      if(today.length) out.push(L(`🆕 ${today.length} new deal${today.length === 1 ? "" : "s"} in the last 24 hours.`, `🆕 ${today.length} عروض جديدة خلال آخر 24 ساعة.`));
-      if(terms.length) out.push(L(`🔎 You're hunting for: ${terms.slice(0,3).join(", ")}. Add one more to widen the net.`, `🔎 تدوّر على: ${terms.slice(0,3).join("، ")}. أضف شي ثاني توسّع البحث.`));
-      else out.push(L(`🔎 Tell the hunt what you want, like "PS5" or "sofa", and it watches for it.`, `🔎 قول للبحث وش تبي، مثل "بلايستيشن" أو "كنب"، ويراقبه لك.`));
+      if(today.length) out.push(L(`🆕 ${today.length} new deal${today.length === 1 ? "" : "s"} today`, `🆕 ${today.length} عروض جديدة اليوم`));
+      if(terms.length) out.push(L(`🔎 Hunting: ${terms.slice(0,2).join(", ")}`, `🔎 تدوّر على: ${terms.slice(0,2).join("، ")}`));
+      else out.push(L(`🔎 Add a search, like "PS5"`, `🔎 أضف بحث، مثل "بلايستيشن"`));
       const best = live.filter(d => d.market > 0).sort((a,b) => b.pct - a.pct)[0];
-      if(best) out.push(L(`💎 Deepest discount right now: ${best.title}, ${best.pct}% below market.`, `💎 أكبر خصم الحين: ${best.title}، أقل من السوق بـ ${best.pct}٪.`));
-      out.push(L(`🤝 Tip: offer about 10% less first. Most sellers expect to bargain.`, `🤝 نصيحة: اعرض أقل بحوالي 10٪ أول. أغلب البياعين يتوقعون مفاصلة.`));
+      if(best) out.push(L(`💎 Best: ${best.pct}% below market`, `💎 الأفضل: أقل من السوق بـ ${best.pct}٪`));
+      out.push(L(`🤝 Offer 10% less first. Sellers bargain`, `🤝 اعرض أقل بـ10٪ أول، البياع يفاصل`));
     }
     return out;
   }
@@ -123,8 +123,8 @@
     }
     if(tab === "forsa") h = h.concat(sectionHints(["Forsa · deals below market"]));
     const seen = new Set(); h = h.filter(t => t && !seen.has(t) && seen.add(t));
-    if(!h.length) h = [{bal:"💡 Check your bank app once a week and update your starting point.", budget:"💡 Set a plan for each category so the app can tell you what's left.",
-      plan:"💡 Log small costs too. They add up fastest.", prices:"💡 Save the same item from two stores to see which is cheaper.", forsa:"💡 Add something you want to buy and the hunt will look for deals."}[tab]];
+    if(!h.filter(x => x.length <= 44).length) h = [{bal:L("💡 Check your bank app weekly","💡 راجع تطبيق البنك كل أسبوع"), budget:L("💡 Set a plan for each category","💡 حط خطة لكل بند"),
+      plan:L("💡 Log small costs too","💡 سجل المصاريف الصغيرة بعد"), prices:L("💡 Save one item from two stores","💡 سجل نفس الصنف من محلين"), forsa:L("💡 Add something you want to buy","💡 أضف شي تبي تشتريه")}[tab]];
     return h;
   }
 
@@ -285,8 +285,10 @@
     const v = document.getElementById("viewHome"); if(!v) return;
     const hr = new Date().getHours(), greet = hr < 12 ? L("Good morning","صباح الخير") : hr < 18 ? L("Good afternoon","مساء الخير") : L("Good evening","مساء الخير");
     v.innerHTML = `<div class="hgreet" data-noi18n><span>${greet}</span><span>${new Date().toLocaleDateString(AR ? "ar-SA-u-ca-gregory" : "en-GB", {weekday:"long", day:"numeric", month:"long"})}</span></div>` +
-      CARDS.map((c, i) => { const b = bodyFor(c.tab), all = hintsFor(c.tab).filter(x => x !== lastHint[c.tab]), mine = creative(c.tab).filter(x => x !== lastHint[c.tab]);
-        const h = pick(mine.length && (seed * 7 + i) % 1 < 0.75 ? mine : all, 11 + i); lastHint[c.tab] = h;
+      CARDS.map((c, i) => { const short = x => x && x.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, "").length <= 42;
+        const b = bodyFor(c.tab), all = hintsFor(c.tab).filter(x => x !== lastHint[c.tab] && short(x)), mine = creative(c.tab).filter(x => x !== lastHint[c.tab] && short(x));
+        // only our own short, bilingual hints on Home (no app offers like pizza, nothing cut off)
+        const h = pick(mine.length ? mine : all.filter(x => /^💡/.test(x)).slice(-1), 11 + i); lastHint[c.tab] = h;
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
