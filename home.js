@@ -4,8 +4,8 @@
   const AR = window.walletLang === "ar";
   const L = (en, ar) => AR ? ar : en;
   const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  const sar = n => `<bdi dir="ltr">${fmt(n)}</bdi> ` + L("SAR", "ريال");
-  const neg = n => `<bdi dir="ltr">−${fmt(n)}</bdi> ` + L("SAR", "ريال");
+  const sar = n => `<bdi dir="ltr">\u20C1${fmt(n)}</bdi>`;
+  const neg = n => `<bdi dir="ltr">−\u20C1${fmt(n)}</bdi>`;
   const g = name => { try { return eval(name); } catch(e) { return undefined; } };   // read the app's own state safely
   let seed = Math.random();
   const pick = (arr, salt) => arr.length ? arr[Math.floor(((seed * 9301 + (salt || 0) * 49297) % 1) * arr.length) % arr.length] : null;
@@ -24,6 +24,7 @@
     tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
     spark:'<path d="M12 3c.8 3.8 5 5.3 5 10a5 5 0 0 1-10 0c0-2.6 1.5-3.8 2-6 1 1 1.6 2 2.6 2.4C12 7.4 11 5.2 12 3z"/>'
   };
+  const PHN = {bal:"wallet", budget:"chart-pie-slice", plan:"receipt", prices:"tag", forsa:"fire"};
   const svg = k => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 
   /* ---------- hints for each card ---------- */
@@ -213,31 +214,37 @@
   .hcard .sub b{color:var(--fg)}
   .hcard .hint{display:block;margin-top:3px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.045);font-size:11.5px;line-height:1.35;color:var(--fg)}
   .hcard .hint>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  body.onhome .tabs,body.onhome .hintbar{display:none!important}
-  #tabHome{flex:0 0 auto!important;width:44px;display:inline-flex;align-items:center;justify-content:center}
-  #tabHome::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 11 12 4l8.5 7'/%3E%3Cpath d='M5.5 9.5V20h13V9.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 11 12 4l8.5 7'/%3E%3Cpath d='M5.5 9.5V20h13V9.5'/%3E%3C/svg%3E") center/contain no-repeat}
+  body.onhome .hintbar{display:none!important}
+  #tabHome{flex:0 0 auto!important;width:48px;display:inline-flex;align-items:center;justify-content:center}
   .hgreet{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:12.5px;padding:0 2px}
   /* Beshr's palette: navy balance card, white cards, amber only for deals, green/red only for money in/out */
   .hgreet{display:none!important}
   .hcard::before{display:none!important}
   .hcard .hh .go{display:none}
-#viewHome{gap:8px!important}
-.hcard{--hc:var(--navy);border:1px solid var(--card-line)!important;border-radius:18px!important;padding:10px 14px!important;background:var(--card)!important;color:var(--fg)!important;box-shadow:var(--shadow)!important}
+#viewHome{gap:12px!important}
+.hcard{--hc:var(--navy);border:1px solid var(--card-line)!important;border-radius:16px!important;padding:12px 16px!important;gap:4px!important;background:var(--card)!important;color:var(--fg)!important;box-shadow:var(--shadow)!important}
 .hcard .hh{color:var(--tabink)!important;font-weight:600!important}
 .hcard .hh .big{color:var(--fg)!important}
 .hcard .hh .big.bad{color:var(--loss)!important}
 .hcard .hh .ic{border-radius:50%!important;width:26px!important;height:26px!important;background:var(--navy-soft)!important;color:var(--fg)!important}
 .hcard .sub{color:var(--muted)!important}.hcard .sub b{color:var(--fg)!important}
-.hcard .hint{background:var(--chip)!important;color:var(--ink2)!important;border-radius:999px!important;padding:4px 10px!important}
+.hcard .hint{background:var(--chip)!important;color:var(--ink2)!important;border-radius:999px!important;padding:4px 12px!important}
 .hcard .hint>svg{color:var(--muted)!important}
-.hcard[data-go=bal]{background:var(--navy)!important;border:none!important;padding:13px 15px!important}
+.hcard[data-go=bal]{background:var(--navy)!important;border:none!important;padding:16px!important}
 .hcard[data-go=bal] .hh{flex-wrap:wrap;color:var(--navy-sub)!important;font-weight:500!important}
-.hcard[data-go=bal] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:30px!important;color:#fff!important;margin-top:0;line-height:1.15}
+.hcard[data-go=bal] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:32px!important;font-weight:600!important;color:#fff!important;margin-top:0;line-height:1.15}
 .hcard[data-go=bal] .hh .big.bad{color:#FCA5A5!important}
 .hcard[data-go=bal] .sub{color:var(--navy-sub)!important}
 .hcard[data-go=bal] .hint{background:rgba(255,255,255,.1)!important;color:#E2E8F0!important}
 .hcard[data-go=bal] .hint>svg{color:var(--navy-sub)!important}
-.hcard[data-go=bal] .ic{background:rgba(255,255,255,.12)!important;color:#fff!important}
+.hcard[data-go=bal] .ic{display:none!important}
+.hcard[data-go=bal] .hh{font-size:13px!important}
+.hcard .hh{font-size:16px!important;font-weight:500!important}
+.hcard .hh .ic{width:32px!important;height:32px!important}.hcard .hh .ic svg{width:20px!important;height:20px!important}
+.hcard .hh .big{font-size:20px!important;font-weight:600!important}
+.hcard .hh{gap:8px!important}.hcard .hint{gap:4px!important}
+.hcard .sub{font-size:14px!important}
+.hcard .hint{font-size:12px!important;font-weight:500!important}.hcard .hint>svg{width:15px!important;height:15px!important}
 .hcard[data-go=plan] .hh .big{color:var(--loss)!important}
 .hcard .gain{color:var(--gain)!important;font-weight:600}.hcard[data-go=bal] .gain{color:var(--gain-on-navy)!important}
 .hcard .loss{color:var(--loss)!important;font-weight:600}
@@ -281,9 +288,9 @@
       CARDS.map((c, i) => { const b = bodyFor(c.tab), all = hintsFor(c.tab).filter(x => x !== lastHint[c.tab]), mine = creative(c.tab).filter(x => x !== lastHint[c.tab]);
         const h = pick(mine.length && (seed * 7 + i) % 1 < 0.75 ? mine : all, 11 + i); lastHint[c.tab] = h;
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
-          <span class="hh" data-noi18n><span class="ic">${svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
+          <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
-          ${h ? `<span class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg><span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
+          ${h ? `<span class="hint">${window.PH ? PH("sparkle") : ""}<span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
   }
   let rt = 0; const soon = () => { clearTimeout(rt); rt = setTimeout(() => { if(!document.getElementById("viewHome").hidden) render(); }, 250); };
 
@@ -293,7 +300,7 @@
     const v = document.createElement("div"); v.className = "view"; v.id = "viewHome"; v.setAttribute("role", "tabpanel"); v.hidden = true;
     first.parentNode.insertBefore(v, first);
     const grp = document.querySelector(".tabs .tabgrp");
-    const hb = document.createElement("button"); hb.type = "button"; hb.setAttribute("role", "tab"); hb.id = "tabHome"; hb.setAttribute("aria-label", L("Home","الرئيسية")); hb.setAttribute("aria-selected", "false");
+    const hb = document.createElement("button"); hb.type = "button"; hb.setAttribute("role", "tab"); hb.id = "tabHome"; hb.setAttribute("aria-label", L("Home","الرئيسية")); hb.setAttribute("aria-selected", "false"); hb.textContent = L("Home","الرئيسية"); hb.setAttribute("data-noi18n","");
     if(grp) grp.insertBefore(hb, grp.firstChild);
     TABS.home = ["tabHome", "viewHome"];
     hb.addEventListener("click", () => showTab("home"));

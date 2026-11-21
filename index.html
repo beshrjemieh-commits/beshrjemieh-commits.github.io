@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script>/* stuck-screen clue: shows where loading stopped */
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script>/* stuck-screen clue: shows where loading stopped */
 (function(){ window.__stage="page"; window.__errs=[]; var t0=Date.now();
   try{ if(/[?&]reset\b/.test(location.search)){ /* clear this phone's saved layout/cache, keep sign-in */
     Object.keys(localStorage).forEach(function(k){ if(/^w-/.test(k)) localStorage.removeItem(k); }); sessionStorage.clear();
@@ -10,7 +10,7 @@
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
     el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v13 · tap to retry"; }, 14000);
-})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><script src="setup.js"></script><script src="tour.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="icons.js"></script><script src="riyal.js"></script><script src="shim.js"></script><script src="i18n.js"></script><script src="setup.js"></script><script src="tour.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
 .subh{margin:0;font-size:15px;font-weight:700;display:flex;gap:6px;align-items:center;color:#6aa9ff}
 .tabs{flex-direction:column;gap:6px!important;padding:0!important;background:var(--bg)!important;border:none!important;border-radius:0!important;box-shadow:0 -8px 0 var(--bg)}
 .tabs .tabgrp{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
@@ -37,6 +37,19 @@ html,body{max-width:100%;overflow-x:hidden}
 @supports (-webkit-touch-callout:none){input,select,textarea{font-size:max(16px,1em)!important}}
 img,svg,video,canvas{max-width:100%}
 @media (max-width:360px){#expAll,#colAll,#editMode,#setBtn{width:26px!important;height:26px!important}header .toprow>span{gap:2px!important}}
+/* ===== Type: IBM Plex Sans + IBM Plex Sans Arabic (one family), Riyal symbol font, tabular Western digits, 3 weights ===== */
+@font-face{font-family:"Riyal";src:url("fonts/riyal.woff2") format("woff2");font-weight:400 500;unicode-range:U+20C1;font-display:block}
+@font-face{font-family:"Riyal";src:url("fonts/riyal-bold.woff2") format("woff2");font-weight:600 900;unicode-range:U+20C1;font-display:block}
+:root,html[dir=rtl]{--sans:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",-apple-system,system-ui,sans-serif!important;--mono:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",-apple-system,system-ui,sans-serif!important}
+html[dir=rtl]{--sans:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",-apple-system,system-ui,sans-serif!important}
+body,button,input,select,textarea{font-family:var(--sans)!important;font-variant-numeric:tabular-nums lining-nums}
+body{font-size:15px;line-height:1.5;font-weight:400;letter-spacing:0!important}
+html[dir=rtl] body{line-height:1.7}
+b,strong,h1,h2,h3,h4,th,.btn.primary,.big,.v,.tabs button[aria-selected="true"]{font-weight:600!important}
+header .toprow h1{font-weight:600!important;letter-spacing:-.01em!important}
+label,.eyebrow,.tabs button,.chip,.btn{font-weight:500}
+.tag,small,.legend,.sub,.status,.hcard .hint,.hcard .sub,#salSec .tiles .tag,#salSec .gtable td small,#salSec .gtable td .sub,#rows tr > td[data-l]::before{font-size:max(12px,1em)}
+.tag,.legend,.status{font-size:12px!important}.hcard .hint{font-size:12px!important}.hcard .sub{font-size:12.5px!important}
 /* ===== Beshr's palette (2026-11-22) — each colour has one job =====
    navy = trust/brand · blue = tappable only · amber = deals only · green = money in/gains only · red = losses/errors only. 60% neutral, 30% navy, 10% accents. Light by default, dark follows the iPhone setting. */
 :root,:root[data-theme="dark"],:root:not([data-theme="light"]){
@@ -65,12 +78,40 @@ section > div:first-child h2{color:var(--fg)!important}
 .chip[aria-pressed="true"]{background:var(--accent-soft)!important;border-color:var(--accent)!important;color:var(--fg)!important}
 .field input,.field select,textarea,input.amt,#gsBox input{background:var(--card)!important;border:1px solid var(--field-line)!important;border-radius:12px!important;color:var(--fg)!important}
 #expAll,#colAll,#editMode,#setBtn{background:var(--card)!important;border:1px solid var(--card-line)!important;color:var(--accent)!important}
-body header #editMode svg,body header #expAll svg,body header #colAll svg{width:17px!important;height:17px!important}
+body header #editMode svg,body header #expAll svg,body header #colAll svg,body header #setBtn svg{width:20px!important;height:20px!important}
+#expAll,#colAll,#editMode,#setBtn{width:36px!important;height:36px!important;position:relative}
+#expAll::after,#colAll::after,#editMode::after,#setBtn::after{content:"";position:absolute;inset:-4px}
 header .toprow h1{color:var(--fg)!important}
 .prog{background:var(--line)!important}.prog span{background:var(--navy)!important}.prog.over span{background:var(--loss)!important}
 input[type=range]{accent-color:var(--accent)}
 .diff-down,.tile.good .v{color:var(--gain)!important}.diff-up{color:var(--loss)!important}
 th{color:var(--muted)!important}tr.group td{background:var(--chip)!important}
+/* ===== Beshr's type scale + bottom tab bar ===== */
+header .toprow h1{font-size:24px!important;font-weight:600!important;line-height:1.25}
+body header #editMode svg,body header #expAll svg,body header #colAll svg,body header #setBtn svg{width:24px!important;height:24px!important}
+#expAll,#colAll,#editMode,#setBtn{width:40px!important;height:40px!important}
+#expAll::after,#colAll::after,#editMode::after,#setBtn::after{inset:-2px!important}
+header .toprow>span{gap:4px!important}
+section > div:first-child h2{font-size:20px!important;font-weight:500!important}
+.secico{width:36px!important;height:36px!important}.secico svg{width:22px!important;height:22px!important}
+/* scale (base 16, ratio 1.2): 12 caption · 14 secondary · 16 body · 20 section · 24 title · 32 balance */
+body{font-size:16px!important}
+.sub,.dayhead,.legend,small{font-size:14px}
+.tag,.status,.eyebrow{font-size:12px!important}
+.card{padding:16px!important;gap:12px!important}
+/* bottom tab bar: 24px icon above a 12px Medium label, like iPhone apps */
+.tabs{position:fixed!important;left:0;right:0;bottom:0;top:auto!important;z-index:40;display:flex!important;flex-direction:row!important;gap:0!important;margin:0!important;
+ padding:6px 4px max(6px,env(safe-area-inset-bottom,0px))!important;background:color-mix(in srgb,var(--card) 94%,transparent)!important;border-top:1px solid var(--card-line)!important;
+ -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:none!important;border-radius:0!important}
+.tabs .tabgrp{display:contents!important}
+.tabs button,#tabHome{flex:1 1 0!important;width:auto!important;min-width:0;min-height:50px;display:flex!important;flex-direction:column!important;align-items:center;justify-content:center;gap:3px!important;
+ padding:4px 2px!important;background:none!important;border-radius:10px!important;color:var(--muted)!important;font-size:11.5px!important;font-weight:500!important;line-height:1.1!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:none!important}
+.tabs button[aria-selected="true"]{background:none!important;color:var(--navy)!important;font-weight:600!important}
+@media (prefers-color-scheme: dark){.tabs button[aria-selected="true"]{color:#93C5FD!important}}
+.tabs button::before{width:24px!important;height:24px!important}
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
+html body .hintbar{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important}
+body.onhome .tabs{display:flex!important}
 </style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -496,7 +537,7 @@ form.card .logform{row-gap:11px!important}
 
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:6px">
-    <div class="toprow" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h1 id="wTitle">My Wallet</h1><span style="display:flex;gap:4px;flex:0 0 auto"><button class="btn" type="button" id="expAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Open all sections" title="Open all sections"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6 8 2.5 11.5 6M4.5 10 8 13.5 11.5 10"/></svg></button><button class="btn" type="button" id="colAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Close all sections" title="Close all sections"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 2.5 8 6l3.5-3.5M4.5 13.5 8 10l3.5 3.5"/></svg></button><button class="btn" type="button" id="editMode" style="padding:2px 8px;font-size:11px;min-height:0" aria-pressed="false" aria-label="Edit layout" title="Edit layout"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.8 2.7a1.6 1.6 0 0 1 2.3 2.3L5.6 12.5 2.5 13.5l1-3.1z"/><path d="M9.5 4l2.5 2.5"/></svg></button><button type="button" id="setBtn" class="gear" aria-label="Settings"><svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M1 1h16M1 7h16M1 13h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></span></div>
+    <div class="toprow" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h1 id="wTitle">My Wallet</h1><span style="display:flex;gap:4px;flex:0 0 auto"><button class="btn" type="button" id="expAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Open all sections" title="Open all sections"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM101.66,53.66,120,35.31V96a8,8,0,0,0,16,0V35.31l18.34,18.35a8,8,0,0,0,11.32-11.32l-32-32a8,8,0,0,0-11.32,0l-32,32a8,8,0,0,0,11.32,11.32Zm52.68,148.68L136,220.69V160a8,8,0,0,0-16,0v60.69l-18.34-18.35a8,8,0,0,0-11.32,11.32l32,32a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"/></svg></button><button class="btn" type="button" id="colAll" style="padding:2px 8px;font-size:11px;min-height:0" aria-label="Close all sections" title="Close all sections"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM122.34,101.66a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32L136,76.69V16a8,8,0,0,0-16,0V76.69L101.66,58.34A8,8,0,0,0,90.34,69.66Zm11.32,52.68a8,8,0,0,0-11.32,0l-32,32a8,8,0,0,0,11.32,11.32L120,179.31V240a8,8,0,0,0,16,0V179.31l18.34,18.35a8,8,0,0,0,11.32-11.32Z"/></svg></button><button class="btn" type="button" id="editMode" style="padding:2px 8px;font-size:11px;min-height:0" aria-pressed="false" aria-label="Edit layout" title="Edit layout"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/></svg></button><button type="button" id="setBtn" class="gear" aria-label="Settings"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></svg></button></span></div>
     <p class="sub">Your balance, daily spending, price book and best deals, in one place.</p>
   </header>
 
@@ -2256,12 +2297,12 @@ document.getElementById("salV").addEventListener("click", async ()=>{
 })();
 </script>
 <script>/* per-section colour + icon so sections look different */
-(function(){ const M={"Add a cost":["var(--navy)","➕"],"This month":["var(--navy)","📅"],"Where your salary goes":["var(--navy)","💸"],"Emergency fund":["var(--navy)","🛟"],"Salary day":["var(--navy)","💵"],"Debts to repay":["var(--navy)","💳"],"Smoking":["var(--navy)","🚭"],"Your money right now":["var(--navy)","💰"],"Add money in":["var(--navy)","📥"],"Savings goals":["var(--navy)","🎯"],"Starting point":["var(--navy)","🏁"],"Forsa · deals below market":["#F59E0B","🔥"],"Bills":["var(--navy)","📸"],"Price book":["var(--navy)","🏷️"],"My items":["var(--navy)","🛒"],"Budget":["var(--navy)","📊"]};
-  const SI={"➕": "<path d=\"M12 5v14M5 12h14\"/>", "📅": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>", "💸": "<rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"3\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M6 12h.01M18 12h.01\"/>", "🛟": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6\"/>", "💵": "<path d=\"M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6\"/>", "💳": "<rect x=\"2\" y=\"5\" width=\"20\" height=\"14\" rx=\"3\"/><path d=\"M2 10h20M6 15h4\"/>", "🚭": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m5.6 5.6 12.8 12.8\"/>", "💰": "<path d=\"M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2\"/><path d=\"M3 6v12a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3\"/>", "📥": "<path d=\"M12 3v12M7 10l5 5 5-5M4 20h16\"/>", "🎯": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>", "🏁": "<path d=\"M5 21V4M5 4h12l-2.5 4L17 12H5\"/>", "🔥": "<path d=\"M12 3c.8 3.8 5 5.3 5 10a5 5 0 0 1-10 0c0-2.6 1.5-3.8 2-6 1 1 1.6 2 2.6 2.4C12 7.4 11 5.2 12 3z\"/>", "📸": "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"3\"/><path d=\"M8.5 7l1.5-3h4l1.5 3\"/><circle cx=\"12\" cy=\"13.5\" r=\"3.5\"/>", "🏷️": "<path d=\"M3 12.5V4a1 1 0 0 1 1-1h8.5L21 11.5 12.5 20z\"/><circle cx=\"7.5\" cy=\"7.5\" r=\"1.3\"/>", "🛒": "<circle cx=\"9\" cy=\"20\" r=\"1.3\"/><circle cx=\"18\" cy=\"20\" r=\"1.3\"/><path d=\"M2 3h3l2.6 12.4a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H6\"/>", "📊": "<path d=\"M4 20V11M10 20V4M16 20v-7M2 20h20\"/>", "📌": "<path d=\"M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z\"/>"};
+(function(){ const M={"Monthly budget":["var(--navy)","📊"],"Add a cost":["var(--navy)","➕"],"This month":["var(--navy)","📅"],"Where your salary goes":["var(--navy)","💸"],"Emergency fund":["var(--navy)","🛟"],"Salary day":["var(--navy)","💵"],"Debts to repay":["var(--navy)","💳"],"Smoking":["var(--navy)","🚭"],"Your money right now":["var(--navy)","💰"],"Add money in":["var(--navy)","📥"],"Savings goals":["var(--navy)","🎯"],"Starting point":["var(--navy)","🏁"],"Forsa · deals below market":["#F59E0B","🔥"],"Bills":["var(--navy)","📸"],"Price book":["var(--navy)","🏷️"],"My items":["var(--navy)","🛒"],"Budget":["var(--navy)","📊"]};
+  const SI={"➕":"plus-circle","📅":"calendar-blank","💸":"chart-donut","🛟":"shield-check","💵":"calendar-check","💳":"credit-card","🚭":"prohibit","💰":"wallet","📥":"arrow-down-left","🎯":"target","🏁":"flag","🔥":"fire","📸":"receipt","🏷️":"tag","🛒":"shopping-cart","📊":"chart-pie-slice","📌":"circle"};
   const P=["var(--navy)"];
   function apply(){ document.querySelectorAll("section").forEach((sec,i)=>{ const d=sec.querySelector(":scope > div:first-child"), h=d&&d.querySelector("h2"); if(!h) return;
     const k=h.dataset.orig||h.dataset.en||h.textContent.trim(); const m=M[k]||[P[i%P.length],"📌"]; sec.style.setProperty("--sec",m[0]);
-    if(!d.querySelector(".secico")){ if(!h.parentNode.classList.contains("hrow")){ const w=document.createElement("span"); w.className="hrow"; h.parentNode.insertBefore(w,h); w.appendChild(h); } const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(SI[m[1]]||SI["📌"])+'</svg>'; h.parentNode.insertBefore(ic,h); } }); }
+    if(!d.querySelector(".secico")){ if(!h.parentNode.classList.contains("hrow")){ const w=document.createElement("span"); w.className="hrow"; h.parentNode.insertBefore(w,h); w.appendChild(h); } const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.innerHTML=window.PH(SI[m[1]]||"circle"); h.parentNode.insertBefore(ic,h); } }); }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>setTimeout(apply,0)); else setTimeout(apply,0);
   setTimeout(apply,1500); })();
 </script>
