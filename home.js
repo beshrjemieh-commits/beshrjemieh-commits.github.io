@@ -256,7 +256,16 @@
 .hcard[data-go=forsa] .ic{background:var(--deal)!important;color:#fff!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px}
-  .hcard .hint>span{flex:1;min-width:0}`;
+  .hcard .hint>span{flex:1;min-width:0}
+  /* no tab bar: swipe between screens; page dots */
+  .tabs{display:none!important}
+  body,body.onhome{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))!important}
+  html body .hintbar{bottom:calc(34px + env(safe-area-inset-bottom,0px))!important}
+  #pgDots{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  #pgDots button{width:24px;height:24px;border:none;background:none;padding:0;display:grid;place-items:center;cursor:pointer}
+  #pgDots button::before{content:"";width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .2s,background .2s}
+  #pgDots button[aria-current]::before{width:20px;background:var(--navy)}
+  @media (prefers-color-scheme: dark){#pgDots button[aria-current]::before{background:#93C5FD}}`;
 
   const lastHint = {};
 
@@ -271,14 +280,32 @@
     window.scrollTo({top:0});
     return true;
   }
+
+  /* swipe left = next screen, swipe right = previous (mirrored in Arabic); dots at the bottom show where you are */
+  const ORDER = ["home","bal","budget","plan","prices","forsa"];
+  function swipeTo(dx){
+    const i = Math.max(0, ORDER.indexOf(cur || "home")), step = (dx < 0) !== !!AR ? 1 : -1, j = i + step;
+    if(j < 0 || j >= ORDER.length) return;
+    goingBack = true; try { window.showTab(ORDER[j]); } finally { goingBack = false; }
+    const v = [...document.querySelectorAll(".view")].find(x => !x.hidden);
+    if(v && v.animate) v.animate([{transform:`translateX(${dx < 0 ? 40 : -40}px)`, opacity:.4}, {transform:"none", opacity:1}], {duration:220, easing:"ease-out"});
+    window.scrollTo({top:0}); dots();
+  }
+  function dots(){
+    let d = document.getElementById("pgDots");
+    if(!d){ d = document.createElement("nav"); d.id = "pgDots"; d.setAttribute("aria-label", L("Screens","الشاشات")); document.body.appendChild(d);
+      d.addEventListener("click", e => { const b = e.target.closest("button"); if(b) { window.showTab(b.dataset.t); dots(); } }); }
+    const names = {home:L("Home","الرئيسية"), bal:L("Balance","الرصيد"), budget:L("Budget","الميزانية"), plan:L("Expenses","المصاريف"), prices:L("Prices Log","سجل الأسعار"), forsa:L("Forsa","فرصة")};
+    d.innerHTML = ORDER.map(t => `<button type="button" data-t="${t}" aria-label="${names[t]}"${t === (cur || "home") ? ' aria-current="page"' : ""}></button>`).join("");
+  }
   window.walletGoBack = goBack;
   function swipeInit(){
     let sx = 0, sy = 0, st = 0, ok = false;
     const skip = el => el.closest("input,textarea,select,[contenteditable],.tablebox,#setSheet,#tour,#swSetup,#authGate,.tabs,.chips,[data-noswipe]") ||
       [...(function*(e){ while(e && e !== document.body){ yield e; e = e.parentElement; } })(el)].some(e => e.scrollWidth > e.clientWidth + 4 && /(auto|scroll)/.test(getComputedStyle(e).overflowX));
-    document.addEventListener("touchstart", e => { if(e.touches.length !== 1){ ok = false; return; } const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); ok = cur !== "home" && !skip(e.target); }, {passive:true});
+    document.addEventListener("touchstart", e => { if(e.touches.length !== 1){ ok = false; return; } const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); ok = !skip(e.target); }, {passive:true});
     document.addEventListener("touchend", e => { if(!ok) return; ok = false; const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-      if(Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && Date.now() - st < 700) goBack(); }, {passive:true});
+      if(Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && Date.now() - st < 700) swipeTo(dx); }, {passive:true});
     document.addEventListener("touchcancel", () => { ok = false; }, {passive:true});
   }
   function render(){
@@ -309,7 +336,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(c) showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; _show(name); const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
