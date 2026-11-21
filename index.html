@@ -37,13 +37,34 @@ html,body{max-width:100%;overflow-x:hidden}
 @supports (-webkit-touch-callout:none){input,select,textarea{font-size:max(16px,1em)!important}}
 img,svg,video,canvas{max-width:100%}
 @media (max-width:360px){#expAll,#colAll,#editMode,#setBtn{width:26px!important;height:26px!important}header .toprow>span{gap:2px!important}}
+/* ===== Violet glow theme (chosen 2026-11-22) ===== */
+:root[data-theme="dark"],:root:not([data-theme="light"]){--bg:#0b0a16!important;--surface:#16152a!important;--fg:#ffffff!important;--muted:#a3a0c4!important;--line:#2a2843!important;
+ --accent:#7c5cff!important;--accent-fg:#ffffff!important;--accent-soft:#251d55!important;--warn:#ffb35c!important;--warn-soft:#3a2a12!important;--bad:#ff5c7a!important;--glow:linear-gradient(135deg,#7c5cff 0%,#4f7bff 55%,#22c1ee 100%)}
+body{background:var(--bg)!important}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 55% at 90% -8%,#2f2080 0%,rgba(11,10,22,0) 62%),radial-gradient(90% 45% at -10% 105%,#122a5c 0%,rgba(11,10,22,0) 60%)}
+.card,.tile,.donut,.tablebox{background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:20px!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+section > div:first-child{border-radius:20px!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.secico{border-radius:50%!important;color:var(--sec)}
+.secico svg{width:17px;height:17px}
+.tabs{background:transparent!important;box-shadow:none!important}
+.tabs .tabgrp{background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:16px!important}
+.tabs button{border-radius:12px!important}
+.tabs button[aria-selected="true"]{background:var(--glow)!important;color:#fff!important;box-shadow:0 6px 18px -8px #6b5cff}
+.btn.primary{background:var(--glow)!important;border:none!important;color:#fff!important;box-shadow:0 10px 24px -12px #6b5cff;border-radius:14px!important}
+.btn,.chip{border-radius:999px!important;background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.1)!important}
+.chip[aria-pressed="true"]{background:rgba(124,92,255,.25)!important;border-color:#7c5cff!important}
+.field input,.field select,textarea,input.amt,#gsBox input{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:14px!important;color:#fff}
+#expAll,#colAll,#editMode,#setBtn{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.1)!important}
+.prog span{background:var(--glow)!important}
+input[type=range]{accent-color:#7c5cff}
+#expAll svg,#colAll svg,#editMode svg{width:16px!important;height:16px!important}
 </style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wallet">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0b0a16">
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -2223,10 +2244,11 @@ document.getElementById("salV").addEventListener("click", async ()=>{
 </script>
 <script>/* per-section colour + icon so sections look different */
 (function(){ const M={"Add a cost":["#0a84ff","➕"],"This month":["#6aa9ff","📅"],"Where your salary goes":["#b18cff","💸"],"Emergency fund":["#4fd1d9","🛟"],"Salary day":["#a7d65a","💵"],"Debts to repay":["#ff453a","💳"],"Smoking":["#ff9f5a","🚭"],"Your money right now":["#0a84ff","💰"],"Add money in":["#a7d65a","📥"],"Savings goals":["#f2b35b","🎯"],"Starting point":["#6aa9ff","🏁"],"Forsa · deals below market":["#ff9f5a","🔥"],"Bills":["#b18cff","📸"],"Price book":["#f2b35b","🏷️"],"My items":["#ff8fc7","🛒"],"Budget":["#ff8fc7","📊"]};
+  const SI={"➕": "<path d=\"M12 5v14M5 12h14\"/>", "📅": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"3\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>", "💸": "<rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"3\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/><path d=\"M6 12h.01M18 12h.01\"/>", "🛟": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6\"/>", "💵": "<path d=\"M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6\"/>", "💳": "<rect x=\"2\" y=\"5\" width=\"20\" height=\"14\" rx=\"3\"/><path d=\"M2 10h20M6 15h4\"/>", "🚭": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m5.6 5.6 12.8 12.8\"/>", "💰": "<path d=\"M19 7V5a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2\"/><path d=\"M3 6v12a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-3\"/>", "📥": "<path d=\"M12 3v12M7 10l5 5 5-5M4 20h16\"/>", "🎯": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>", "🏁": "<path d=\"M5 21V4M5 4h12l-2.5 4L17 12H5\"/>", "🔥": "<path d=\"M12 3c.8 3.8 5 5.3 5 10a5 5 0 0 1-10 0c0-2.6 1.5-3.8 2-6 1 1 1.6 2 2.6 2.4C12 7.4 11 5.2 12 3z\"/>", "📸": "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"3\"/><path d=\"M8.5 7l1.5-3h4l1.5 3\"/><circle cx=\"12\" cy=\"13.5\" r=\"3.5\"/>", "🏷️": "<path d=\"M3 12.5V4a1 1 0 0 1 1-1h8.5L21 11.5 12.5 20z\"/><circle cx=\"7.5\" cy=\"7.5\" r=\"1.3\"/>", "🛒": "<circle cx=\"9\" cy=\"20\" r=\"1.3\"/><circle cx=\"18\" cy=\"20\" r=\"1.3\"/><path d=\"M2 3h3l2.6 12.4a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H6\"/>", "📊": "<path d=\"M4 20V11M10 20V4M16 20v-7M2 20h20\"/>", "📌": "<path d=\"M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z\"/>"};
   const P=["#6aa9ff","#f2b35b","#b18cff","#ff8fc7","#4fd1d9","#a7d65a","#ff9f5a"];
   function apply(){ document.querySelectorAll("section").forEach((sec,i)=>{ const d=sec.querySelector(":scope > div:first-child"), h=d&&d.querySelector("h2"); if(!h) return;
     const k=h.dataset.orig||h.dataset.en||h.textContent.trim(); const m=M[k]||[P[i%P.length],"📌"]; sec.style.setProperty("--sec",m[0]);
-    if(!d.querySelector(".secico")){ if(!h.parentNode.classList.contains("hrow")){ const w=document.createElement("span"); w.className="hrow"; h.parentNode.insertBefore(w,h); w.appendChild(h); } const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.textContent=m[1]; h.parentNode.insertBefore(ic,h); } }); }
+    if(!d.querySelector(".secico")){ if(!h.parentNode.classList.contains("hrow")){ const w=document.createElement("span"); w.className="hrow"; h.parentNode.insertBefore(w,h); w.appendChild(h); } const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(SI[m[1]]||SI["📌"])+'</svg>'; h.parentNode.insertBefore(ic,h); } }); }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>setTimeout(apply,0)); else setTimeout(apply,0);
   setTimeout(apply,1500); })();
 </script>

@@ -208,14 +208,14 @@
   window.claude = { use: async name => { if(name === "db"){ await ready; return db; } if(name === "assets"){ await ready; return assets; } if(name === "sample"){ await ready; return sampleNS; } return null; } };
 
   /* ---------- sign-in screen ---------- */
-  const css = `#authGate{position:fixed;inset:0;z-index:1000;background:#000000;color:#ffffff;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow:auto}
+  const css = `#authGate{position:fixed;inset:0;z-index:1000;background:#0b0a16;color:#ffffff;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow:auto}
 #authGate .box{width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px}
 #authGate img{width:64px;height:64px;border-radius:16px}
 #authGate h1{font-size:30px;margin:4px 0 0;letter-spacing:-.02em}
 #authGate p{margin:0;color:#98989f}
 #authGate form{background:#1c1c1e;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
 #authGate label{font-size:13px;font-weight:600;color:#98989f}
-#authGate input{height:46px;border-radius:12px;border:1px solid #38383a;background:#000000;color:#ffffff;padding:0 12px;font-size:16px;width:100%;box-sizing:border-box}
+#authGate input{height:46px;border-radius:12px;border:1px solid #38383a;background:#0b0a16;color:#ffffff;padding:0 12px;font-size:16px;width:100%;box-sizing:border-box}
 #authGate button{height:46px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
 #authGate .go{background:#0a84ff;color:#ffffff}
 #authGate .sw{background:none;color:#0a84ff}

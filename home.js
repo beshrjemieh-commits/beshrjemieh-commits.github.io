@@ -11,11 +11,11 @@
   const pick = (arr, salt) => arr.length ? arr[Math.floor(((seed * 9301 + (salt || 0) * 49297) % 1) * arr.length) % arr.length] : null;
 
   const CARDS = [
-    {tab:"bal",    title:L("Balance","الرصيد"),          icon:"wallet",  c:"#30d158"},
-    {tab:"budget", title:L("Budget","الميزانية"),        icon:"pie",     c:"#bf5af2"},
-    {tab:"plan",   title:L("Expenses","المصاريف"),       icon:"receipt", c:"#0a84ff"},
-    {tab:"prices", title:L("Prices Log","سجل الأسعار"),  icon:"tag",     c:"#ff9f0a"},
-    {tab:"forsa",  title:L("Forsa","فرصة"),              icon:"spark",   c:"#ff453a"}
+    {tab:"bal",    title:L("Balance","الرصيد"),          icon:"wallet",  c:"#7c5cff"},
+    {tab:"budget", title:L("Budget","الميزانية"),        icon:"pie",     c:"#b18cff"},
+    {tab:"plan",   title:L("Expenses","المصاريف"),       icon:"receipt", c:"#4fc3ff"},
+    {tab:"prices", title:L("Prices Log","سجل الأسعار"),  icon:"tag",     c:"#ffb35c"},
+    {tab:"forsa",  title:L("Forsa","فرصة"),              icon:"spark",   c:"#ff6fa8"}
   ];
   const ICON = {
     wallet:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18v3"/><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="13.5" r="1.2"/>',
@@ -213,7 +213,27 @@
   body.onhome .tabs,body.onhome .hintbar{display:none!important}
   #tabHome{flex:0 0 auto!important;width:44px;display:inline-flex;align-items:center;justify-content:center}
   #tabHome::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 11 12 4l8.5 7'/%3E%3Cpath d='M5.5 9.5V20h13V9.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 11 12 4l8.5 7'/%3E%3Cpath d='M5.5 9.5V20h13V9.5'/%3E%3C/svg%3E") center/contain no-repeat}
-  .hgreet{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:12.5px;padding:0 2px}`;
+  .hgreet{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:12.5px;padding:0 2px}
+  /* Violet glow look */
+  .hgreet{display:none!important}
+  .hcard::before{display:none!important}
+  .hcard .hh .go{display:none}
+  .hcard{border:none!important}
+#viewHome{gap:8px!important}
+.hcard{border-radius:20px!important;padding:10px 14px!important;background:rgba(255,255,255,.05)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)!important}
+.hcard[data-go=bal]{background:linear-gradient(135deg,#7c5cff 0%,#4f7bff 55%,#22c1ee 100%)!important;box-shadow:0 16px 34px -16px #6b5cff!important;padding:12px 14px!important}
+.hcard[data-go=bal] .hh{flex-wrap:wrap;color:rgba(255,255,255,.85)!important}
+.hcard[data-go=bal] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:30px!important;color:#fff!important;margin-top:0;line-height:1.15}
+.hcard[data-go=bal] .sub{color:rgba(255,255,255,.85)!important}
+.hcard[data-go=bal] .hint{background:rgba(0,0,0,.18)!important}
+.hcard[data-go=bal] .ic{background:rgba(255,255,255,.22)!important;color:#fff!important}
+.hcard .hh .ic{border-radius:50%!important;width:26px!important;height:26px!important;background:color-mix(in srgb,var(--hc) 25%,transparent)!important}
+.hcard .hint{background:rgba(255,255,255,.06)!important;border-radius:999px!important;padding:4px 10px!important}
+.hcard[data-go=budget]{--hc:#b18cff}.hcard[data-go=plan]{--hc:#4fc3ff}.hcard[data-go=prices]{--hc:#ffb35c}.hcard[data-go=forsa]{--hc:#ff6fa8}
+  .hcard .hint{display:flex!important;align-items:center;gap:7px}
+  .hcard .hint>svg{flex:none;width:14px;height:14px;color:var(--hc)}
+  .hcard[data-go=bal] .hint>svg{color:#fff}
+  .hcard .hint>span{flex:1;min-width:0}`;
 
   const lastHint = {};
 
@@ -247,7 +267,7 @@
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
-          ${h ? `<span class="hint"><span>${esc(h)}</span></span>` : ""}</button>`; }).join("");
+          ${h ? `<span class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg><span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
   }
   let rt = 0; const soon = () => { clearTimeout(rt); rt = setTimeout(() => { if(!document.getElementById("viewHome").hidden) render(); }, 250); };
 
