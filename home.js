@@ -216,6 +216,28 @@
   .hgreet{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:12.5px;padding:0 2px}`;
 
   const lastHint = {};
+
+  /* ---------- swipe to go back (like iPhone apps): a sideways swipe returns to the previous screen ---------- */
+  let cur = null, goingBack = false; const backStack = [];
+  function goBack(){
+    if(cur === "home" || !cur) return false;
+    const to = backStack.pop() || "home";
+    goingBack = true; try { window.showTab(to); } finally { goingBack = false; }
+    const v = [...document.querySelectorAll(".view")].find(x => !x.hidden);
+    if(v && v.animate) v.animate([{transform:`translateX(${AR ? 40 : -40}px)`, opacity:.4}, {transform:"none", opacity:1}], {duration:220, easing:"ease-out"});
+    window.scrollTo({top:0});
+    return true;
+  }
+  window.walletGoBack = goBack;
+  function swipeInit(){
+    let sx = 0, sy = 0, st = 0, ok = false;
+    const skip = el => el.closest("input,textarea,select,[contenteditable],.tablebox,#setSheet,#tour,#swSetup,#authGate,.tabs,.chips,[data-noswipe]") ||
+      [...(function*(e){ while(e && e !== document.body){ yield e; e = e.parentElement; } })(el)].some(e => e.scrollWidth > e.clientWidth + 4 && /(auto|scroll)/.test(getComputedStyle(e).overflowX));
+    document.addEventListener("touchstart", e => { if(e.touches.length !== 1){ ok = false; return; } const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); ok = cur !== "home" && !skip(e.target); }, {passive:true});
+    document.addEventListener("touchend", e => { if(!ok) return; ok = false; const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if(Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && Date.now() - st < 700) goBack(); }, {passive:true});
+    document.addEventListener("touchcancel", () => { ok = false; }, {passive:true});
+  }
   function render(){
     const v = document.getElementById("viewHome"); if(!v) return;
     const hr = new Date().getHours(), greet = hr < 12 ? L("Good morning","صباح الخير") : hr < 18 ? L("Good afternoon","مساء الخير") : L("Good evening","مساء الخير");
@@ -242,7 +264,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(c) showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(name === "home") seed = Math.random(); _show(name); const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; _show(name); const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
@@ -258,5 +280,5 @@
     ["renderBalance","renderMonth","renderDeals","renderDebts","buildHints"].forEach(n => { const f = g(n); if(typeof f !== "function") return;
       try { eval(n + " = function(){ const r = f.apply(this, arguments); soon(); return r; }"); } catch(e){} });
   }
-  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { init(); swipeInit(); }); else { init(); swipeInit(); }
 })();
