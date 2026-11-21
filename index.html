@@ -529,22 +529,19 @@ form.card .logform{row-gap:11px!important}
     </div>
   </section>
 
+  <section id="debts">
+    <div><h2>Debts to repay</h2><p class="sub">Record each repayment here. Debts are paid from the “Debt repayment” line in your plan, smallest first.</p></div>
+    <div class="tiles">
+      <div class="tile"><span class="eyebrow">Still owed</span><span class="v" id="dLeft">0</span><span class="tag">SAR</span></div>
+      <div class="tile"><span class="eyebrow">Repaid so far</span><span class="v" id="dPaid">0</span><span class="tag">SAR</span></div>
+      <div class="tile good"><span class="eyebrow">Debt-free by</span><span class="v" id="dWhen">—</span><span class="tag" id="dWhenTag">at your plan's pace</span></div>
+    </div>
+    <div class="card edit-only" id="debtAdd" style="gap:6px;align-items:center;flex-wrap:wrap"><input id="daName" placeholder="Who / what" maxlength="60" style="flex:2;min-width:120px;height:36px"><input id="daAmt" type="number" inputmode="decimal" placeholder="SAR" style="flex:1;min-width:80px;height:36px"><button class="btn" type="button" id="daAdd">+ Add debt</button></div>
+    <div class="card" id="debtList"><p class="sub">Your debts will appear here once your saved data loads.</p></div>
+  </section>
   </div><!-- /viewPlan -->
 
   <div class="view" id="viewBudget" role="tabpanel" aria-labelledby="tabBudget" hidden>
-  <section id="salSec">
-    <div><h2>Where your salary goes</h2><p class="sub">Your <span class="num" id="salTxt">–</span> SAR salary (tap the Salary tile to change it). Left: what you spend now. Right: the plan.</p></div>
-    <div class="tiles">
-      <div class="tile"><span class="eyebrow">Salary</span><span class="v" id="salV" style="cursor:pointer" role="button" tabindex="0" title="Tap to change">–</span><span class="tag">per month</span></div>
-      <div class="tile"><span class="eyebrow">Known spending</span><span class="v" id="tKnown">0</span><span class="tag">what you listed</span></div>
-      <div class="tile flag"><span class="eyebrow">Not accounted for</span><span class="v" id="tGap">0</span><span class="tag">left over each month</span></div>
-    </div>
-    <p class="note" id="gapNote"></p>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div class="donuts"><figure class="donut" id="dnNow"></figure><figure class="donut" id="dnPlan"></figure></div>
-      <div class="tablebox"><table class="gtable"><thead><tr><th>Group</th><th class="r">Before</th><th class="r">Plan</th></tr></thead><tbody id="gRows"></tbody></table></div>
-    </div>
-  </section>
   <section>
     <div class="row" style="align-items:end">
       <div><h2>Monthly budget</h2><p class="sub">“Spent” and “Left” fill in by themselves from your daily log for the month shown above. Your plan amounts stay as they are until you change them.</p></div>
@@ -567,15 +564,18 @@ form.card .logform{row-gap:11px!important}
       </table>
     </div>
   </section>
-  <section id="debts">
-    <div><h2>Debts to repay</h2><p class="sub">Record each repayment here. Debts are paid from the “Debt repayment” line in your plan, smallest first.</p></div>
+  <section id="salSec">
+    <div><h2>Where your salary goes</h2><p class="sub">Your <span class="num" id="salTxt">–</span> SAR salary (tap the Salary tile to change it). Left: what you spend now. Right: the plan.</p></div>
     <div class="tiles">
-      <div class="tile"><span class="eyebrow">Still owed</span><span class="v" id="dLeft">0</span><span class="tag">SAR</span></div>
-      <div class="tile"><span class="eyebrow">Repaid so far</span><span class="v" id="dPaid">0</span><span class="tag">SAR</span></div>
-      <div class="tile good"><span class="eyebrow">Debt-free by</span><span class="v" id="dWhen">—</span><span class="tag" id="dWhenTag">at your plan's pace</span></div>
+      <div class="tile"><span class="eyebrow">Salary</span><span class="v" id="salV" style="cursor:pointer" role="button" tabindex="0" title="Tap to change">–</span><span class="tag">per month</span></div>
+      <div class="tile"><span class="eyebrow">Known spending</span><span class="v" id="tKnown">0</span><span class="tag">what you listed</span></div>
+      <div class="tile flag"><span class="eyebrow">Not accounted for</span><span class="v" id="tGap">0</span><span class="tag">left over each month</span></div>
     </div>
-    <div class="card edit-only" id="debtAdd" style="gap:6px;align-items:center;flex-wrap:wrap"><input id="daName" placeholder="Who / what" maxlength="60" style="flex:2;min-width:120px;height:36px"><input id="daAmt" type="number" inputmode="decimal" placeholder="SAR" style="flex:1;min-width:80px;height:36px"><button class="btn" type="button" id="daAdd">+ Add debt</button></div>
-    <div class="card" id="debtList"><p class="sub">Your debts will appear here once your saved data loads.</p></div>
+    <p class="note" id="gapNote"></p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="donuts"><figure class="donut" id="dnNow"></figure><figure class="donut" id="dnPlan"></figure></div>
+      <div class="tablebox"><table class="gtable"><thead><tr><th>Group</th><th class="r">Before</th><th class="r">Plan</th></tr></thead><tbody id="gRows"></tbody></table></div>
+    </div>
   </section>
   </div><!-- /viewBudget -->
 
@@ -1601,7 +1601,7 @@ const SECTION_HINTS = {
   "Monthly budget": ()=>{ const m=monthSums(); const over=ITEMS.filter(i=>(m[i.k]||0)>state[i.k].plan && state[i.k].plan>0).sort((a,b)=>((m[b.k]-state[b.k].plan)-(m[a.k]-state[a.k].plan)));
     return [{tab:"budget",score:2000,t: over.length?`⚠️ Over budget: ${over.slice(0,3).map(i=>`${i.s} +${fmt(m[i.k]-state[i.k].plan)}`).join(", ")} SAR.`:"✅ Every category is within budget this month."}]; },
   "Salary day": ()=>{ const d=Math.ceil((nextSalaryDate()-new Date())/864e5); return [{tab:"plan",score:2000,t:`🗓️ ${d} day${d===1?"":"s"} until salary. Make the transfers on the same day, before spending.`}]; },
-  "Debts to repay": ()=>{ const left=debts.reduce((a,d)=>a+Math.max(0,d.total-d.paid),0); return [{tab:"budget",score:2000,t: left?`⛓️ ${fmt(left)} SAR of debt left. Paying the smallest first builds momentum.`:"🎉 No debt left!"}]; },
+  "Debts to repay": ()=>{ const left=debts.reduce((a,d)=>a+Math.max(0,d.total-d.paid),0); return [{tab:"plan",score:2000,t: left?`⛓️ ${fmt(left)} SAR of debt left. Paying the smallest first builds momentum.`:"🎉 No debt left!"}]; },
   "Smoking": ()=>{ const sm=entries.filter(e=>e.cat==="smoke"&&e.date.slice(0,7)===ymd(new Date()).slice(0,7)).reduce((a,e)=>a+e.amount,0); return [{tab:"plan",score:2000,t:`🚭 Cigarettes this month: ${fmt(sm)} SAR. That's ${fmt(sm*12)} SAR a year at this rate.`}]; },
   "Bills": ()=>{ const n=bills.filter(b=>!b.added).length; return [{tab:"prices",score:2000,t: n?`🧾 ${n} bill${n===1?"":"s"} not read yet. Tap Read items to add the prices.`:"🧾 More receipts mean smarter price hints. Upload your next bill."}]; },
   "Price book": ()=> priceTimingHints().map(h=>Object.assign(h,{score:h.score+1000})),
