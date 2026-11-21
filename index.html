@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script>/* stuck-screen clue: shows where loading stopped */
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><script>/* stuck-screen clue: shows where loading stopped */
 (function(){ window.__stage="page"; window.__errs=[]; var t0=Date.now();
   try{ if(/[?&]reset\b/.test(location.search)){ /* clear this phone's saved layout/cache, keep sign-in */
     Object.keys(localStorage).forEach(function(k){ if(/^w-/.test(k)) localStorage.removeItem(k); }); sessionStorage.clear();
@@ -30,7 +30,13 @@ body{-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;letter
 .btn.primary{border-radius:12px}
 .field input,.field select{border-radius:10px}
 /* title sits on the top row beside the buttons, larger */
-header .toprow h1{flex:1 1 auto;min-width:0;font-size:31px!important;font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap}
+header .toprow h1{flex:1 1 auto;min-width:0;font-size:clamp(22px,8vw,34px)!important;font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-wrap:nowrap}
+/* no zooming: fixed scale, no double-tap or pinch zoom, no iOS zoom when tapping a box; fit any screen width */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+html,body{max-width:100%;overflow-x:hidden}
+@supports (-webkit-touch-callout:none){input,select,textarea{font-size:max(16px,1em)!important}}
+img,svg,video,canvas{max-width:100%}
+@media (max-width:360px){#expAll,#colAll,#editMode,#setBtn{width:26px!important;height:26px!important}header .toprow>span{gap:2px!important}}
 </style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2315,4 +2321,8 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
 </script>
 
 <script src="home.js"></script>
+<script>/* block pinch / double-tap zoom on iPhone */
+["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();},{passive:false});});
+(function(){var last=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-last<300&&!e.target.closest("input,textarea,select,button,a,label")){e.preventDefault();}last=n;},{passive:false});})();
+</script>
 </body></html>
