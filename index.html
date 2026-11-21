@@ -10,7 +10,7 @@
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
     el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v13 · tap to retry"; }, 14000);
-})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="icons.js"></script><script src="riyal.js"></script><script src="motion.js"></script><script src="shim.js"></script><script src="i18n.js"></script><script src="setup.js"></script><script src="tour.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="icons.js"></script><script src="riyal.js"></script><script src="motion.js"></script><script src="extras.js"></script><script src="shim.js"></script><script src="i18n.js"></script><script src="setup.js"></script><script src="tour.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
 .subh{margin:0;font-size:15px;font-weight:700;display:flex;gap:6px;align-items:center;color:#6aa9ff}
 .tabs{flex-direction:column;gap:6px!important;padding:0!important;background:var(--bg)!important;border:none!important;border-radius:0!important;box-shadow:0 -8px 0 var(--bg)}
 .tabs .tabgrp{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
@@ -599,7 +599,7 @@ form.card .logform{row-gap:11px!important}
       <div class="tile good" id="mLeftTile"><span class="eyebrow">Left</span><span class="v" id="mLeft">0</span><span class="tag">to spend</span></div>
     </div>
     <div class="card" id="cats"></div>
-    <div class="tablebox" id="entries"><div class="empty">Your entries will appear here. Add your first cost above.</div></div>
+    <div class="tablebox" id="entries"><div class="empty">Your entries will appear here.<br><button class="btn primary" type="button" onclick="document.getElementById('fAmount').focus()">+ Add your first cost</button></div></div>
   </section>
 
 
@@ -706,7 +706,7 @@ form.card .logform{row-gap:11px!important}
         </div>
         <div class="row"><span class="status" id="inStatus">Connecting to your saved data…</span><button class="btn primary" id="inAdd" type="submit" disabled>Add money in</button></div>
       </form>
-      <div class="tablebox" id="inList"><div class="empty">Nothing added yet.</div></div>
+      <div class="tablebox" id="inList"><div class="empty">No money in yet.<br><button class="btn primary" type="button" onclick="document.getElementById('inAmt').focus()">+ Add money in</button></div></div>
       </div>
     </section>
   </div>
@@ -751,7 +751,7 @@ form.card .logform{row-gap:11px!important}
       <p class="sub" id="fMsg" style="margin:4px 0"></p>
       <div class="chips" id="fFilter" role="group" aria-label="Filter deals"></div>
       <div class="chips" id="fCats" role="group" aria-label="Categories" style="margin-top:6px"></div>
-      <div class="tablebox" id="fList"><div class="empty">No deals yet. The daily hunt will fill this list.</div></div>
+      <div class="tablebox" id="fList"><div class="empty">No deals yet, set your first alert.<br><button class="btn primary" type="button" onclick="document.getElementById('fSearch').focus()">🔔 Set an alert</button></div></div>
     </section>
   </div>
 
@@ -762,7 +762,7 @@ form.card .logform{row-gap:11px!important}
         <label class="upl" id="uplLabel"><input type="file" id="billFile" accept="image/*,application/pdf" multiple><span>⬆ Upload bill</span></label>
         <span class="status" id="bStatus"></span>
       </div>
-      <div class="tablebox" id="billList"><div class="empty">No bills yet.</div></div>
+      <div class="tablebox" id="billList"><div class="empty">No bills yet.<br><button class="btn primary" type="button" onclick="document.getElementById('billFile').click()">⬆ Upload your first bill</button></div></div>
     </section>
     <section>
       <div><h2>Price book</h2><p class="sub">Write down what things cost and where. Next time you shop, check here to see which store is cheapest.</p></div>
@@ -789,7 +789,7 @@ form.card .logform{row-gap:11px!important}
       <input class="search" id="pSearch" type="search" placeholder="Search items or stores" aria-label="Search prices">
       <div class="card" id="pCheaper" hidden style="margin:8px 0"><b>💡 Friends found it cheaper</b><p class="sub" style="margin:4px 0 6px">Other users paid less for items you buy. Tap ✓ Add to put that price in your price book.</p><div id="pCheaperList"></div></div>
       <details class="card" id="pOthers" hidden style="margin:8px 0"><summary><b>👥 From other users' price books</b> <span class="tag" id="pOthersN"></span></summary><p class="sub" style="margin:4px 0 6px">Items other people bought (no names shown). Tap + Add to copy one into your price book.</p><div id="pOthersList"></div></details>
-      <div class="tablebox" id="pList"><div class="empty">No prices yet. Add the first one above.</div></div>
+      <div class="tablebox" id="pList"><div class="empty">No prices yet.<br><button class="btn primary" type="button" onclick="document.getElementById('pItem').focus()">+ Add your first price</button></div></div>
       <p class="tag">Tap an item to see every price you've saved for it. The cheapest one is shown in green.</p>
     </section>
   </div>
@@ -1017,7 +1017,7 @@ function renderMonth(){
     cats.appendChild(d);
   });
   const box = document.getElementById("entries");
-  if(!list.length){ box.innerHTML = `<div class="empty">${dbReady? "Nothing logged for "+esc(monthLabel(viewMonth))+" yet. Add your first cost above." : "Your entries will appear here once your saved data loads."}</div>`; return; }
+  if(!list.length){ box.innerHTML = `<div class="empty">${dbReady? "Nothing logged for "+esc(monthLabel(viewMonth))+" yet."+'<br><button class="btn primary" type="button" onclick="document.getElementById(\'fAmount\').focus()">+ Add your first cost</button>' : "Your entries will appear here once your saved data loads."}</div>`; return; }
   const byDay = {}; list.forEach(e=>{ (byDay[e.date]=byDay[e.date]||[]).push(e); });
   box.innerHTML = Object.keys(byDay).sort().reverse().map(day=>{
     const dt=new Date(day+"T12:00:00"), dayTotal=byDay[day].reduce((a,e)=>a+e.amount,0);
@@ -1032,9 +1032,8 @@ document.getElementById("entries").addEventListener("click", ev=>{
 });
 document.getElementById("entries").addEventListener("click", async ev=>{
   const b = ev.target.closest(".del"); if(!b || !db) return;
-  if(b.dataset.confirm!=="1"){ b.dataset.confirm="1"; b.textContent="Tap again to delete"; setTimeout(()=>{ if(b.isConnected){ b.dataset.confirm=""; b.textContent="Delete"; } },3000); return; }
   b.disabled=true;
-  try{ await db.doc("expenses/"+b.dataset.id).delete(); }catch(e){ setStatus("Couldn't delete that entry. Try again.", true); b.disabled=false; }
+  try{ await deleteWithUndo("expenses/"+b.dataset.id, "Cost deleted"); }catch(e){ setStatus("Couldn't delete that entry. Try again.", true); b.disabled=false; }
 });
 
 const statusEl = document.getElementById("status");
@@ -1293,7 +1292,7 @@ function renderDebts(){
 document.getElementById("debtList").addEventListener("click", async ev=>{
   const rn=ev.target.closest("[data-dren]"), rm=ev.target.closest("[data-drm]");
   if(rn&&db){ const v=document.querySelector(`[data-dname="${rn.dataset.dren}"]`).value.trim(); if(v) try{ await db.doc("debts/"+rn.dataset.dren).update({name:v.slice(0,60)}); }catch(e){} return; }
-  if(rm&&db){ if(rm.dataset.armed!=="1"){ rm.dataset.armed="1"; rm.textContent="Tap again"; return; } try{ await db.doc("debts/"+rm.dataset.drm).delete(); }catch(e){} return; }
+  if(rm&&db){ try{ await deleteWithUndo("debts/"+rm.dataset.drm, "Debt deleted"); }catch(e){} return; }
   const b=ev.target.closest("[data-pay]"); if(!b||!db) return;
   const id=b.dataset.pay, d=debts.find(x=>x.id===id), inp=document.getElementById("pay-"+id);
   const v=parseFloat(String(inp.value).replace(/,/g,".").replace(/[^0-9.]/g,""));
@@ -1769,7 +1768,7 @@ function renderPrices(){
   let list = [...groups.entries()].filter(([k,g])=>!q || k.includes(q) || g.recs.some(r=>norm(r.store).toLowerCase().includes(q)));
   list.sort((a,b)=>a[1].item.localeCompare(b[1].item));
   const box = document.getElementById("pList");
-  if(!list.length){ box.innerHTML = `<div class="empty">${prices.length?"Nothing matches your search.":"No prices yet. Add the first one above."}</div>`; return; }
+  if(!list.length){ box.innerHTML = `<div class="empty">${prices.length?"Nothing matches your search.":"No prices yet."+'<br><button class="btn primary" type="button" onclick="document.getElementById(\'pItem\').focus()">+ Add your first price</button>'}</div>`; return; }
   box.innerHTML = list.map(([k,g])=>{
     const recs = g.recs.slice().sort((a,b)=>(b.date.localeCompare(a.date))||(b.createdAt-a.createdAt));
     const low = Math.min(...recs.map(r=>r.price));
@@ -1793,8 +1792,7 @@ document.getElementById("pList").addEventListener("click", async e=>{
   const again = e.target.closest("[data-again]");
   if(again){ const p = prices.find(x=>keyOf(x)===again.dataset.again); if(p){ document.getElementById("pItem").value=norm(p.item); document.getElementById("pSize").value=norm(p.size); document.getElementById("pStore").value=""; document.getElementById("pPrice").value=""; document.getElementById("priceForm").scrollIntoView({behavior:"smooth"}); document.getElementById("pPrice").focus({preventScroll:true}); } return; }
   const del = e.target.closest("[data-del]"); if(!del || !db) return;
-  if(del.dataset.armed!=="1"){ del.dataset.armed="1"; del.textContent="Tap again to delete"; setTimeout(()=>{ if(del.isConnected){ del.dataset.armed=""; del.textContent="Delete"; } },3000); return; }
-  try{ await db.doc("prices/"+del.dataset.del).delete(); }catch(err){ pStatus("Couldn't delete. Try again.", true); }
+  try{ await deleteWithUndo("prices/"+del.dataset.del, "Price deleted"); }catch(err){ pStatus("Couldn't delete. Try again.", true); }
 });
 document.getElementById("priceForm").addEventListener("submit", async e=>{
   e.preventDefault(); if(!db) return;
@@ -1869,7 +1867,7 @@ Rules: price is the price of ONE unit in SAR (if the line shows quantity 3 and 1
 }
 function renderBills(){
   const box=document.getElementById("billList");
-  if(!bills.length){ box.innerHTML='<div class="empty">No bills yet. Tap Upload bill to add your first one.</div>'; return; }
+  if(!bills.length){ box.innerHTML='<div class="empty">No bills yet.<br><button class="btn primary" type="button" onclick="document.getElementById(\'billFile\').click()">⬆ Upload your first bill</button></div>'; return; }
   box.innerHTML = bills.map(b=>{
     const isImg = (b.type||"").startsWith("image/"), src = b.url || ("/_blob/"+b.assetId);
     const rv = reviews[b.id];
@@ -1931,9 +1929,8 @@ document.getElementById("billList").addEventListener("click", async e=>{
     renderBills(); return;
   }
   if(t.dataset.bdel){
-    if(t.dataset.armed!=="1"){ t.dataset.armed="1"; t.textContent="Tap again to delete bill"; setTimeout(()=>{ if(t.isConnected){ t.dataset.armed=""; t.textContent="Delete"; } },3000); return; }
     const b=billById(t.dataset.bdel); if(!b||!db) return;
-    try{ if(assetsNS && b.assetId) await assetsNS.delete(b.assetId).catch(()=>{}); await db.doc("bills/"+b.id).delete(); bStatus("Bill deleted. Prices you added from it stay in the price book."); }catch(err){ bStatus("Couldn't delete. Try again.", true); }
+    try{ await deleteWithUndo("bills/"+b.id, "Bill deleted", ()=>{ if(assetsNS && b.assetId) assetsNS.delete(b.assetId).catch(()=>{}); }); bStatus("Prices you added from this bill stay in the price book."); }catch(err){ bStatus("Couldn't delete. Try again.", true); }
   }
 });
 async function connectBills(){
@@ -2004,12 +2001,11 @@ function renderBalance(){
   document.getElementById("balNote").textContent = balStart ? `Counting from ${balStart.asOf} (cash ${sar(balStart.cash)}, bank ${sar(balStart.bank)}).` : "Set your starting point below so this matches your real money.";
   const box = document.getElementById("inList");
   const list = income.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt-a.createdAt);
-  box.innerHTML = list.length ? list.map(x=>`<div class="entry"><span class="dot" style="background:var(--accent)"></span><span class="what">${esc((IN_TYPES.find(t=>t[0]===x.type)||[0,"Other"])[1])}${x.note?` <small>${esc(x.note)}</small>`:""}<small>${esc(x.date)}${afterStart(x)?"":" · before starting point"}</small></span><span class="num diff-down">+${sar(x.amount)}</span><button class="del" type="button" data-indel="${esc(x.id)}" aria-label="Delete">Delete</button></div>`).join("") : '<div class="empty">Nothing added yet.</div>';
+  box.innerHTML = list.length ? list.map(x=>`<div class="entry"><span class="dot" style="background:var(--accent)"></span><span class="what">${esc((IN_TYPES.find(t=>t[0]===x.type)||[0,"Other"])[1])}${x.note?` <small>${esc(x.note)}</small>`:""}<small>${esc(x.date)}${afterStart(x)?"":" · before starting point"}</small></span><span class="num diff-down">+${sar(x.amount)}</span><button class="del" type="button" data-indel="${esc(x.id)}" aria-label="Delete">Delete</button></div>`).join("") : '<div class="empty">No money in yet.<br><button class="btn primary" type="button" onclick="document.getElementById(\'inAmt\').focus()">+ Add money in</button></div>';
 }
 document.getElementById("inList").addEventListener("click", async e=>{
   const d=e.target.closest("[data-indel]"); if(!d||!db) return;
-  if(d.dataset.armed!=="1"){ d.dataset.armed="1"; d.textContent="Tap again"; setTimeout(()=>{ if(d.isConnected){ d.dataset.armed=""; d.textContent="Delete"; } },3000); return; }
-  try{ await db.doc("income/"+d.dataset.indel).delete(); }catch(err){}
+  try{ await deleteWithUndo("income/"+d.dataset.indel, "Money in deleted"); }catch(err){}
 });
 function inStatus(t,err){ const el=document.getElementById("inStatus"); el.textContent=t; el.className="status"+(err?" err":""); }
 document.getElementById("inForm").addEventListener("submit", async e=>{
@@ -2019,7 +2015,7 @@ document.getElementById("inForm").addEventListener("submit", async e=>{
   const date=document.getElementById("inDate").value||ymd(new Date()), note=norm(document.getElementById("inNote").value).slice(0,100);
   const btn=document.getElementById("inAdd"); btn.disabled=true;
   try{ await db.collection("income").add({amount:Math.round(amt*100)/100, date, type:inType, note, createdAt:Date.now()});
-    inStatus(`Added +${sar(amt)} SAR.`); document.getElementById("inAmt").value=""; document.getElementById("inNote").value=""; }
+    inStatus(`Added +${sar(amt)} SAR.`); window.soundMoneyIn&&soundMoneyIn(); document.getElementById("inAmt").value=""; document.getElementById("inNote").value=""; }
   catch(err){ inStatus("Couldn't save. Try again.", true); }
   btn.disabled=false;
 });
@@ -2077,7 +2073,7 @@ document.getElementById("goalList").addEventListener("click", async e=>{
   const card=e.target.closest("[data-g]"); if(!card||!db) return; const g=goals.find(x=>x.id===card.dataset.g); if(!g) return;
   if(e.target.closest("[data-gren]")){ const n=card.querySelector("[data-gname]").value.trim(), t=parseFloat(card.querySelector("[data-gtarget]").value); const up={}; if(n) up.name=n.slice(0,60); if(t>0) up.target=t; try{ await db.doc("goals/"+g.id).update(up); }catch(err){} return; }
   if(e.target.closest("[data-gadd]")){ const v=parseFloat(card.querySelector("[data-gamt]").value); if(!v) return; try{ await db.doc("goals/"+g.id).update({saved:Math.round((g.saved+v)*100)/100}); }catch(err){} }
-  const d=e.target.closest("[data-gdel]"); if(d){ if(d.dataset.armed!=="1"){ d.dataset.armed="1"; d.textContent="Tap again"; return; } try{ await db.doc("goals/"+g.id).delete(); }catch(err){} }
+  const d=e.target.closest("[data-gdel]"); if(d){ try{ await deleteWithUndo("goals/"+g.id, "Goal deleted"); }catch(err){} }
 });
 document.getElementById("goalForm").addEventListener("submit", async e=>{
   e.preventDefault(); if(!db) return;
@@ -2187,7 +2183,7 @@ function renderDeals(){
   const qq=sf.rest;
   if(qq){ const t=fTopic(qq); list=list.filter(d=>(d.title+" "+d.source+" "+d.category+" "+d.offer+" "+d.city+" "+(d.match||"")).toLowerCase().includes(qq)||(t&&!d.market&&t.src.includes(d.source))); }
   const box=document.getElementById("fList");
-  if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
+  if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet, set your first alert."+'<br><button class="btn primary" type="button" onclick="document.getElementById(\'fSearch\').focus()">🔔 Set an alert</button>'}</div>`; return; }
   box.innerHTML=list.map(d=>`<div class="deal${d.image?" pic":""}" data-d="${esc(d.id)}">
     ${d.image?`<img class="dimg${d.market?"":" logo"}" src="${esc(d.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}<span class="t">${esc(d.title)}${d.paid?"":`<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span>`}</span><span class="num">${d.price?(d.paid?money(d.price):fmt(d.price))+" SAR":""}</span>
     <small>${d.paid?`<span>${esc(d.community?`👥 Others paid this at ${d.source} (${d.people} ${d.people===1?"person":"people"})`:d.similar?`Similar at ${d.source}: ${d.found||"close match"}${d.foundPrice?` (${money(d.foundPrice)} SAR)`:""}`:"Found at "+d.source)}</span> · <span>${esc(`You paid ${money(d.paid)} SAR${d.paidStore?" at "+d.paidStore:""}`)}</span> · <b class="diff-down">${esc(`Save ${money(d.profit)} SAR (${d.pct}%)`)}</b>`:d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`}${d.paid?"":" · "+esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
@@ -2328,6 +2324,8 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   <div class="list">
     <div class="row"><span>Language</span><span class="seg" data-noi18n><button class="btn" type="button" id="sEn">English</button><button class="btn" type="button" id="sAr">العربية</button></span></div>
     <div class="row"><span>Text size</span><span class="seg" dir="ltr"><button class="btn" type="button" id="sSmall" aria-label="Smaller text">A−</button><button class="btn" type="button" id="sBig" aria-label="Bigger text">A+</button></span></div>
+    <div class="row"><span>Dark mode</span><span class="seg"><button class="btn" type="button" id="sSlate">Soft</button><button class="btn" type="button" id="sBlack">True black</button></span></div>
+    <div class="row"><span>Sounds</span><span class="seg"><button class="btn" type="button" id="sSndOn">On</button><button class="btn" type="button" id="sSndOff">Off</button></span></div>
     <label class="row" hidden><span>Show descriptions</span><input type="checkbox" class="sw" id="sDesc"></label>
     <button class="row" type="button" id="sEdit"><span>Rename, hide or move sections</span><span class="val"></span></button>
     <button class="row" type="button" id="sReset"><span>Reset layout</span><span class="val"></span></button>
@@ -2374,6 +2372,10 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
   $("sPay").onclick=()=>{ const v=prompt("Which day of the month does your salary arrive? (1 to 31)", String(SALARY_DAY)); const n=parseInt(String(v||"").replace(/[^0-9]/g,""),10); if(!(n>=1&&n<=31)) return;
     SALARY_DAY=n; saveProfile({payday:n}); fill(); try{ renderSalary(); renderDebts(); if(typeof renderBalance==="function") renderBalance(); buildHints(); }catch(e){} };
   const lg=window.walletLang||"en"; $(lg==="ar"?"sAr":"sEn").classList.add("primary"); $("sEn").onclick=()=>{ if(lg!=="en") setWalletLang("en"); }; $("sAr").onclick=()=>{ if(lg!=="ar") setWalletLang("ar"); };
+  const blk=()=>{ const on=document.documentElement.classList.contains("oled"); $("sBlack").classList.toggle("primary",on); $("sSlate").classList.toggle("primary",!on); }; blk();
+  $("sBlack").onclick=()=>{ walletBlack(true); blk(); }; $("sSlate").onclick=()=>{ walletBlack(false); blk(); };
+  const snd=()=>{ const on=walletSoundOn(); $("sSndOn").classList.toggle("primary",on); $("sSndOff").classList.toggle("primary",!on); }; snd();
+  $("sSndOn").onclick=()=>{ walletSound(true); snd(); soundMoneyIn(); }; $("sSndOff").onclick=()=>{ walletSound(false); snd(); };
   $("sSmall").onclick=()=>$("ebSmall").click(); $("sBig").onclick=()=>$("ebBig").click();
   $("sDesc").onchange=()=>{ const want=!$("sDesc").checked; if(!!cardPrefs.nodesc!==want) $("ebDesc").click(); };
   $("sEdit").onclick=()=>{ close(); setTimeout(()=>{ const b=$("editMode"); if(b.getAttribute("aria-pressed")!=="true") b.click(); window.scrollTo({top:0,behavior:"smooth"}); },260); };
