@@ -430,7 +430,7 @@ form.card .logform{row-gap:11px!important}
     <div><h2>Add a cost</h2><p class="sub">Takes 10 seconds. Try to add everything, even small things.</p></div>
     <form class="card" id="addForm" novalidate>
       <div class="pastebox" id="smsCard">
-        <textarea id="smsIn" rows="1" placeholder="📋 Paste a bank message here (optional)" aria-label="Paste bank messages" autocomplete="off"></textarea>
+        <textarea id="smsIn" rows="1" placeholder="📋 Paste a bank message" aria-label="Paste bank messages" autocomplete="off"></textarea>
         <button class="btn" id="smsQuick" type="button">Paste</button>
       </div>
       <span class="status" id="smsStatus" hidden></span>
@@ -442,7 +442,7 @@ form.card .logform{row-gap:11px!important}
         <div class="field amount"><label for="fAmount">Amount (SAR)</label><input id="fAmount" inputmode="decimal" placeholder="0" autocomplete="off"></div>
         <div class="field"><label for="fDate">Date</label><input id="fDate" type="date"></div>
         <div class="field wide"><span class="field" style="gap:6px"><label id="catLabel">Category</label><span class="chips" id="chips" role="group" aria-labelledby="catLabel"></span></span></div>
-        <div class="field wide"><label for="fNote">Note (optional)</label><input id="fNote" placeholder="e.g. lunch with work, Jahez, petrol" maxlength="120" autocomplete="off"></div>
+        <div class="field wide"><label for="fNote">Note (optional) <span class="tag" id="autoHint" hidden style="margin-left:6px;color:var(--accent)"></span></label><input id="fNote" placeholder="e.g. lunch with work, Jahez, petrol" maxlength="120" autocomplete="off"></div>
       </div>
       <div class="row">
         <span class="status" id="status">Connecting to your saved data…</span>
@@ -788,6 +788,11 @@ const chips = document.getElementById("chips");
 LOG_CATS.forEach(k=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.dataset.k=k; b.textContent=BY[k].s; b.setAttribute("aria-pressed", k===cat?"true":"false");
   b.addEventListener("click",()=>{ cat=k; chips.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.k===k?"true":"false")); }); chips.appendChild(b); });
 document.getElementById("fDate").value = ymd(new Date());
+let catTouched=false, noteT=null, noteSeq=0;
+chips.addEventListener("click", e=>{ if(e.isTrusted && e.target.closest(".chip") && !document.body.classList.contains("editing")){ catTouched=true; const h=document.getElementById("autoHint"); if(h) h.hidden=true; } });
+function pickCat(k, why){ const c=chips.querySelector('.chip[data-k="'+k+'"]'); if(!c) return; c.click(); c.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"}); const h=document.getElementById("autoHint"); if(h){ h.textContent="✨ Auto: "+BY[k].s; h.hidden=false; } }
+document.getElementById("fNote").addEventListener("input", ()=>{ if(catTouched) return; clearTimeout(noteT); const seq=++noteSeq;
+  noteT=setTimeout(async ()=>{ const t=document.getElementById("fNote").value.trim(); if(t.length<2) return; const k=await autoCat(t); if(seq===noteSeq && !catTouched) pickCat(k); }, 600); });
 let lastToday = ymd(new Date());
 function refreshToday(){
   const t = ymd(new Date()); if(t===lastToday) return;
@@ -875,7 +880,7 @@ document.getElementById("addForm").addEventListener("submit", async ev=>{
   const btn=document.getElementById("addBtn"); btn.disabled=true;
   try{
     await db.collection("expenses").add({date, amount:Math.round(amount*100)/100, cat, note, createdAt:Date.now()});
-    amtEl.value=""; document.getElementById("fNote").value="";
+    amtEl.value=""; document.getElementById("fNote").value=""; catTouched=false; noteSeq++; { const h=document.getElementById("autoHint"); if(h) h.hidden=true; }
     setStatus(`Saved ${fmt(amount)} SAR · ${BY[cat].s}`);
     if(!date.startsWith(viewMonth)){ viewMonth=date.slice(0,7); renderMonth(); }
     amtEl.focus();
@@ -900,6 +905,22 @@ const CAT_HINTS = [
   ["car", /(abdul latif jameel|عبداللطيف جميل|toyota finance|car loan|تمويل سيارة|ajel|yelo)/i],
 ];
 function guessCat(t){ for(const [k,re] of CAT_HINTS) if(re.test(t)) return k; return "flex"; }
+/* ---------- auto category: your own history → shop keywords → AI ---------- */
+const normNote = t => AR_DIGITS(String(t||"")).toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
+function histCat(t){ const n=normNote(t); if(n.length<2) return null; const cnt={};
+  for(const e of entries){ const m=normNote(e.note); if(m && (m===n || (n.length>=4 && (m.startsWith(n)||n.startsWith(m))))) cnt[e.cat]=(cnt[e.cat]||0)+1; }
+  let best=null; for(const k in cnt) if(LOG_CATS.includes(k) && (!best||cnt[k]>cnt[best])) best=k; return best; }
+let autoNS, autoMemo={};
+async function aiCat(t){ const n=normNote(t); if(n.length<3) return null; if(n in autoMemo) return autoMemo[n];
+  try{ if(autoNS===undefined){ try{ autoNS=await claude.use("sample"); }catch(e){ autoNS=null; } } if(!autoNS) return null;
+    const list=LOG_CATS.map(k=>`${k} = ${BY[k].n}`).join("\n");
+    const out=await autoNS.json(`Pick the spending category for this expense in Saudi Arabia. The text is a note or bank message (Arabic or English): "${String(t).slice(0,400)}"
+Categories:
+${list}
+Return ONLY JSON: {"cat": "<one key from the list>"}. Use "flex" only if nothing fits.`,{modelTier:"quick"});
+    const k=out&&out.cat; autoMemo[n]=LOG_CATS.includes(k)?k:null; return autoMemo[n];
+  }catch(e){ return null; } }
+async function autoCat(t){ const h=histCat(t); if(h) return h; const g=guessCat(t); if(g!=="flex") return g; return (await aiCat(t)) || "flex"; }
 function isIncoming(t){ return /(حوالة واردة|إيداع|ايداع|استرداد|credit(ed)?\b|deposit|refund|incoming|received|راتب|salary)/i.test(t) && !/(شراء|purchase|pos|سحب|withdraw|مدفوعات|payment)/i.test(t); }
 function parseDate(t){
   let m = t.match(/(20\d\d)[-\/.](\d{1,2})[-\/.](\d{1,2})/);
@@ -951,20 +972,22 @@ function readSms(){
     const amount = parseAmount(b);
     if(!amount || isIncoming(b)){ skipped++; return; }
     const merchant = parseMerchant(b);
-    smsItems.push({amount, merchant, date:parseDate(b), cat: guessCat(merchant+" "+b), on:true});
+    smsItems.push({amount, merchant, raw:b, date:parseDate(b), cat: histCat(merchant) || guessCat(merchant+" "+b), on:true});
   });
   if(smsItems.length===1){ // one payment: fill the normal form, user taps Add cost
     const it=smsItems[0]; smsItems=[]; renderSms();
     document.getElementById("fAmount").value=String(Math.round(it.amount*100)/100);
     document.getElementById("fDate").value=it.date;
     document.getElementById("fNote").value=(it.merchant||"Bank SMS").slice(0,120);
-    const c=document.querySelector('#chips .chip[data-k="'+it.cat+'"]'); if(c) c.click();
+    catTouched=false; pickCat(it.cat); const seq=++noteSeq;
+    if(it.cat==="flex") aiCat(it.merchant+" "+(it.raw||"")).then(k=>{ if(k && seq===noteSeq && !catTouched && k!==it.cat) pickCat(k); });
     smsSay("✓ Read from the bank message. Check it, then tap Add cost.");
     return;
   }
   if(!smsItems.length){ smsSay(skipped?"No payment found in this text (no amount, or money coming in).":"", true); renderSms(); return; }
   smsSay(`Found ${smsItems.length} payments` + (skipped?`, skipped ${skipped}.`:"."));
   renderSms();
+  const batch=smsItems; batch.forEach((it,i)=>{ if(it.cat==="flex") aiCat(it.merchant+" "+it.raw).then(k=>{ if(k && smsItems===batch && it.cat==="flex"){ it.cat=k; const sel=document.getElementById("smsCat"+i); if(sel) sel.value=k; } }); });
 }
 let smsT=null;
 document.getElementById("smsIn").addEventListener("input", ()=>{ clearTimeout(smsT); smsT=setTimeout(readSms,250); });
