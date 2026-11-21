@@ -121,7 +121,9 @@ ol.todo b{font-weight:600}
 .catrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
 .catrow .prog{grid-column:1/-1}
 textarea{font:inherit;font-size:14px;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical;unicode-bidi:plaintext}
-.splitbox{gap:8px;border:1px dashed var(--accent);border-radius:12px;padding:10px 12px}
+.splitbox{gap:6px;border:1px dashed var(--accent);border-radius:10px;padding:6px 8px}
+.splitbox input{height:32px;min-height:0;padding:0 10px;font-size:14px;box-sizing:border-box}
+.splitbox .chip{font-size:12px;min-height:28px;padding:3px 10px}
 #splitBtn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
 .pastebox{display:flex;gap:6px;align-items:flex-start;margin-bottom:12px}
 .pastebox textarea{flex:1;min-width:0;min-height:40px;max-height:110px;resize:none;box-sizing:border-box;padding:9px 12px;border-radius:10px;line-height:1.4;font-size:14px;overflow:hidden}
@@ -443,12 +445,11 @@ form.card .logform{row-gap:11px!important}
       <div class="logform">
         <div class="field amount"><label for="fAmount">Amount (SAR)</label><input id="fAmount" inputmode="decimal" placeholder="0" autocomplete="off"></div>
         <div class="field"><label for="fDate">Date</label><input id="fDate" type="date"></div>
-        <div class="field wide"><span class="field" style="gap:6px"><span class="hrow" style="justify-content:space-between"><label id="catLabel">Category</label><button class="btn" type="button" id="splitBtn" aria-pressed="false" style="min-height:28px;height:28px;padding:0 10px;font-size:13px">➗ Split in 2</button></span><span class="chips" id="chips" role="group" aria-labelledby="catLabel"></span></span></div>
+        <div class="field wide"><span class="field" style="gap:6px"><span class="hrow" style="justify-content:space-between"><label id="catLabel">Category</label><button class="btn" type="button" id="splitBtn" aria-pressed="false" aria-label="Split in 2" title="Split in 2" style="min-height:26px;height:26px;width:26px;padding:0;font-size:13px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">➗</button></span><span class="chips" id="chips" role="group" aria-labelledby="catLabel"></span></span></div>
         <div class="field wide splitbox" id="splitBox" hidden>
-          <div class="hrow" style="justify-content:space-between"><label for="fAmount2">Part 2 amount (SAR)</label><span class="tag" id="splitRest"></span></div>
-          <input id="fAmount2" inputmode="decimal" placeholder="0" autocomplete="off">
+          <div class="hrow" style="gap:8px"><input id="fAmount2" inputmode="decimal" placeholder="Part 2" aria-label="Part 2" autocomplete="off" style="width:84px;flex:none"><span class="tag" id="splitRest" style="font-size:12px;min-width:0"></span></div>
           <span class="chips" id="chips2" role="group" aria-label="Part 2 category"></span>
-          <input id="fNote2" placeholder="Note for part 2 (optional)" maxlength="120" autocomplete="off">
+          <input id="fNote2" hidden placeholder="Note for part 2 (optional)" maxlength="120" autocomplete="off">
           <span class="tag" id="autoHint2" hidden style="color:var(--accent)"></span>
         </div>
         <div class="field wide"><label for="fNote">Note (optional) <span class="tag" id="autoHint" hidden style="margin-left:6px;color:var(--accent)"></span></label><input id="fNote" placeholder="e.g. lunch with work, Jahez, petrol" maxlength="120" autocomplete="off"></div>
