@@ -42,6 +42,10 @@ h2{font-size:19px;margin:0 0 4px;text-wrap:balance}
 p{margin:0}
 .sub{color:var(--muted)}
 .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header .eyebrow{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:480px){header .eyebrow{visibility:hidden;width:0}}
+#expAll,#colAll,#editMode{height:30px!important;min-height:0!important;padding:0 10px!important;font-size:12px!important;border-radius:999px!important;white-space:nowrap;display:inline-flex;align-items:center}
+#setBtn{height:30px;width:30px;min-height:0}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 section{display:flex;flex-direction:column;gap:10px}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -139,7 +143,7 @@ textarea{font:inherit;font-size:14px;width:100%;padding:10px;border:1px solid va
 .tabs{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;position:sticky;top:8px;z-index:5}
 .tabs button{flex:1;font:inherit;font-size:14px;font-weight:600;padding:9px 10px;border:none;border-radius:7px;background:none;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg)}
-.view{display:flex;flex-direction:column;gap:36px}
+.view{display:flex;flex-direction:column;gap:14px}
 .view[hidden]{display:none}
 .search{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);width:100%}
 .pitem{border-bottom:1px solid var(--line)}
@@ -199,6 +203,14 @@ textarea{font:inherit;font-size:14px;width:100%;padding:10px;border:1px solid va
 section > div:first-child h2{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
 section > div:first-child h2::after{content:"▾";font-size:14px;color:var(--muted);transition:transform .15s}
 section.collapsed > div:first-child h2::after{transform:rotate(-90deg)}
+section > div:first-child{position:relative;background:var(--surface);border:1px solid var(--line);border-inline-start:3px solid var(--accent);border-radius:12px;padding:10px 40px 10px 12px}
+[dir=rtl] section > div:first-child{padding:10px 12px 10px 40px}
+section > div:first-child h2{font-size:17px;font-weight:700;letter-spacing:.1px;margin:0;line-height:1.25}
+section > div:first-child h2::after{position:absolute;inset-inline-end:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--accent)}
+section.collapsed > div:first-child h2::after{transform:translateY(-50%) rotate(-90deg)}
+[dir=rtl] section.collapsed > div:first-child h2::after{transform:translateY(-50%) rotate(90deg)}
+section > div:first-child .desc{margin-top:8px}
+section:not(.collapsed){margin-bottom:10px}
 section.collapsed > *:not(:first-child), section.collapsed > div:first-child p, section.collapsed .monthnav, section.collapsed #reset{display:none!important}
 /* Dynamic-island hint pill */
 .hintbar{top:auto;bottom:max(14px,env(safe-area-inset-bottom,0px))!important;width:auto!important;max-width:min(560px,calc(100% - 24px));min-width:180px;
@@ -1175,6 +1187,7 @@ buildRows(); update(); smoke();
 /* ---------- collapsible sections (tap a heading) ---------- */
 (function(){
   let saved={}; try{ saved=JSON.parse(localStorage.getItem("w-collapsed2")||"{}"); }catch(e){}
+  document.querySelectorAll("section > div:first-child").forEach(d=>d.addEventListener("click",e=>{ if(e.target.closest("h2,button,a,input,select,textarea,.ibtn,.desc")||document.body.classList.contains("editing")) return; const h=d.querySelector("h2"); if(h) h.click(); }));
   document.querySelectorAll("section > div:first-child h2").forEach(h=>{ if(h.closest("section > div:first-child").querySelectorAll("h2")[0]!==h) return;
     const sec=h.closest("section"), key=(h.dataset.en||h.textContent.trim());
     h.setAttribute("role","button"); h.tabIndex=0; h.title="Tap to show or hide";
