@@ -9,7 +9,7 @@
   window.addEventListener("unhandledrejection",function(e){ var r=e.reason; window.__errs.push("promise: "+(r&&r.message||String(r))); });
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
-    el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v9 · tap to retry"; }, 14000);
+    el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v10 · tap to retry"; }, 14000);
 })();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1396,6 +1396,32 @@ try{ const h=location.hash.slice(1); if(TABS[h]) showTab(h); else { const t=loca
 let prices = [], pReady = false, pOpen = new Set();
 const norm = s => String(s||"").trim().replace(/\s+/g," ");
 const keyOf = p => (norm(p.item)+"|"+norm(p.size)).toLowerCase();
+/* What other users paid (no names): community_prices() in Supabase. Matched loosely: same words in any order, same size. */
+let community = [];
+const looseKey = (item,size) => String(item||"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim().split(" ").filter(Boolean).sort().join(" ")+"|"+String(size||"").toLowerCase().replace(/\s+/g,"").replace(/^(\d+(?:\.\d+)?)(gm|gram|grams)$/,"$1g").replace(/^(\d+(?:\.\d+)?)(ltr|liter|litre)$/,"$1l");
+function communityFor(k){ const g=prices.find(p=>keyOf(p)===k); if(!g) return []; const lk=looseKey(g.item,g.size); return community.filter(c=>c.lk===lk).sort((a,b)=>a.price-b.price); }
+async function loadCommunity(){
+  try{ const sb=window.__sb; if(!sb||!sb.rpc) return; const {data,error}=await sb.rpc("community_prices"); if(error||!Array.isArray(data)) return;
+    community=data.map(r=>({item:String(r.item||""),size:String(r.size||""),store:String(r.store||""),price:Number(r.price)||0,date:String(r.last_date||""),people:Number(r.people)||1})).filter(r=>r.item&&r.price>0).map(r=>Object.assign(r,{lk:looseKey(r.item,r.size)}));
+    renderPrices(); if(typeof renderDeals==="function") renderDeals(); if(typeof buildHints==="function") buildHints();
+    unifySoon();
+  }catch(e){}
+}
+/* Same product as another user (same words + same size): use the one shared name and lock it. */
+let unifyT=0, unifying=false;
+function unifySoon(){ clearTimeout(unifyT); unifyT=setTimeout(unifyNames, 1500); }
+async function unifyNames(){
+  const sb=window.__sb; if(unifying||!db||!sb||!sb.rpc||!community.length) return;
+  const shared=new Set(community.map(c=>c.lk)), groups=new Map();
+  prices.forEach(p=>{ if(/\(online\)/i.test(p.store)) return; const lk=looseKey(p.item,p.size); if(!shared.has(lk)) return; if(!groups.has(lk)) groups.set(lk,[]); groups.get(lk).push(p); });
+  if(!groups.size) return;
+  unifying=true;
+  try{ const {data,error}=await sb.rpc("unify_names",{p_items:[...groups.entries()].map(([lk,recs])=>({lk,name:norm(recs[0].item)}))});
+    if(error||!Array.isArray(data)) return;
+    for(const r of data){ const recs=groups.get(r.lk)||[], name=norm(r.name); if(!name) continue;
+      for(const p of recs) if(norm(p.item)!==name||!p.locked){ try{ await db.doc("prices/"+p.id).update({item:name, locked:true}); }catch(e){} } }
+  }catch(e){} finally{ unifying=false; }
+}
 const money = n => Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 document.getElementById("pDate").value = ymd(new Date());
 function pStatus(t,err){ const el=document.getElementById("pStatus"); el.textContent=t; el.className="status"+(err?" err":""); }
@@ -1579,11 +1605,13 @@ function renderPrices(){
     const best = recs.find(r=>r.price===low), last = recs[0];
     const stores = new Set(recs.map(r=>norm(r.store).toLowerCase())).size;
     const sn = x => esc(x.store||"store not set");
+    const com = communityFor(k);
     const sum = last.price>low ? `Last paid ${money(last.price)} at ${sn(last)}, ${money(last.price-low)} more than the cheapest.` : `Store: ${sn(last)}${stores>1?" (cheapest so far)":""}`;
     return `<details class="pitem" data-k="${esc(k)}" ${pOpen.has(k)?"open":""}>
-      <summary>${photos[k]?`<img class="pimg" src="${esc(photos[k].url)}" alt="" loading="lazy">`:`<span class="pimg" aria-hidden="true">🛒</span>`}<b>${esc(g.item)}${g.size?` <span class="tag">${esc(g.size)}</span>`:""}</b><span class="num">${money(low)} SAR</span>
-        <small><span class="best">Cheapest: ${esc(best.store||"store not set")}</span> · ${sum}</small></summary>
-      <div class="phist"><div class="photoRow">${photos[k]?`<img src="${esc(photos[k].url)}" alt="Photo of ${esc(g.item)}">`:""}${assetsNS?`<label class="btn">${photos[k]?"Change photo":"📷 Add photo"}<input type="file" accept="image/*" data-photo="${esc(k)}"></label>`:""}</div>${recs.map(r=>`<div class="pr ${r.price===low?"low":""}"><span>${esc(r.store||"Store not set")}</span><span class="num">${money(r.price)}</span><button class="del" type="button" data-del="${esc(r.id)}" aria-label="Delete this price">Delete</button></div>`).join("")}
+      <summary>${photos[k]?`<img class="pimg" src="${esc(photos[k].url)}" alt="" loading="lazy">`:`<span class="pimg" aria-hidden="true">🛒</span>`}<b>${esc(g.item)}${g.size?` <span class="tag">${esc(g.size)}</span>`:""}${g.recs.some(r=>r.locked)?` <span title="Shared name">🔒</span>`:""}</b><span class="num">${money(low)} SAR</span>
+        <small><span class="best">Cheapest: ${esc(best.store||"store not set")}</span> · ${sum}${com[0]?` · <span class="${com[0].price<low-0.009?"diff-down":""}">${esc(`👥 Others paid ${money(com[0].price)} at ${com[0].store||"a store"}`)}</span>`:""}</small></summary>
+      <div class="phist"><div class="photoRow">${photos[k]?`<img src="${esc(photos[k].url)}" alt="Photo of ${esc(g.item)}">`:""}${assetsNS?`<label class="btn">${photos[k]?"Change photo":"📷 Add photo"}<input type="file" accept="image/*" data-photo="${esc(k)}"></label>`:""}</div>${recs.map(r=>`<div class="pr ${r.price===low?"low":""}"><span>${esc(r.store||"Store not set")}</span><span class="num">${money(r.price)}</span><button class="del" type="button" data-del="${esc(r.id)}" aria-label="Delete this price">Delete</button></div>`).join("")}${com.map(c=>`<div class="pr ${c.price<low-0.009?"low":""}"><span>${esc(`👥 ${c.store||"Store not set"} (${c.people} ${c.people===1?"person":"people"})`)}</span><span class="num">${money(c.price)}</span><span></span></div>`).join("")}
+        ${g.recs.some(r=>r.locked)?`<p class="tag" style="margin:6px 0 0">${esc("🔒 Shared name: other users bought the same item, so everyone sees one name.")}</p>`:`<span class="row" style="justify-content:flex-start;gap:6px;margin-top:6px"><input data-rname="${esc(k)}" value="${esc(g.item)}" maxlength="80" aria-label="Product name" style="flex:1;min-width:0;height:34px"><button class="btn" type="button" data-pren="${esc(k)}">✎ Rename</button></span>`}
         <span class="row" style="justify-content:flex-start;gap:6px;margin-top:6px"><button class="btn" type="button" data-shop="${esc(k)}">${shopKeys.includes(k)?"✓ On shopping list":"+ Shopping list"}</button><button class="btn" type="button" data-again="${esc(k)}">Add a new price for this item</button></span></div>
     </details>`;
   }).join("");
@@ -1593,6 +1621,16 @@ document.getElementById("pList").addEventListener("toggle", e=>{ const d=e.targe
 document.getElementById("pList").addEventListener("click", async e=>{
   const again = e.target.closest("[data-again]");
   if(again){ const p = prices.find(x=>keyOf(x)===again.dataset.again); if(p){ document.getElementById("pItem").value=norm(p.item); document.getElementById("pSize").value=norm(p.size); document.getElementById("pStore").value=""; document.getElementById("pPrice").value=""; document.getElementById("priceForm").scrollIntoView({behavior:"smooth"}); document.getElementById("pPrice").focus({preventScroll:true}); } return; }
+  const ren = e.target.closest("[data-pren]");
+  if(ren && db && ren.closest("#pList")){ const k=ren.dataset.pren, inp=[...document.querySelectorAll("#pList input[data-rname]")].find(x=>x.dataset.rname===k), name=norm(inp&&inp.value).slice(0,80);
+    const recs=prices.filter(p=>keyOf(p)===k); if(!name||!recs.length||name===norm(recs[0].item)||recs.some(p=>p.locked)) return;
+    ren.disabled=true; let n=0;
+    for(const p of recs){ try{ await db.doc("prices/"+p.id).update({item:name}); n++; }catch(err){} }
+    const nk=(name+"|"+norm(recs[0].size)).toLowerCase();
+    if(photos[k]){ try{ await db.doc("products/"+slug(nk)).set({key:nk, assetId:photos[k].assetId, url:photos[k].url, updatedAt:Date.now()}); if(slug(nk)!==slug(k)) await db.doc("products/"+slug(k)).delete(); }catch(err){} }
+    if(shopKeys.includes(k)){ shopKeys=shopKeys.map(x=>x===k?nk:x); saveShop(); }
+    if(pOpen.has(k)){ pOpen.delete(k); pOpen.add(nk); }
+    pStatus(n===recs.length?`Renamed to ${name}.`:`Renamed ${n} of ${recs.length}. Try again.`, n!==recs.length); return; }
   const del = e.target.closest("[data-del]"); if(!del || !db) return;
   if(del.dataset.armed!=="1"){ del.dataset.armed="1"; del.textContent="Tap again to delete"; setTimeout(()=>{ if(del.isConnected){ del.dataset.armed=""; del.textContent="Delete"; } },3000); return; }
   try{ await db.doc("prices/"+del.dataset.del).delete(); }catch(err){ pStatus("Couldn't delete. Try again.", true); }
@@ -1960,8 +1998,15 @@ function renderLinks(){
   box.hidden=false;
   box.innerHTML=`<p class="sub" style="margin:6px 0 4px">${FOOD_RE.test(raw)?"Order now:":"Shop now:"}</p><div class="chips">${shops.map(([n,u])=>`<a class="chip" href="${esc(u)}" target="_blank" rel="noopener" style="text-decoration:none">${esc(n)} ↗</a>`).join("")}</div>`;
 }
+/* Items other users paid less for than you did (live, from community_prices). */
+function communityDeals(){ if(!community.length||typeof prices==="undefined") return [];
+  const mine=new Map(); prices.filter(p=>!/\(online\)/i.test(p.store)).forEach(p=>{ const k=keyOf(p), c=mine.get(k); if(!c||p.date>c.date) mine.set(k,p); });
+  const out=[]; mine.forEach((p,k)=>{ const c=communityFor(k)[0]; if(!c||!(c.price<=p.price*0.97)||p.price-c.price<0.5) return;
+    const save=Math.round((p.price-c.price)*100)/100;
+    out.push({id:"com-"+k,title:norm(p.item)+(p.size?" "+norm(p.size):""),source:c.store||"another store",url:"",price:c.price,market:0,profit:save,pct:Math.round(save/p.price*100),confidence:"high",city:"",postedAt:"",comps:0,foundAt:0,status:"",category:"food",offer:"",code:"",ends:"",match:norm(p.item),paid:p.price,paidStore:p.store,community:true,people:c.people}); });
+  return out; }
 function renderDeals(){
-  const fresh=deals.filter(d=>d.status!=="hidden");
+  const fresh=deals.filter(d=>d.status!=="hidden").concat(communityDeals());
   document.getElementById("fNew").textContent=fresh.filter(d=>!d.status).length;
   document.getElementById("fBest").textContent=fresh.length?fmt(Math.max(...fresh.map(d=>d.profit))):"0";
   const last=deals.reduce((a,d)=>Math.max(a,d.foundAt),0);
@@ -1981,8 +2026,8 @@ function renderDeals(){
   if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
   box.innerHTML=list.map(d=>`<div class="deal${d.status==="saved"?"":""}" data-d="${esc(d.id)}">
     <span class="t">${esc(d.title)}${d.paid?"":`<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span>`}</span><span class="num">${d.price?(d.paid?money(d.price):fmt(d.price))+" SAR":""}</span>
-    <small>${d.paid?`<span>${esc(d.similar?`Similar at ${d.source}: ${d.found||"close match"}${d.foundPrice?` (${money(d.foundPrice)} SAR)`:""}`:"Found at "+d.source)}</span> · <span>${esc(`You paid ${money(d.paid)} SAR${d.paidStore?" at "+d.paidStore:""}`)}</span> · <b class="diff-down">${esc(`Save ${money(d.profit)} SAR (${d.pct}%)`)}</b>`:d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`}${d.paid?"":" · "+esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
-    <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">${d.market?"Open ad":d.paid?"See price":"Open offer"}</a>`:""}<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button></span>
+    <small>${d.paid?`<span>${esc(d.community?`👥 Others paid this at ${d.source} (${d.people} ${d.people===1?"person":"people"})`:d.similar?`Similar at ${d.source}: ${d.found||"close match"}${d.foundPrice?` (${money(d.foundPrice)} SAR)`:""}`:"Found at "+d.source)}</span> · <span>${esc(`You paid ${money(d.paid)} SAR${d.paidStore?" at "+d.paidStore:""}`)}</span> · <b class="diff-down">${esc(`Save ${money(d.profit)} SAR (${d.pct}%)`)}</b>`:d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`}${d.paid?"":" · "+esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
+    <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">${d.market?"Open ad":d.paid?"See price":"Open offer"}</a>`:""}${d.community?"":`<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button>`}</span>
   </div>`).join("");
 }
 document.getElementById("fList").addEventListener("click", async e=>{
@@ -2008,8 +2053,9 @@ function connectDeals(){
 }
 function connectPrices(){
   db.collection("prices").onSnapshot(snap=>{
-    prices = snap.docs.map(d=>{ const x=d.data()||{}; return {id:d.id, item:String(x.item||""), price:Number(x.price)||0, store:String(x.store||""), size:String(x.size||""), date:String(x.date||""), billId:String(x.billId||""), createdAt:Number(x.createdAt)||0}; }).filter(p=>p.item);
-    if(!pReady){ pReady=true; pStatus(""); document.getElementById("pAdd").disabled=false; }
+    prices = snap.docs.map(d=>{ const x=d.data()||{}; return {id:d.id, item:String(x.item||""), price:Number(x.price)||0, store:String(x.store||""), size:String(x.size||""), date:String(x.date||""), billId:String(x.billId||""), createdAt:Number(x.createdAt)||0, locked:!!x.locked}; }).filter(p=>p.item);
+    unifySoon();
+    if(!pReady){ pReady=true; pStatus(""); document.getElementById("pAdd").disabled=false; loadCommunity(); setInterval(loadCommunity, 10*60e3); }
     renderPrices(); renderShop(); buildHints();
   }, err=>{ pStatus(err && err.code==="permission_denied" ? "Only the owner of this page can save prices." : "Lost connection. Reload the page to try again.", true); });
 }
