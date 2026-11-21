@@ -259,9 +259,10 @@
   .hcard .hint>span{flex:1;min-width:0}
   /* no tab bar: swipe between screens; page dots */
   .tabs{display:none!important}
-  body,body.onhome{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))!important}
-  html body .hintbar{bottom:calc(34px + env(safe-area-inset-bottom,0px))!important}
-  #pgDots{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  body,body.onhome{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+  html body .hintbar{bottom:max(12px,env(safe-area-inset-bottom,0px))!important}
+  #pgDots{display:none!important}
+  #pgDots-unused{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
   #pgDots button{width:24px;height:24px;border:none;background:none;padding:0;display:grid;place-items:center;cursor:pointer}
   #pgDots button::before{content:"";width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .2s,background .2s}
   #pgDots button[aria-current]::before{width:20px;background:var(--navy)}
