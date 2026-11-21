@@ -8,7 +8,7 @@
   const D = {
 "Smart Wallet":"المحفظة الذكية","Personal finance · SAR":"مالي الشخصي · ريال","+ All":"+ الكل","− All":"− الكل","✏️ Edit":"✏️ تعديل","✓ Done":"✓ تم",
 "My Wallet":"محفظتي","Your balance, daily spending, price book and best deals, in one place.":"رصيدك ومصاريفك اليومية ودفتر الأسعار وأفضل العروض، في مكان واحد.",
-"Balance":"الرصيد","Replay tutorial":"إعادة الشرح","Tap again to delete everything":"اضغط مرة أخرى لحذف كل شيء","This removes all your data and your login. It can't be undone.":"سيحذف هذا كل بياناتك وحساب الدخول. لا يمكن التراجع عنه.","Deleting…":"جارٍ الحذف…","Couldn't delete. Check your connection and try again.":"تعذّر الحذف. تحقق من الاتصال وحاول مرة أخرى.","Budget":"الميزانية","Expenses":"المصاريف","Prices":"الأسعار","Prices Log":"سجل الأسعار","Forsa":"فرصة",
+"Balance":"الرصيد","Replay tutorial":"إعادة الشرح","Replay setup questions":"إعادة أسئلة الإعداد","Tap again to delete everything":"اضغط مرة أخرى لحذف كل شيء","This removes all your data and your login. It can't be undone.":"سيحذف هذا كل بياناتك وحساب الدخول. لا يمكن التراجع عنه.","Deleting…":"جارٍ الحذف…","Couldn't delete. Check your connection and try again.":"تعذّر الحذف. تحقق من الاتصال وحاول مرة أخرى.","Budget":"الميزانية","Expenses":"المصاريف","Prices":"الأسعار","Prices Log":"سجل الأسعار","Forsa":"فرصة",
 "Tap a category to rename · ✕ remove · + Add. Tap ✓ Done to save.":"اضغط على الفئة لتغيير اسمها · ✕ حذف · + إضافة. اضغط ✓ تم للحفظ.",
 "Hide descriptions":"إخفاء الشرح","Show descriptions":"إظهار الشرح","Reset layout":"إعادة الترتيب الأصلي","Sign out":"تسجيل الخروج","✨ Ask":"✨ اسأل",
 "Add a cost":"أضف مصروف","Takes 10 seconds. Try to add everything, even small things.":"تأخذ ١٠ ثوانٍ. حاول تسجيل كل شيء، حتى الأشياء الصغيرة.",
