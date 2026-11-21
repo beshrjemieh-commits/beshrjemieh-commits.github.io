@@ -508,7 +508,7 @@ form.card .logform{row-gap:11px!important}
       <div class="tile good" id="mLeftTile"><span class="eyebrow">Left</span><span class="v" id="mLeft">0</span><span class="tag">to spend</span></div>
     </div>
     <div class="card" id="cats"></div>
-    <div class="tablebox" id="entries"><div class="empty">Your entries will appear here. Add your first cost above.</div></div>
+    <div class="tablebox" id="entries"><div class="empty">No costs logged yet. Add your first cost above, like groceries or rent.</div></div>
   </section>
 
 
@@ -604,7 +604,7 @@ form.card .logform{row-gap:11px!important}
         </div>
         <div class="row"><span class="status" id="inStatus">Connecting to your saved data…</span><button class="btn primary" id="inAdd" type="submit" disabled>Add money in</button></div>
       </form>
-      <div class="tablebox" id="inList"><div class="empty">Nothing added yet.</div></div>
+      <div class="tablebox" id="inList"><div class="empty">No income yet. Add your salary or any money coming in, like a transfer or a refund.</div></div>
       </div>
     </section>
   </div>
@@ -660,7 +660,7 @@ form.card .logform{row-gap:11px!important}
       <p class="sub" id="fMsg" style="margin:4px 0"></p>
       <div class="chips" id="fFilter" role="group" aria-label="Filter deals"></div>
       <div class="chips" id="fCats" role="group" aria-label="Categories" style="margin-top:6px"></div>
-      <div class="tablebox" id="fList"><div class="empty">No deals yet. The daily hunt will fill this list.</div></div>
+      <div class="tablebox" id="fList"><div class="empty">No deals yet. Tap + Hunt for this on something you want, and the next hourly hunt will look for it.</div></div>
     </section>
   </div>
 
@@ -671,7 +671,7 @@ form.card .logform{row-gap:11px!important}
         <label class="upl" id="uplLabel"><input type="file" id="billFile" accept="image/*,application/pdf" multiple><span>⬆ Upload bill</span></label>
         <span class="status" id="bStatus"></span>
       </div>
-      <div class="tablebox" id="billList"><div class="empty">No bills yet.</div></div>
+      <div class="tablebox" id="billList"><div class="empty">No bills yet. Tap Upload bill to add a supermarket receipt. Claude will read the items into your price book.</div></div>
     </section>
     <section>
       <div><h2>Price book</h2><p class="sub">Write down what things cost and where. Next time you shop, check here to see which store is cheapest.</p></div>
@@ -698,7 +698,7 @@ form.card .logform{row-gap:11px!important}
       <input class="search" id="pSearch" type="search" placeholder="Search items or stores" aria-label="Search prices">
       <div class="card" id="pCheaper" hidden style="margin:8px 0"><b>💡 Friends found it cheaper</b><p class="sub" style="margin:4px 0 6px">Other users paid less for items you buy. Tap ✓ Add to put that price in your price book.</p><div id="pCheaperList"></div></div>
       <details class="card" id="pOthers" hidden style="margin:8px 0"><summary><b>👥 From other users' price books</b> <span class="tag" id="pOthersN"></span></summary><p class="sub" style="margin:4px 0 6px">Items other people bought (no names shown). Tap + Add to copy one into your price book.</p><div id="pOthersList"></div></details>
-      <div class="tablebox" id="pList"><div class="empty">No prices yet. Add the first one above.</div></div>
+      <div class="tablebox" id="pList"><div class="empty">No prices yet. Add an item and its price above, or upload a receipt to fill this list faster.</div></div>
       <p class="tag">Tap an item to see every price you've saved for it. The cheapest one is shown in green.</p>
     </section>
   </div>
@@ -926,7 +926,7 @@ function renderMonth(){
     cats.appendChild(d);
   });
   const box = document.getElementById("entries");
-  if(!list.length){ box.innerHTML = `<div class="empty">${dbReady? "Nothing logged for "+esc(monthLabel(viewMonth))+" yet. Add your first cost above." : "Your entries will appear here once your saved data loads."}</div>`; return; }
+  if(!list.length){ box.innerHTML = `<div class="empty">${dbReady? "No costs logged for "+esc(monthLabel(viewMonth))+" yet. Add your first cost above, like groceries or rent." : "Your entries will appear here once your saved data loads."}</div>`; return; }
   const byDay = {}; list.forEach(e=>{ (byDay[e.date]=byDay[e.date]||[]).push(e); });
   box.innerHTML = Object.keys(byDay).sort().reverse().map(day=>{
     const dt=new Date(day+"T12:00:00"), dayTotal=byDay[day].reduce((a,e)=>a+e.amount,0);
@@ -2096,7 +2096,7 @@ function renderDeals(){
   const qq=sf.rest;
   if(qq){ const t=fTopic(qq); list=list.filter(d=>(d.title+" "+d.source+" "+d.category+" "+d.offer+" "+d.city+" "+(d.match||"")).toLowerCase().includes(qq)||(t&&!d.market&&t.src.includes(d.source))); }
   const box=document.getElementById("fList");
-  if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
+  if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. Tap + Hunt for this on something you want, and the next hourly hunt will look for it."}</div>`; return; }
   box.innerHTML=list.map(d=>`<div class="deal${d.image?" pic":""}" data-d="${esc(d.id)}">
     ${d.image?`<img class="dimg${d.market?"":" logo"}" src="${esc(d.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}<span class="t">${esc(d.title)}${d.paid?"":`<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span>`}</span><span class="num">${d.price?(d.paid?money(d.price):fmt(d.price))+" SAR":""}</span>
     <small>${d.paid?`<span>${esc(d.community?`👥 Others paid this at ${d.source} (${d.people} ${d.people===1?"person":"people"})`:d.similar?`Similar at ${d.source}: ${d.found||"close match"}${d.foundPrice?` (${money(d.foundPrice)} SAR)`:""}`:"Found at "+d.source)}</span> · <span>${esc(`You paid ${money(d.paid)} SAR${d.paidStore?" at "+d.paidStore:""}`)}</span> · <b class="diff-down">${esc(`Save ${money(d.profit)} SAR (${d.pct}%)`)}</b>`:d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`}${d.paid?"":" · "+esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
