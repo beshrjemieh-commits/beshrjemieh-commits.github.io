@@ -10,7 +10,9 @@
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
     el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v13 · tap to retry"; }, 14000);
-})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.subh{margin:0;font-size:15px;font-weight:700;display:flex;gap:6px;align-items:center;color:#6aa9ff}
+</style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -485,10 +487,7 @@ form.card .logform{row-gap:11px!important}
         <button class="btn primary" id="addBtn" type="submit" disabled>Add cost</button>
       </div>
     </form>
-  </section>
-
-  <section id="month">
-    <div><h2>This month</h2><p class="sub">Logged spending against your plan.</p></div>
+    <div id="month" class="monthsub"><h3 class="subh">📅 <span>This month</span></h3></div>
     <div class="monthnav" style="display:flex;justify-content:center;align-items:center;gap:12px"><button class="btn" id="prevM" type="button" aria-label="Previous month">‹</button><b id="mLabel"></b><button class="btn" id="nextM" type="button" aria-label="Next month">›</button></div>
     <div class="tiles slim" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
       <div class="tile"><span class="eyebrow">Spent</span><span class="v" id="mSpent">0</span><span class="tag" id="mCount">0 entries</span></div>
@@ -498,6 +497,7 @@ form.card .logform{row-gap:11px!important}
     <div class="card" id="cats"></div>
     <div class="tablebox" id="entries"><div class="empty">Your entries will appear here. Add your first cost above.</div></div>
   </section>
+
 
   <!-- PLAN -->
   <section id="salSec">
@@ -1604,8 +1604,9 @@ const SECTION_HINTS = {
 };
 function openSecs(){ const v=[...document.querySelectorAll(".view")].find(x=>!x.hidden); if(!v) return [];
   return [...v.querySelectorAll("section:not(.collapsed)")].map(sec=>{ const h=sec.querySelector(":scope > div:first-child h2"); return h?hKey(h):""; }).filter(Boolean); }
-function openHints(){ const out=[]; openSecs().forEach(n=>{ const f=SECTION_HINTS[n]; if(f){ try{ f().forEach(h=>out.push(Object.assign({k:"",item:""},h))); }catch(e){} } }); return out; }
-function contextHints(){ const f=SECTION_HINTS[curSection]; try{ return f?f().map(h=>Object.assign({k:"",item:""},h)):[]; }catch(e){ return []; } }
+function _mergeHints(){ const a=SECTION_HINTS["Add a cost"], m=SECTION_HINTS["This month"]; if(a&&m&&!a._m){ const f=()=>{ let x=[],y=[]; try{x=a()}catch(e){} try{y=m()}catch(e){} return x.concat(y); }; f._m=1; SECTION_HINTS["Add a cost"]=f; } }
+function openHints(){ _mergeHints();  const out=[]; openSecs().forEach(n=>{ const f=SECTION_HINTS[n]; if(f){ try{ f().forEach(h=>out.push(Object.assign({k:"",item:""},h))); }catch(e){} } }); return out; }
+function contextHints(){ _mergeHints(); const f=SECTION_HINTS[curSection]; try{ return f?f().map(h=>Object.assign({k:"",item:""},h)):[]; }catch(e){ return []; } }
 const secObserver = new IntersectionObserver(es=>{
   const vis = es.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0]; if(!vis) return;
   const h=vis.target.querySelector(":scope > div:first-child h2"); const name=h?hKey(h):"";
