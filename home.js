@@ -247,7 +247,7 @@
 .hcard .hint{font-size:12px!important;font-weight:500!important}.hcard .hint>svg{width:15px!important;height:15px!important}
 .hcard[data-go=plan] .hh .big{color:var(--loss)!important}
 .hcard .gain{color:var(--gain)!important;font-weight:600}.hcard[data-go=bal] .gain{color:var(--gain-on-navy)!important}
-.hcard .loss{color:var(--loss)!important;font-weight:600}
+.hcard .loss{color:var(--loss)!important;font-weight:600}.hcard[data-go=bal] .loss{color:#FCA5A5!important}
 .hcard[data-go=forsa]{background:var(--deal-soft)!important;border-color:var(--deal-line)!important}
 .hcard[data-go=forsa] .hh,.hcard[data-go=forsa] .hh .big{color:var(--deal-ink)!important}
 .hcard[data-go=forsa] .sub{color:var(--deal-ink)!important;opacity:.85}.hcard[data-go=forsa] .sub b{color:var(--deal-ink)!important}
@@ -267,7 +267,7 @@
   #pgDots button[aria-current]::before{width:20px;background:var(--navy)}
   @media (prefers-color-scheme: dark){#pgDots button[aria-current]::before{background:#93C5FD}}`;
 
-  const lastHint = {};
+  const lastHint = {}, shown = {};
 
   /* ---------- swipe to go back (like iPhone apps): a sideways swipe returns to the previous screen ---------- */
   let cur = null, goingBack = false; const backStack = [];
@@ -308,14 +308,19 @@
       if(Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && Date.now() - st < 700) swipeTo(dx); }, {passive:true});
     document.addEventListener("touchcancel", () => { ok = false; }, {passive:true});
   }
+  function mood(){ try { const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {}, now = new Date();
+    const flex = ITEMS.filter(i => i.daily && state[i.k] && +state[i.k].plan > 0), plan = flex.reduce((a,i) => a + +state[i.k].plan, 0), used = flex.reduce((a,i) => a + (sums[i.k] || 0), 0);
+    if(!plan) return ""; const pace = now.getDate() / new Date(now.getFullYear(), now.getMonth()+1, 0).getDate(); return used / plan <= pace ? "good" : "over"; } catch(e){ return ""; } }
   function render(){
+    setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
     const v = document.getElementById("viewHome"); if(!v) return;
     const hr = new Date().getHours(), greet = hr < 12 ? L("Good morning","صباح الخير") : hr < 18 ? L("Good afternoon","مساء الخير") : L("Good evening","مساء الخير");
     v.innerHTML = `<div class="hgreet" data-noi18n><span>${greet}</span><span>${new Date().toLocaleDateString(AR ? "ar-SA-u-ca-gregory" : "en-GB", {weekday:"long", day:"numeric", month:"long"})}</span></div>` +
       CARDS.map((c, i) => { const short = x => x && x.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, "").length <= 42;
         const b = bodyFor(c.tab), all = hintsFor(c.tab).filter(x => x !== lastHint[c.tab] && short(x)), mine = creative(c.tab).filter(x => x !== lastHint[c.tab] && short(x));
         // only our own short, bilingual hints on Home (no app offers like pizza, nothing cut off)
-        const h = pick(mine.length ? mine : all.filter(x => /^💡/.test(x)).slice(-1), 11 + i); lastHint[c.tab] = h;
+        const keep = shown[c.tab] && shown[c.tab].seed === seed && hintsFor(c.tab).includes(shown[c.tab].h) ? shown[c.tab].h : null;
+        const h = keep || pick(mine.length ? mine : all.filter(x => /^💡/.test(x)).slice(-1), 11 + i); if(!keep){ lastHint[c.tab] = h; shown[c.tab] = {seed, h}; }
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
