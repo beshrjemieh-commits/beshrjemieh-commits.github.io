@@ -2169,11 +2169,11 @@ document.getElementById("salV").addEventListener("click", async ()=>{
 })();
 </script>
 <script>/* per-section colour + icon so sections look different */
-(function(){ const M={"Add a cost":["#5fc3a6","➕"],"This month":["#6aa9ff","📅"],"Where your salary goes":["#b18cff","💸"],"Emergency fund":["#4fd1d9","🛟"],"Salary day":["#a7d65a","💵"],"Debts to repay":["#f07b7b","💳"],"Smoking":["#ff9f5a","🚭"],"Your money right now":["#5fc3a6","💰"],"Add money in":["#a7d65a","📥"],"Savings goals":["#f2b35b","🎯"],"Starting point":["#6aa9ff","🏁"],"Forsa · deals below market":["#ff9f5a","🔥"],"Bills":["#b18cff","📸"],"Price book":["#f2b35b","🏷️"],"My items":["#ff8fc7","🛒"]};
+(function(){ const M={"Add a cost":["#5fc3a6","➕"],"This month":["#6aa9ff","📅"],"Where your salary goes":["#b18cff","💸"],"Emergency fund":["#4fd1d9","🛟"],"Salary day":["#a7d65a","💵"],"Debts to repay":["#f07b7b","💳"],"Smoking":["#ff9f5a","🚭"],"Your money right now":["#5fc3a6","💰"],"Add money in":["#a7d65a","📥"],"Savings goals":["#f2b35b","🎯"],"Starting point":["#6aa9ff","🏁"],"Forsa · deals below market":["#ff9f5a","🔥"],"Bills":["#b18cff","📸"],"Price book":["#f2b35b","🏷️"],"My items":["#ff8fc7","🛒"],"Budget":["#ff8fc7","📊"]};
   const P=["#6aa9ff","#f2b35b","#b18cff","#ff8fc7","#4fd1d9","#a7d65a","#ff9f5a"];
   function apply(){ document.querySelectorAll("section").forEach((sec,i)=>{ const d=sec.querySelector(":scope > div:first-child"), h=d&&d.querySelector("h2"); if(!h) return;
     const k=h.dataset.orig||h.dataset.en||h.textContent.trim(); const m=M[k]||[P[i%P.length],"📌"]; sec.style.setProperty("--sec",m[0]);
-    if(!d.querySelector(".secico")){ const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.textContent=m[1]; h.parentNode.insertBefore(ic,h); } }); }
+    if(!d.querySelector(".secico")){ if(!h.parentNode.classList.contains("hrow")){ const w=document.createElement("span"); w.className="hrow"; h.parentNode.insertBefore(w,h); w.appendChild(h); } const ic=document.createElement("span"); ic.className="secico"; ic.setAttribute("aria-hidden","true"); ic.textContent=m[1]; h.parentNode.insertBefore(ic,h); } }); }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>setTimeout(apply,0)); else setTimeout(apply,0);
   setTimeout(apply,1500); })();
 </script>
