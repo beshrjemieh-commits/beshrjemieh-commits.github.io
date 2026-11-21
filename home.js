@@ -254,6 +254,15 @@
 .hcard[data-go=forsa] .hint{background:color-mix(in srgb,var(--deal) 16%,transparent)!important;color:var(--deal-ink)!important}
 .hcard[data-go=forsa] .hint>svg{color:var(--deal)!important}
 .hcard[data-go=forsa] .ic{background:var(--deal)!important;color:#fff!important}
+  /* Balance + Budget side by side (Beshr 2026-11-22, from his video) */
+  #viewHome{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px}
+  #viewHome>*{grid-column:1 / -1}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]),#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{grid-column:span 1;justify-content:flex-start}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hint{display:none!important}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .sub,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .sub{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:13px!important}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hh .big{font-size:clamp(22px,7.5vw,28px)!important}
+  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh{flex-wrap:wrap}
+  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px}
   .hcard .hint>span{flex:1;min-width:0}
