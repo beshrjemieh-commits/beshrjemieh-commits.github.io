@@ -9,7 +9,7 @@
   window.addEventListener("unhandledrejection",function(e){ var r=e.reason; window.__errs.push("promise: "+(r&&r.message||String(r))); });
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
-    el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v10 · tap to retry"; }, 14000);
+    el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v12 · tap to retry"; }, 14000);
 })();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="shim.js"></script><script src="i18n.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Smart Wallet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -665,6 +665,7 @@ form.card .logform{row-gap:11px!important}
       </div>
       <div class="card" id="shopCard" hidden><div class="row"><b>🛒 Shopping list</b><button class="del" type="button" id="shopClear">Clear list</button></div><div id="shopList"></div></div>
       <input class="search" id="pSearch" type="search" placeholder="Search items or stores" aria-label="Search prices">
+      <details class="card" id="pOthers" hidden style="margin:8px 0"><summary><b>👥 From other users' price books</b> <span class="tag" id="pOthersN"></span></summary><p class="sub" style="margin:4px 0 6px">Items other people bought (no names shown). Tap + Add to copy one into your price book.</p><div id="pOthersList"></div></details>
       <div class="tablebox" id="pList"><div class="empty">No prices yet. Add the first one above.</div></div>
       <p class="tag">Tap an item to see every price you've saved for it. The cheapest one is shown in green.</p>
     </section>
@@ -1405,7 +1406,7 @@ const looseKey = (item,size) => String(item||"").toLowerCase().replace(/[^\p{L}\
 function communityFor(k){ const g=prices.find(p=>keyOf(p)===k); if(!g) return []; const lk=looseKey(g.item,g.size); return community.filter(c=>c.lk===lk).sort((a,b)=>a.price-b.price); }
 async function loadCommunity(){
   try{ const sb=window.__sb; if(!sb||!sb.rpc) return; const {data,error}=await sb.rpc("community_prices"); if(error||!Array.isArray(data)) return;
-    community=data.map(r=>({item:String(r.item||""),size:String(r.size||""),store:String(r.store||""),price:Number(r.price)||0,date:String(r.last_date||""),people:Number(r.people)||1})).filter(r=>r.item&&r.price>0).map(r=>Object.assign(r,{lk:looseKey(r.item,r.size)}));
+    community=data.map(r=>({item:String(r.item||""),size:String(r.size||""),store:String(r.store||""),price:Number(r.price)||0,date:String(r.last_date||""),people:Number(r.people)||1})).filter(r=>r.item&&r.price>0&&!/\((?:shared|online)\)/i.test(r.store)).map(r=>Object.assign(r,{lk:looseKey(r.item,r.size)}));
     renderPrices(); if(typeof renderDeals==="function") renderDeals(); if(typeof buildHints==="function") buildHints();
     unifySoon();
   }catch(e){}
@@ -1595,7 +1596,24 @@ const secObserver = new IntersectionObserver(es=>{
   if(name && name!==curSection){ curSection=name; }
 },{rootMargin:"-30% 0px -50% 0px", threshold:[0,0.25,0.5]});
 document.querySelectorAll("section").forEach(sec=>secObserver.observe(sec));
+function renderOthers(){
+  const box=document.getElementById("pOthers"); if(!box) return;
+  const mine=new Set(prices.map(p=>looseKey(p.item,p.size))), best=new Map();
+  community.forEach(c=>{ if(mine.has(c.lk)) return; const b=best.get(c.lk); if(!b||c.price<b.price) best.set(c.lk,c); });
+  const q=norm(document.getElementById("pSearch").value).toLowerCase();
+  const list=[...best.values()].filter(c=>!q||(c.item+" "+c.size+" "+c.store).toLowerCase().includes(q)).sort((a,b)=>a.item.localeCompare(b.item));
+  box.hidden=!best.size; document.getElementById("pOthersN").textContent=best.size?String(best.size):"";
+  document.getElementById("pOthersList").innerHTML=list.map(c=>`<div class="pr"><span>${esc(c.item)}${c.size?` <span class="tag">${esc(c.size)}</span>`:""}<br><small>${esc(`👥 ${c.store||"Store not set"} (${c.people} ${c.people===1?"person":"people"})`)}</small></span><span class="num">${money(c.price)}</span><button class="btn" type="button" data-oadd="${esc(c.lk)}">+ Add</button></div>`).join("")||`<div class="empty">Nothing matches your search.</div>`;
+}
+document.getElementById("pOthersList").addEventListener("click", async e=>{
+  const b=e.target.closest("[data-oadd]"); if(!b||!db) return;
+  const c=community.filter(x=>x.lk===b.dataset.oadd).sort((x,y)=>x.price-y.price)[0]; if(!c) return;
+  b.disabled=true;
+  try{ await db.collection("prices").add({item:norm(c.item).slice(0,80), price:Math.round(c.price*100)/100, store:(norm(c.store)||"Store not set").slice(0,50)+" (shared)", size:norm(c.size).slice(0,40), date:c.date||ymd(new Date()), createdAt:Date.now()});
+    pStatus(`Added ${norm(c.item)} to your price book.`); }catch(err){ b.disabled=false; pStatus("Couldn't add. Try again.", true); }
+});
 function renderPrices(){
+  renderOthers();
   fillList("pItemList", prices.map(p=>norm(p.item)));
   fillList("pStoreList", prices.map(p=>norm(p.store)));
   fillList("pSizeList", prices.map(p=>norm(p.size)));
@@ -2000,7 +2018,7 @@ function renderLinks(){
 }
 /* Items other users paid less for than you did (live, from community_prices). */
 function communityDeals(){ if(!community.length||typeof prices==="undefined") return [];
-  const mine=new Map(); prices.filter(p=>!/\(online\)/i.test(p.store)).forEach(p=>{ const k=keyOf(p), c=mine.get(k); if(!c||p.date>c.date) mine.set(k,p); });
+  const mine=new Map(); prices.filter(p=>!/\((?:online|shared)\)/i.test(p.store)).forEach(p=>{ const k=keyOf(p), c=mine.get(k); if(!c||p.date>c.date) mine.set(k,p); });
   const out=[]; mine.forEach((p,k)=>{ const c=communityFor(k)[0]; if(!c||!(c.price<=p.price*0.97)||p.price-c.price<0.5) return;
     const save=Math.round((p.price-c.price)*100)/100;
     out.push({id:"com-"+k,title:norm(p.item)+(p.size?" "+norm(p.size):""),source:c.store||"another store",url:"",price:c.price,market:0,profit:save,pct:Math.round(save/p.price*100),confidence:"high",city:"",postedAt:"",comps:0,foundAt:0,status:"",category:"food",offer:"",code:"",ends:"",match:norm(p.item),paid:p.price,paidStore:p.store,community:true,people:c.people}); });
