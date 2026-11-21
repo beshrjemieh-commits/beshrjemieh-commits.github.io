@@ -53,16 +53,19 @@ label,.eyebrow,.tabs button,.chip,.btn{font-weight:500}
 /* ===== Beshr's palette (2026-11-22) — each colour has one job =====
    navy = trust/brand · blue = tappable only · amber = deals only · green = money in/gains only · red = losses/errors only. 60% neutral, 30% navy, 10% accents. Light by default, dark follows the iPhone setting. */
 :root,:root[data-theme="dark"],:root:not([data-theme="light"]){
- --bg:#F8FAFC!important;--surface:#FFFFFF!important;--fg:#0F172A!important;--muted:#64748B!important;--line:#E2E8F0!important;
+ --bg:#E3EEFF!important;--surface:#FFFFFF!important;--fg:#0F172A!important;--muted:#64748B!important;--line:#E2E8F0!important;
  --accent:#2563EB!important;--accent-fg:#FFFFFF!important;--accent-soft:#DBEAFE!important;--warn:#DC2626!important;--warn-soft:#FEE2E2!important;--bad:#DC2626!important;
  --navy:#0F2A4A;--navy-fg:#FFFFFF;--navy-soft:#E6ECF4;--navy-sub:#A9C1E0;--gain:#16A34A;--gain-on-navy:#86EFAC;--loss:#DC2626;--deal:#F59E0B;--deal-soft:#FEF3C7;--deal-line:#FDE68A;--deal-ink:#92400E;
  --card:#FFFFFF;--card-line:#E2E8F0;--chip:#F1F5F9;--ink2:#334155;--tabink:#475569;--field-line:#CBD5E1;--shadow:0 1px 2px rgba(15,23,42,.04),0 6px 16px -10px rgba(15,23,42,.18);color-scheme:light!important}
 @media (prefers-color-scheme: dark){:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
- --bg:#1E293B!important;--surface:#2A3850!important;--fg:#F1F5F9!important;--muted:#A5B4C8!important;--line:#3B4B66!important;
- --accent:#60A5FA!important;--accent-fg:#1E293B!important;--accent-soft:#25406A!important;--warn:#F87171!important;--warn-soft:#3B1C22!important;--bad:#F87171!important;
- --navy:#1B3A63;--navy-fg:#FFFFFF;--navy-soft:#16243B;--navy-sub:#A9C1E0;--gain:#4ADE80;--gain-on-navy:#4ADE80;--loss:#F87171;--deal:#FBBF24;--deal-soft:#2A2212;--deal-line:#4A3A16;--deal-ink:#FCD34D;
- --card:#2A3850;--card-line:#3B4B66;--chip:#34445E;--ink2:#D5DEE9;--tabink:#A5B4C8;--field-line:#4A5B78;--shadow:0 6px 18px -12px rgba(0,0,0,.6);color-scheme:dark!important}}
+ --bg:#26467C!important;--surface:#30508A!important;--fg:#F8FAFC!important;--muted:#B9C8E2!important;--line:#4766A0!important;
+ --accent:#7DB8FF!important;--accent-fg:#14284A!important;--accent-soft:#2F5A96!important;--warn:#F87171!important;--warn-soft:#3B1C22!important;--bad:#F87171!important;
+ --navy:#152F57;--navy-fg:#FFFFFF;--navy-soft:#213E6E;--navy-sub:#A9C1E0;--gain:#4ADE80;--gain-on-navy:#4ADE80;--loss:#F87171;--deal:#FBBF24;--deal-soft:#2A2212;--deal-line:#4A3A16;--deal-ink:#FCD34D;
+ --card:#30508A;--card-line:#4766A0;--chip:#3A5C98;--ink2:#DCE6F5;--tabink:#B9C8E2;--field-line:#5675AE;--shadow:0 6px 18px -12px rgba(0,0,0,.6);color-scheme:dark!important}}
 body{background:var(--bg)!important;color:var(--fg)!important}
+/* vibrant, light background (Beshr 2026-11-22): static gradient, no animation */
+body{background:linear-gradient(165deg,#D6E8FF 0%,#E8F0FF 40%,#F1ECFF 100%)!important;min-height:100vh}
+@media (prefers-color-scheme: dark){body{background:linear-gradient(165deg,#2B57A0 0%,#26467C 45%,#33397E 100%)!important}}
 .card,.tile,.donut,.tablebox{background:var(--card)!important;border:1px solid var(--card-line)!important;border-radius:18px!important;box-shadow:var(--shadow)}
 body section > div:first-child{background:var(--card)!important;border:1px solid var(--card-line)!important;border-inline-start:4px solid var(--sec)!important;border-radius:18px!important;box-shadow:var(--shadow)}
 section > div:first-child h2{color:var(--fg)!important}
@@ -117,7 +120,7 @@ html body .hintbar{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wallet">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#F8FAFC" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#1E293B" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#D6E8FF" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#2B57A0" media="(prefers-color-scheme: dark)">
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -2324,7 +2327,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   <div class="list">
     <div class="row"><span>Language</span><span class="seg" data-noi18n><button class="btn" type="button" id="sEn">English</button><button class="btn" type="button" id="sAr">العربية</button></span></div>
     <div class="row"><span>Text size</span><span class="seg" dir="ltr"><button class="btn" type="button" id="sSmall" aria-label="Smaller text">A−</button><button class="btn" type="button" id="sBig" aria-label="Bigger text">A+</button></span></div>
-    <div class="row"><span>Dark mode</span><span class="seg"><button class="btn" type="button" id="sSlate">Soft</button><button class="btn" type="button" id="sBlack">True black</button></span></div>
+    <div class="row"><span>Look</span><span class="seg"><button class="btn" type="button" id="sLight">Light</button><button class="btn" type="button" id="sSlate">Dark</button><button class="btn" type="button" id="sBlack">Black</button></span></div>
     <div class="row"><span>Sounds</span><span class="seg"><button class="btn" type="button" id="sSndOn">On</button><button class="btn" type="button" id="sSndOff">Off</button></span></div>
     <label class="row" hidden><span>Show descriptions</span><input type="checkbox" class="sw" id="sDesc"></label>
     <button class="row" type="button" id="sEdit"><span>Rename, hide or move sections</span><span class="val"></span></button>
@@ -2372,8 +2375,8 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
   $("sPay").onclick=()=>{ const v=prompt("Which day of the month does your salary arrive? (1 to 31)", String(SALARY_DAY)); const n=parseInt(String(v||"").replace(/[^0-9]/g,""),10); if(!(n>=1&&n<=31)) return;
     SALARY_DAY=n; saveProfile({payday:n}); fill(); try{ renderSalary(); renderDebts(); if(typeof renderBalance==="function") renderBalance(); buildHints(); }catch(e){} };
   const lg=window.walletLang||"en"; $(lg==="ar"?"sAr":"sEn").classList.add("primary"); $("sEn").onclick=()=>{ if(lg!=="en") setWalletLang("en"); }; $("sAr").onclick=()=>{ if(lg!=="ar") setWalletLang("ar"); };
-  const blk=()=>{ const on=document.documentElement.classList.contains("oled"); $("sBlack").classList.toggle("primary",on); $("sSlate").classList.toggle("primary",!on); }; blk();
-  $("sBlack").onclick=()=>{ walletBlack(true); blk(); }; $("sSlate").onclick=()=>{ walletBlack(false); blk(); };
+  const blk=()=>{ const t=walletThemeNow(); $("sLight").classList.toggle("primary",t==="light"); $("sSlate").classList.toggle("primary",t==="dark"); $("sBlack").classList.toggle("primary",t==="black"); }; blk();
+  $("sLight").onclick=()=>{ walletTheme("light"); blk(); }; $("sSlate").onclick=()=>{ walletTheme("dark"); blk(); }; $("sBlack").onclick=()=>{ walletTheme("black"); blk(); };
   const snd=()=>{ const on=walletSoundOn(); $("sSndOn").classList.toggle("primary",on); $("sSndOff").classList.toggle("primary",!on); }; snd();
   $("sSndOn").onclick=()=>{ walletSound(true); snd(); soundMoneyIn(); }; $("sSndOff").onclick=()=>{ walletSound(false); snd(); };
   $("sSmall").onclick=()=>$("ebSmall").click(); $("sBig").onclick=()=>$("ebBig").click();

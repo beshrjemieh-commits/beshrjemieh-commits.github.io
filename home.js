@@ -283,7 +283,7 @@
   /* swipe left = next screen, swipe right = previous (mirrored in Arabic); dots at the bottom show where you are */
   const ORDER = ["home","bal","budget","plan","prices","forsa"];
   function swipeTo(dx){
-    const i = Math.max(0, ORDER.indexOf(cur || "home")), step = (dx < 0) !== !!AR ? 1 : -1, j = i + step;
+    const i = Math.max(0, ORDER.indexOf(cur || "home")), step = (dx < 0) !== !!AR ? 1 : -1, j = step < 0 ? (i ? 0 : -1) : i + step; // back swipe always goes Home (Beshr 2026-11-22)
     if(j < 0 || j >= ORDER.length) return;
     goingBack = true; try { window.showTab(ORDER[j]); } finally { goingBack = false; }
     window.scrollTo({top:0}); dots();
