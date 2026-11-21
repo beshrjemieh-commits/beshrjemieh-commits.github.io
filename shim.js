@@ -208,19 +208,19 @@
   window.claude = { use: async name => { if(name === "db"){ await ready; return db; } if(name === "assets"){ await ready; return assets; } if(name === "sample"){ await ready; return sampleNS; } return null; } };
 
   /* ---------- sign-in screen ---------- */
-  const css = `#authGate{position:fixed;inset:0;z-index:1000;background:#121614;color:#e7ece8;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow:auto}
+  const css = `#authGate{position:fixed;inset:0;z-index:1000;background:#000000;color:#ffffff;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow:auto}
 #authGate .box{width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px}
 #authGate img{width:64px;height:64px;border-radius:16px}
 #authGate h1{font-size:30px;margin:4px 0 0;letter-spacing:-.02em}
-#authGate p{margin:0;color:#9aa69f}
-#authGate form{background:#1a201d;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
-#authGate label{font-size:13px;font-weight:600;color:#9aa69f}
-#authGate input{height:46px;border-radius:12px;border:1px solid #2c3531;background:#121614;color:#e7ece8;padding:0 12px;font-size:16px;width:100%;box-sizing:border-box}
+#authGate p{margin:0;color:#98989f}
+#authGate form{background:#1c1c1e;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+#authGate label{font-size:13px;font-weight:600;color:#98989f}
+#authGate input{height:46px;border-radius:12px;border:1px solid #38383a;background:#000000;color:#ffffff;padding:0 12px;font-size:16px;width:100%;box-sizing:border-box}
 #authGate button{height:46px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
-#authGate .go{background:#5fc3a6;color:#0f1a16}
-#authGate .sw{background:none;color:#5fc3a6}
-#authGate .st{min-height:1.3em;font-size:14px;text-align:center;color:#9aa69f}
-#authGate .st.err{color:#f07b7b}`;
+#authGate .go{background:#0a84ff;color:#ffffff}
+#authGate .sw{background:none;color:#0a84ff}
+#authGate .st{min-height:1.3em;font-size:14px;text-align:center;color:#98989f}
+#authGate .st.err{color:#ff453a}`;
   function gate(){
     if(document.getElementById("authGate")) return;
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);

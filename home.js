@@ -11,11 +11,11 @@
   const pick = (arr, salt) => arr.length ? arr[Math.floor(((seed * 9301 + (salt || 0) * 49297) % 1) * arr.length) % arr.length] : null;
 
   const CARDS = [
-    {tab:"bal",    title:L("Balance","الرصيد"),          icon:"wallet",  c:"#5fc3a6"},
-    {tab:"budget", title:L("Budget","الميزانية"),        icon:"pie",     c:"#b18cff"},
-    {tab:"plan",   title:L("Expenses","المصاريف"),       icon:"receipt", c:"#6aa9ff"},
-    {tab:"prices", title:L("Prices Log","سجل الأسعار"),  icon:"tag",     c:"#f0b35a"},
-    {tab:"forsa",  title:L("Forsa","فرصة"),              icon:"spark",   c:"#f07b6a"}
+    {tab:"bal",    title:L("Balance","الرصيد"),          icon:"wallet",  c:"#30d158"},
+    {tab:"budget", title:L("Budget","الميزانية"),        icon:"pie",     c:"#bf5af2"},
+    {tab:"plan",   title:L("Expenses","المصاريف"),       icon:"receipt", c:"#0a84ff"},
+    {tab:"prices", title:L("Prices Log","سجل الأسعار"),  icon:"tag",     c:"#ff9f0a"},
+    {tab:"forsa",  title:L("Forsa","فرصة"),              icon:"spark",   c:"#ff453a"}
   ];
   const ICON = {
     wallet:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18v3"/><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="13.5" r="1.2"/>',

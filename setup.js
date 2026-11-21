@@ -167,9 +167,9 @@
   /* ---------- drawing ---------- */
   let root;
   const CSS = `
-  #swSetup{--sw-bg:#0c110f;--sw-raise:#121815;--sw-line:#26302b;--sw-fg:#eef3f0;--sw-muted:#8d9c95;--sw-mint:#5cc4a4;--sw-ink:#07150e;--sw-warn:#e0b45e;--sw-bills:#6e8b80;--sw-goal:#5cc4a4;--sw-spend:#e0b45e;
+  #swSetup{--sw-bg:#000000;--sw-raise:#1c1c1e;--sw-line:#38383a;--sw-fg:#ffffff;--sw-muted:#98989f;--sw-mint:#0a84ff;--sw-ink:#ffffff;--sw-warn:#ff9f0a;--sw-bills:#6e8b80;--sw-goal:#30d158;--sw-spend:#ff9f0a;
     position:fixed;inset:0;z-index:2147483000;background:var(--sw-bg);color:var(--sw-fg);overflow:auto;-webkit-overflow-scrolling:touch;
-    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","IBM Plex Sans Arabic",sans-serif;
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Arabic","Segoe UI",sans-serif;
     padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px))}
   #swSetup *{box-sizing:border-box}
   #swSetup button,#swSetup input{font:inherit;color:inherit}
@@ -196,7 +196,7 @@
   #swSetup .opts{display:flex;flex-direction:column;gap:8px}
   #swSetup .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:start;background:none;border:1px solid var(--sw-line);border-radius:14px;padding:15px 16px;font-size:16px;transition:border-color .2s,background .2s}
   #swSetup .opt::after{content:"";width:18px;height:18px;border-radius:50%;border:1.5px solid var(--sw-line);flex:none}
-  #swSetup .opt[aria-pressed=true]{border-color:var(--sw-mint);background:rgba(92,196,164,.12)}
+  #swSetup .opt[aria-pressed=true]{border-color:var(--sw-mint);background:rgba(10,132,255,.14)}
   #swSetup .opt[aria-pressed=true]::after{background:var(--sw-mint);border-color:var(--sw-mint);box-shadow:inset 0 0 0 4px var(--sw-bg)}
   #swSetup .big{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--sw-line);padding:4px 2px 8px}
   #swSetup .big:focus-within{border-color:var(--sw-mint)}
