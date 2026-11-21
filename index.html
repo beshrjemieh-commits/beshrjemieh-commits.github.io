@@ -2160,7 +2160,6 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   db.doc("settings/ui").get().then(d=>{ const x=d&&d.exists?(d.data()||{}):{};
     if(x.collapsed&&typeof x.collapsed==="object"){ Object.entries(x.collapsed).forEach(([k,c])=>{ const f=window.__secSet&&window.__secSet[k]; if(f) f(c!==false); }); try{ localStorage.setItem("w-collapsed2",JSON.stringify(x.collapsed)); }catch(e){} }
     if(x.cardPrefs&&typeof x.cardPrefs==='object'){ cardPrefs=Object.assign({names:{},hidden:{},custom:{}},x.cardPrefs); try{ localStorage.setItem('w-cardprefs',JSON.stringify(cardPrefs)); }catch(e){} uiCache.cardPrefs=cardPrefs; applyCards(); if(window.applySecs) applySecs(); }
-    if(x.tab && TABS[x.tab] && !location.hash) showTab(x.tab);
     window.uiLoaded=true; if(typeof buildHints==="function") buildHints();
     if(x.scrollY>0) setTimeout(()=>window.scrollTo(0,x.scrollY),600);
   }).catch(()=>{ window.uiLoaded=true; });
@@ -2308,4 +2307,5 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
 })();
 </script>
 
+<script src="home.js"></script>
 </body></html>
