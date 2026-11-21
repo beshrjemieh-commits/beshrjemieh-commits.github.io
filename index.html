@@ -212,6 +212,9 @@ section.collapsed > div:first-child h2::after{transform:translateY(-50%) rotate(
 section > div:first-child .desc{margin-top:8px}
 section:not(.collapsed){margin-bottom:10px}
 section{--sec:var(--accent)}
+#stBox:not([hidden]),#inBox:not([hidden]){animation:panelIn .18s ease-out}
+@keyframes panelIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+#viewBal{overflow-anchor:none;min-height:100vh}
 #viewBal section > div:first-child h2::after{display:none}
 #viewBal section > div:first-child{padding-inline-end:12px}
 section > div:first-child{background:color-mix(in srgb,var(--sec) 13%,var(--surface))!important;border-color:color-mix(in srgb,var(--sec) 35%,var(--line))!important;border-inline-start:4px solid var(--sec)!important}
@@ -2190,9 +2193,9 @@ document.getElementById("salV").addEventListener("click", async ()=>{
   setTimeout(apply,1500); })();
 </script>
 <script>(function(){ const b=document.getElementById("inToggle"), box=document.getElementById("inBox"); if(!b||!box) return;
-  b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"＋ Add money in"); if(open){ box.scrollIntoView({block:"nearest",behavior:"smooth"}); const a=document.getElementById("inAmt"); if(a) setTimeout(()=>a.focus(),250); } }); })();</script>
+  b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"＋ Add money in"); }); })();</script>
 <script>(function(){ const b=document.getElementById("stToggle"), box=document.getElementById("stBox"); if(!b||!box) return;
-  b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"🏁 Starting point"); if(open) box.scrollIntoView({block:"nearest",behavior:"smooth"}); }); })();</script>
+  b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"🏁 Starting point"); }); })();</script>
 <div id="setSheet" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle"><div class="sh">
   <div class="grab"></div>
   <div class="shTop"><h2 id="setTitle">Settings</h2><button class="btn" type="button" id="setDone">Done</button></div>
