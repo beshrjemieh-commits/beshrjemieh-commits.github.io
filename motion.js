@@ -5,9 +5,12 @@
   const EASE = "cubic-bezier(.2,.9,.3,1.15)", OUT = "cubic-bezier(.2,.8,.2,1)";
   const css = `
 button,.btn,.chip,.hcard,a.btn{transition:transform .12s ${OUT}}
-button:active,.btn:active,.chip:active,.hcard:active,a.btn:active{transform:scale(.97)}
-@keyframes mvIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
-.mv-stagger>*{animation:mvIn .24s ${OUT} both}
+button:active,.btn:active,.chip:active,.hcard:active,a.btn:active{transform:scale(.95)}
+@keyframes mvIn{from{opacity:0;transform:translate3d(0,18px,0) scale(.98)}to{opacity:1;transform:none}}
+.mv-stagger>*{animation:mvIn .34s ${OUT} both}
+@keyframes mvScreenF{from{opacity:0;transform:translate3d(36px,0,0)}to{opacity:1;transform:none}}@keyframes mvScreenB{from{opacity:0;transform:translate3d(-36px,0,0)}to{opacity:1;transform:none}}
+.mv-enter-f{animation:mvScreenF .3s ${OUT} both}.mv-enter-b{animation:mvScreenB .3s ${OUT} both}
+[dir=rtl] .mv-enter-f{animation-name:mvScreenB}[dir=rtl] .mv-enter-b{animation-name:mvScreenF}
 @keyframes mvShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
 .mv-shake{animation:mvShake .32s ${OUT}}
 /* deals: amber only */
@@ -27,7 +30,8 @@ button:active,.btn:active,.chip:active,.hcard:active,a.btn:active{transform:scal
 #mvCheck.on{opacity:1}#mvCheck svg{width:40px;height:40px}#mvCheck path{fill:none;stroke:var(--gain,#16A34A);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40}
 #mvCheck.on path{animation:mvDraw .4s ${OUT} .05s forwards}@keyframes mvDraw{to{stroke-dashoffset:0}}
 ::view-transition-group(*){animation-duration:.3s;animation-timing-function:${OUT}}
-@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}`;
+/* Reduce Motion: no sliding or rolling, only quick fades */
+@media (prefers-reduced-motion: reduce){.mv-stagger>*,.mv-enter-f,.mv-enter-b{animation:mvFade .2s ease-out both!important}.mv-shake,.deal.mv-drop .num{animation:none!important}@keyframes mvFade{from{opacity:0}to{opacity:1}}::view-transition-group(*){animation-duration:0s!important}}`;
   const st = document.createElement("style"); st.id = "mvCss"; st.textContent = css; (document.head || document.documentElement).appendChild(st);
 
   /* ---- card expand: a Home card grows into its screen (View Transitions where the phone supports them) ---- */
@@ -35,13 +39,25 @@ button:active,.btn:active,.chip:active,.hcard:active,a.btn:active{transform:scal
     const c = e.target.closest && e.target.closest(".hcard[data-go]"); if(!c || RM() || !document.startViewTransition) return;
     e.stopImmediatePropagation(); e.preventDefault();
     const t = c.dataset.go, view = document.getElementById(((typeof TABS !== "undefined" && TABS[t]) || [])[1]);
-    c.style.viewTransitionName = "mvHero";
+    c.style.viewTransitionName = "mvHero"; document.documentElement.classList.add("mv-vt");
     const vt = document.startViewTransition(() => { c.style.viewTransitionName = ""; if(view) view.style.viewTransitionName = "mvHero"; window.showTab(t); window.scrollTo({top:0}); });
-    vt.finished.finally(() => { if(view) view.style.viewTransitionName = ""; });
+    vt.finished.finally(() => { if(view) view.style.viewTransitionName = ""; document.documentElement.classList.remove("mv-vt"); });
     // a second tap skips straight to the end
     document.addEventListener("pointerdown", () => { try { vt.skipTransition(); } catch(_){} }, {once:true});
   }, true);
 
+
+  /* ---- every screen change slides in (250–350 ms); forward/back follows the screen order, mirrored in Arabic ---- */
+  const ORDER = ["home","bal","budget","plan","prices","forsa"]; let curTab = null;
+  function hookShow(){ if(typeof window.showTab !== "function" || window.showTab._mv) return false;
+    const orig = window.showTab;
+    const wrapped = function(name){ let from = curTab; if(!from){ const v0 = [...document.querySelectorAll(".view")].find(x => !x.hidden); from = v0 ? ({viewHome:"home",viewBal:"bal",viewBudget:"budget",viewPlan:"plan",viewPrices:"prices",viewForsa:"forsa"})[v0.id] : null; } const r = orig.apply(this, arguments); curTab = name;
+      if(from && from !== name && !document.documentElement.classList.contains("mv-vt")){
+        const v = [...document.querySelectorAll(".view")].find(x => !x.hidden);
+        if(v){ v.classList.remove("mv-enter-f","mv-enter-b"); void v.offsetWidth; v.classList.add(ORDER.indexOf(name) >= ORDER.indexOf(from) ? "mv-enter-f" : "mv-enter-b"); if(name === "home") stagger(document.getElementById("viewHome")); } }
+      return r; };
+    wrapped._mv = true; window.showTab = wrapped; try { showTab = wrapped; } catch(e){} return true; }
+  (function tryHook(n){ if(!hookShow() && n < 40) setTimeout(() => tryHook(n + 1), 250); })(0);
   /* ---- staggered list load: Home cards and deals appear 40 ms apart ---- */
   function stagger(box){ if(!box || RM()) return; [...box.children].forEach((el, i) => { el.style.animationDelay = Math.min(i, 10) * 40 + "ms"; }); box.classList.remove("mv-stagger"); void box.offsetWidth; box.classList.add("mv-stagger"); }
   window.mvStagger = stagger;

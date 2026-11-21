@@ -276,8 +276,6 @@
     if(cur === "home" || !cur) return false;
     const to = backStack.pop() || "home";
     goingBack = true; try { window.showTab(to); } finally { goingBack = false; }
-    const v = [...document.querySelectorAll(".view")].find(x => !x.hidden);
-    if(v && v.animate) v.animate([{transform:`translateX(${AR ? 40 : -40}px)`, opacity:.4}, {transform:"none", opacity:1}], {duration:220, easing:"ease-out"});
     window.scrollTo({top:0});
     return true;
   }
@@ -288,8 +286,6 @@
     const i = Math.max(0, ORDER.indexOf(cur || "home")), step = (dx < 0) !== !!AR ? 1 : -1, j = i + step;
     if(j < 0 || j >= ORDER.length) return;
     goingBack = true; try { window.showTab(ORDER[j]); } finally { goingBack = false; }
-    const v = [...document.querySelectorAll(".view")].find(x => !x.hidden);
-    if(v && v.animate) v.animate([{transform:`translateX(${dx < 0 ? 40 : -40}px)`, opacity:.4}, {transform:"none", opacity:1}], {duration:220, easing:"ease-out"});
     window.scrollTo({top:0}); dots();
   }
   function dots(){
