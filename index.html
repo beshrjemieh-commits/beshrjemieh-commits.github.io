@@ -10,7 +10,7 @@
   setTimeout(function(){ if(window.__dbReady) return; var el=document.getElementById("status"); if(!el) return;
     el.className="status err"; el.style.cursor="pointer"; el.onclick=function(){ location.reload(); };
     el.textContent="Stuck at: "+window.__stage+(window.__pend&&Object.keys(window.__pend).length?" ("+Object.keys(window.__pend).join(",")+")":"")+(window.__errs.length?" · "+window.__errs.slice(0,2).join(" | "):"")+" · v13 · tap to retry"; }, 14000);
-})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="icons.js"></script><script src="riyal.js"></script><script src="fx.js"></script><script src="motion.js"></script><script src="shim.js"></script><script src="i18n.js"></script><script src="setup.js"></script><script src="tour.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script><script src="icons.js"></script><script src="riyal.js"></script><script src="motion.js"></script><script src="shim.js"></script><script src="i18n.js"></script><script src="setup.js"></script><script src="tour.js"></script><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.monthsub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
 .subh{margin:0;font-size:15px;font-weight:700;display:flex;gap:6px;align-items:center;color:#6aa9ff}
 .tabs{flex-direction:column;gap:6px!important;padding:0!important;background:var(--bg)!important;border:none!important;border-radius:0!important;box-shadow:0 -8px 0 var(--bg)}
 .tabs .tabgrp{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
@@ -58,10 +58,10 @@ label,.eyebrow,.tabs button,.chip,.btn{font-weight:500}
  --navy:#0F2A4A;--navy-fg:#FFFFFF;--navy-soft:#E6ECF4;--navy-sub:#A9C1E0;--gain:#16A34A;--gain-on-navy:#86EFAC;--loss:#DC2626;--deal:#F59E0B;--deal-soft:#FEF3C7;--deal-line:#FDE68A;--deal-ink:#92400E;
  --card:#FFFFFF;--card-line:#E2E8F0;--chip:#F1F5F9;--ink2:#334155;--tabink:#475569;--field-line:#CBD5E1;--shadow:0 1px 2px rgba(15,23,42,.04),0 6px 16px -10px rgba(15,23,42,.18);color-scheme:light!important}
 @media (prefers-color-scheme: dark){:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
- --bg:#0B1220!important;--surface:#111A2E!important;--fg:#E2E8F0!important;--muted:#94A3B8!important;--line:#1F2A44!important;
- --accent:#60A5FA!important;--accent-fg:#0B1220!important;--accent-soft:#172B4D!important;--warn:#F87171!important;--warn-soft:#3B1C22!important;--bad:#F87171!important;
+ --bg:#1E293B!important;--surface:#2A3850!important;--fg:#F1F5F9!important;--muted:#A5B4C8!important;--line:#3B4B66!important;
+ --accent:#60A5FA!important;--accent-fg:#1E293B!important;--accent-soft:#25406A!important;--warn:#F87171!important;--warn-soft:#3B1C22!important;--bad:#F87171!important;
  --navy:#1B3A63;--navy-fg:#FFFFFF;--navy-soft:#16243B;--navy-sub:#A9C1E0;--gain:#4ADE80;--gain-on-navy:#4ADE80;--loss:#F87171;--deal:#FBBF24;--deal-soft:#2A2212;--deal-line:#4A3A16;--deal-ink:#FCD34D;
- --card:#111A2E;--card-line:#1F2A44;--chip:#17223A;--ink2:#CBD5E1;--tabink:#94A3B8;--field-line:#2A3755;--shadow:0 6px 18px -12px rgba(0,0,0,.8);color-scheme:dark!important}}
+ --card:#2A3850;--card-line:#3B4B66;--chip:#34445E;--ink2:#D5DEE9;--tabink:#A5B4C8;--field-line:#4A5B78;--shadow:0 6px 18px -12px rgba(0,0,0,.6);color-scheme:dark!important}}
 body{background:var(--bg)!important;color:var(--fg)!important}
 .card,.tile,.donut,.tablebox{background:var(--card)!important;border:1px solid var(--card-line)!important;border-radius:18px!important;box-shadow:var(--shadow)}
 body section > div:first-child{background:var(--card)!important;border:1px solid var(--card-line)!important;border-inline-start:4px solid var(--sec)!important;border-radius:18px!important;box-shadow:var(--shadow)}
@@ -117,7 +117,7 @@ html body .hintbar{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Wallet">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#F8FAFC" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F8FAFC" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#1E293B" media="(prefers-color-scheme: dark)">
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
