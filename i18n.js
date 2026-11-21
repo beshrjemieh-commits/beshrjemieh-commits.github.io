@@ -8,7 +8,7 @@
   const D = {
 "Smart Wallet":"المحفظة الذكية","Personal finance · SAR":"مالي الشخصي · ريال","+ All":"+ الكل","− All":"− الكل","✏️ Edit":"✏️ تعديل","✓ Done":"✓ تم",
 "My Wallet":"محفظتي","Your balance, daily spending, price book and best deals, in one place.":"رصيدك ومصاريفك اليومية ودفتر الأسعار وأفضل العروض، في مكان واحد.",
-"Balance":"الرصيد","Budget":"الميزانية","Expenses":"المصاريف","Prices":"الأسعار","Prices Log":"سجل الأسعار","Forsa":"فرصة",
+"Balance":"الرصيد","Tap again to delete everything":"اضغط مرة أخرى لحذف كل شيء","This removes all your data and your login. It can't be undone.":"سيحذف هذا كل بياناتك وحساب الدخول. لا يمكن التراجع عنه.","Deleting…":"جارٍ الحذف…","Couldn't delete. Check your connection and try again.":"تعذّر الحذف. تحقق من الاتصال وحاول مرة أخرى.","Budget":"الميزانية","Expenses":"المصاريف","Prices":"الأسعار","Prices Log":"سجل الأسعار","Forsa":"فرصة",
 "Tap a category to rename · ✕ remove · + Add. Tap ✓ Done to save.":"اضغط على الفئة لتغيير اسمها · ✕ حذف · + إضافة. اضغط ✓ تم للحفظ.",
 "Hide descriptions":"إخفاء الشرح","Show descriptions":"إظهار الشرح","Reset layout":"إعادة الترتيب الأصلي","Sign out":"تسجيل الخروج","✨ Ask":"✨ اسأل",
 "Add a cost":"أضف مصروف","Takes 10 seconds. Try to add everything, even small things.":"تأخذ ١٠ ثوانٍ. حاول تسجيل كل شيء، حتى الأشياء الصغيرة.",
@@ -76,6 +76,7 @@
     [/^🗓️ (\d+) days? until salary\. Make the transfers on the same day, before spending\.$/, m=>`🗓️ باقي ${m[1]} يوم على الراتب. سوِّ التحويلات في نفس اليوم، قبل الصرف.`],
     [/^🚭 Cigarettes this month: (.+) SAR\. That's (.+) SAR a year at this rate\.$/, m=>`🚭 السجائر هذا الشهر: ${m[1]} ريال. يعني ${m[2]} ريال بالسنة بهذا المعدل.`],
     [/^✅ Every category is within budget this month\.$/, ()=>"✅ كل الفئات ضمن الميزانية هذا الشهر."],
+    [/^⚠️ Over budget this month by (.+) SAR\. Spent (.+) of (.+) planned\.$/, m=>`⚠️ تجاوزت ميزانية هذا الشهر بـ ${m[1]} ريال. صرفت ${m[2]} من ${m[3]} مخطط.`],
     [/^⚠️ Over budget: (.+)\.$/, m=>`⚠️ تجاوز الميزانية: ${m[1].replace(/ SAR$/,"")} ريال.`],
     [/^✅ (\d+) high-confidence deals? waiting for you\.$/, m=>`✅ ${m[1]} عرض بثقة عالية بانتظارك.`],
     [/^💡 Best flip: (.+), \+(.+) SAR \((\d+)% below market\)\.$/, m=>`💡 أفضل فرصة: ${m[1]}، +${m[2]} ريال (أقل من السوق بـ ${m[3]}%).`],

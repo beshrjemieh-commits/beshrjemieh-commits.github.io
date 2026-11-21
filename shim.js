@@ -250,7 +250,24 @@
   }
   window.walletEmail = () => (user && user.email) || "";
   window.walletSignOut = async () => { await sb.auth.signOut(); location.reload(); };
-  window.walletDeleteData = async () => { if(!user) throw new Error("not signed in"); const {data:{session}} = await sb.auth.getSession(); const token = session && session.access_token; if(!token) throw new Error("session expired"); const r = await fetch(SUPABASE_URL + "/functions/v1/delete-account", {method:"POST", headers:{"Authorization":"Bearer "+token, "apikey":SUPABASE_KEY, "Content-Type":"application/json"}, body:"{}"}); if(!r.ok) throw new Error("delete-account failed: "+r.status); try{ Object.keys(localStorage).forEach(k=>{ if(/^w-/.test(k)) localStorage.removeItem(k); }); sessionStorage.clear(); }catch(e){} await sb.auth.signOut(); location.reload(); };
+  /* Delete account: photos, all saved data, then the login itself (SQL function delete_my_account() in Supabase). */
+  window.walletDeleteAccount = async () => {
+    if(!user) throw new Error("not signed in");
+    const bucket = sb.storage.from("receipts");
+    for(let i = 0; i < 50; i++){
+      const {data, error} = await bucket.list(user.id, {limit: 1000});
+      if(error || !data || !data.length) break;
+      const {error: e2} = await bucket.remove(data.map(f => user.id + "/" + f.name));
+      if(e2) break;
+    }
+    const {error} = await sb.rpc("delete_my_account");
+    if(error){ // function not installed yet: still wipe the data this user can delete
+      const {error: e3} = await sb.from("app_docs").delete().eq("user_id", user.id);
+      if(e3) throw err(e3);
+    }
+    try{ Object.keys(localStorage).filter(k => /^w-/.test(k) && k !== "w-lang").forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); }catch(e){}
+    try{ await sb.auth.signOut({scope: "local"}); }catch(e){}
+  };
   window.__stage="checking sign-in";
   sb.auth.getSession().then(({data, error}) => { if(error) (window.__errs||[]).push("session: "+error.message); start(data && data.session && data.session.user); })
     .catch(e => { (window.__errs||[]).push("session: "+(e && e.message || e)); start(null); });

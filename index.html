@@ -428,6 +428,7 @@ form.card .logform{row-gap:11px!important}
 #setSheet button.row{cursor:pointer}
 #setSheet .row .val{color:var(--muted);white-space:nowrap}
 #setSheet .row .val::after{content:" ›";opacity:.6}
+#setSheet .row.danger.armed{background:var(--bad);color:#fff;font-weight:700}
 #setSheet .row.danger{color:var(--bad);justify-content:center}
 #setSheet .seg{display:flex;gap:6px}
 #setSheet .seg .btn{min-width:44px;min-height:34px}
@@ -2242,7 +2243,8 @@ document.getElementById("salV").addEventListener("click", async ()=>{
     <div class="row"><span>Signed in as</span><span style="color:var(--muted);overflow-wrap:anywhere;text-align:right" id="sEmail">–</span></div>
   </div>
   <div class="list" style="margin-top:16px"><button class="row danger" type="button" id="sOut">Sign out</button></div>
-  <div class="list" style="margin-top:8px"><button class="row danger" type="button" id="sDel">Delete account</button></div>
+  <div class="list" style="margin-top:10px"><button class="row danger" type="button" id="sDel">Delete account</button></div>
+  <p class="foot" id="sDelSt" role="status"></p>
   <p class="foot">Smart Wallet · your data syncs to your account</p>
 </div></div>
 <script>
@@ -2281,10 +2283,15 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
   $("sReset").onclick=()=>{ if(confirm("Put all sections back the way they were?")) $("ebReset").click(); };
   $("sUpd").onclick=async()=>{ $("sUpdV").textContent=T("Updating…"); try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(); if(r) await r.update(); }catch(e){} location.reload(); };
   $("sOut").onclick=()=>{ if(confirm("Sign out of your wallet?")) walletSignOut(); };
-  let delArm=null; $("sDel").onclick=async()=>{ const b=$("sDel");
-    if(!delArm){ delArm=setTimeout(()=>{ delArm=null; b.textContent=T("Delete account"); },4000); b.textContent=T("Tap again to delete"); return; }
-    clearTimeout(delArm); delArm=null; b.disabled=true; b.textContent=T("Deleting your data…");
-    try{ await walletDeleteData(); }catch(e){ b.disabled=false; b.textContent=T("Delete account"); alert(T("Could not delete your data. Please try again.")); } };
+  let delArm=0, delT=null; const del=$("sDel"), delSt=$("sDelSt");
+  del.onclick=async()=>{
+    if(del.disabled) return;
+    if(!delArm){ delArm=1; del.textContent=T("Tap again to delete everything"); del.classList.add("armed"); delSt.textContent=T("This removes all your data and your login. It can't be undone.");
+      clearTimeout(delT); delT=setTimeout(()=>{ delArm=0; del.textContent=T("Delete account"); del.classList.remove("armed"); delSt.textContent=""; },5000); return; }
+    clearTimeout(delT); del.disabled=true; del.textContent=T("Deleting…"); delSt.textContent="";
+    try{ await window.walletDeleteAccount(); location.replace(location.pathname); }
+    catch(e){ del.disabled=false; delArm=0; del.textContent=T("Delete account"); del.classList.remove("armed"); delSt.textContent=T("Couldn't delete. Check your connection and try again."); }
+  };
   setTimeout(fill,1500); setTimeout(fill,5000);
 })();
 </script>
