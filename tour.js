@@ -14,7 +14,7 @@
       ["سجل الأسعار","ارفع الفواتير واحفظ الأسعار. التطبيق يوضح لك أي محل أرخص للي تشتريه."],
       ["فرصة","عروض أقل من سعر السوق وعروض التطبيقات، تنفحص خلال اليوم. أضف أي شي تدور عليه."]]}
   };
-  const css = `#tour{position:fixed;inset:0;z-index:960;background:var(--bg,#000000);color:var(--fg,#ffffff);display:flex;flex-direction:column;
+  const css = `#tour{position:fixed;inset:0;z-index:960;background:var(--bg,#0b0a16);color:var(--fg,#ffffff);display:flex;flex-direction:column;
     padding:calc(10px + env(safe-area-inset-top,0px)) 0 calc(14px + env(safe-area-inset-bottom,0px));opacity:0;transition:opacity .2s}
   #tour.on{opacity:1}
   #tour .tt{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px;font-size:14px;color:var(--muted,#98989f)}

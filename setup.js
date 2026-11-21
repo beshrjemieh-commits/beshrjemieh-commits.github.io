@@ -167,7 +167,7 @@
   /* ---------- drawing ---------- */
   let root;
   const CSS = `
-  #swSetup{--sw-bg:#000000;--sw-raise:#1c1c1e;--sw-line:#38383a;--sw-fg:#ffffff;--sw-muted:#98989f;--sw-mint:#0a84ff;--sw-ink:#ffffff;--sw-warn:#ff9f0a;--sw-bills:#6e8b80;--sw-goal:#30d158;--sw-spend:#ff9f0a;
+  #swSetup{--sw-bg:#0b0a16;--sw-raise:#16152a;--sw-line:#38383a;--sw-fg:#ffffff;--sw-muted:#98989f;--sw-mint:#7c5cff;--sw-ink:#ffffff;--sw-warn:#ff9f0a;--sw-bills:#6e8b80;--sw-goal:#30d158;--sw-spend:#ff9f0a;
     position:fixed;inset:0;z-index:2147483000;background:var(--sw-bg);color:var(--sw-fg);overflow:auto;-webkit-overflow-scrolling:touch;
     font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Arabic","Segoe UI",sans-serif;
     padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px))}
