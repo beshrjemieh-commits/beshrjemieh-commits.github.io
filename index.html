@@ -212,6 +212,8 @@ section.collapsed > div:first-child h2::after{transform:translateY(-50%) rotate(
 section > div:first-child .desc{margin-top:8px}
 section:not(.collapsed){margin-bottom:10px}
 section{--sec:var(--accent)}
+#viewBal section > div:first-child h2::after{display:none}
+#viewBal section > div:first-child{padding-inline-end:12px}
 section > div:first-child{background:color-mix(in srgb,var(--sec) 13%,var(--surface))!important;border-color:color-mix(in srgb,var(--sec) 35%,var(--line))!important;border-inline-start:4px solid var(--sec)!important}
 section > div:first-child h2::after{color:var(--sec)!important}
 .secico{flex:none;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;background:color-mix(in srgb,var(--sec) 26%,transparent);margin-inline-end:2px}
@@ -1205,10 +1207,11 @@ buildRows(); update(); smoke();
   document.querySelectorAll("section > div:first-child h2").forEach(h=>{ if(h.closest("section > div:first-child").querySelectorAll("h2")[0]!==h) return;
     const sec=h.closest("section"), key=(h.dataset.en||h.textContent.trim());
     h.setAttribute("role","button"); h.tabIndex=0; h.title="Tap to show or hide";
-    const set=c=>{ sec.classList.toggle("collapsed",c); h.setAttribute("aria-expanded",String(!c)); };
+    const pin=!!sec.closest("#viewBal"); if(pin){ h.removeAttribute("title"); h.style.cursor="default"; }
+    const set=c=>{ if(pin) c=false; sec.classList.toggle("collapsed",c); h.setAttribute("aria-expanded",String(!c)); };
     set(saved[key]!==false);
     (window.__secSet=window.__secSet||{})[key]=set;
-    const tog=()=>{ const c=!sec.classList.contains("collapsed"); set(c); saved[key]=c; try{ localStorage.setItem("w-collapsed2",JSON.stringify(saved)); }catch(e){} if(window.saveUI) saveUI({collapsed:saved}); if(typeof buildHints==="function") buildHints(); };
+    const tog=()=>{ if(pin) return; const c=!sec.classList.contains("collapsed"); set(c); saved[key]=c; try{ localStorage.setItem("w-collapsed2",JSON.stringify(saved)); }catch(e){} if(window.saveUI) saveUI({collapsed:saved}); if(typeof buildHints==="function") buildHints(); };
     h.addEventListener("click",tog); h.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tog(); } });
   });
 })();
