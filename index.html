@@ -369,6 +369,9 @@ form.card .logform{row-gap:11px!important}
 .deal:last-child{border-bottom:none}
 .deal .t{font-weight:600;overflow-wrap:anywhere}
 .deal small{color:var(--muted);grid-column:1/-1}
+.deal.pic{grid-template-columns:64px minmax(0,1fr) auto}
+.deal .dimg{grid-row:span 2;width:64px;height:64px;border-radius:10px;object-fit:cover;background:var(--line)}
+.deal .dimg.logo{object-fit:contain;background:#fff;padding:4px;box-sizing:border-box}
 .deal .acts{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
 .conf{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:1px}
 .conf.high{background:var(--accent-soft);color:var(--accent)} .conf.medium{background:var(--warn-soft);color:var(--warn)} .conf.low{background:var(--line);color:var(--muted)}
@@ -1553,6 +1556,13 @@ const SECTION_HINTS = {
     if(res[0]) out.push({tab:"forsa",score:900,t:`💡 Best flip: ${res[0].title}, +${fmt(res[0].profit)} SAR (${res[0].pct}% below market).`});
     const hi=live.filter(d=>d.confidence==="high"&&!d.status).length; if(hi) out.push({tab:"forsa",score:800,t:`✅ ${hi} high-confidence deal${hi>1?"s":""} waiting for you.`});
     if(off[0]) out.push({tab:"forsa",score:700,t:`🍕 ${off[0].source}: ${off[0].offer||off[0].title}${off[0].code?" · code "+off[0].code:""}`});
+    const fl=res.filter(d=>d.confidence!=="low")[0];
+    if(fl) out.push({tab:"forsa",score:880,t:`🤝 ${fl.title}: offer about ${fmt(Math.round(fl.price*0.9/10)*10)} SAR first. Sellers on Haraj usually take 5-10% off, and you'd resell near ${fmt(fl.market)}.`});
+    const soon=off.filter(d=>/^\d{4}-\d\d-\d\d$/.test(d.ends)).map(d=>({d,days:Math.round((Date.parse(d.ends+"T12:00")-Date.parse(new Date().toLocaleDateString("en-CA")+"T12:00"))/864e5)})).filter(x=>x.days>=0&&x.days<=3).sort((a,b)=>a.days-b.days)[0];
+    if(soon) out.push({tab:"forsa",score:850,t:`⏰ ${soon.d.source} offer ends ${soon.days===0?"today":soon.days===1?"tomorrow":"in "+soon.days+" days"}: ${soon.d.offer||soon.d.title}`});
+    if(res.some(d=>d.category==="electronics")) out.push({tab:"forsa",score:650,t:"📱 Buying a used phone? Check iCloud or Google account is signed out, battery health, and that the IMEI matches the box."});
+    if(res.some(d=>d.category==="cars")) out.push({tab:"forsa",score:640,t:"🚗 Buying a used car? Check its traffic fines and history in Absher, and get an inspection before paying."});
+    const lo=res.filter(d=>d.confidence==="low").length; if(lo) out.push({tab:"forsa",score:300,t:`⚠️ ${lo} low-confidence deal${lo>1?"s":""}: few similar ads, so double-check the price before you go.`});
     const sv=live.filter(d=>d.status==="saved").length; if(sv) out.push({tab:"forsa",score:600,t:`★ ${sv} saved deal${sv>1?"s":""}. Check them before they're gone.`});
     out.push({tab:"forsa",score:100,t:"👀 Always see the item and meet in a safe public place before paying."}); return out; },
   "Starting point": ()=>{ if(!balStart) return [{tab:"bal",score:2000,t:"❗ Important: set your starting point so your balance matches your real money."}];
@@ -2014,8 +2024,8 @@ function renderDeals(){
   if(qq){ const t=fTopic(qq); list=list.filter(d=>(d.title+" "+d.source+" "+d.category+" "+d.offer+" "+d.city+" "+(d.match||"")).toLowerCase().includes(qq)||(t&&!d.market&&t.src.includes(d.source))); }
   const box=document.getElementById("fList");
   if(!list.length){ box.innerHTML=`<div class="empty">${q?"No deals for this yet. Tap + Hunt for this and the next hourly hunt will look.":deals.length?"Nothing here for this filter.":"No deals yet. The daily hunt will fill this list."}</div>`; return; }
-  box.innerHTML=list.map(d=>`<div class="deal${d.status==="saved"?"":""}" data-d="${esc(d.id)}">
-    <span class="t">${esc(d.title)}${d.paid?"":`<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span>`}</span><span class="num">${d.price?(d.paid?money(d.price):fmt(d.price))+" SAR":""}</span>
+  box.innerHTML=list.map(d=>`<div class="deal${d.image?" pic":""}" data-d="${esc(d.id)}">
+    ${d.image?`<img class="dimg${d.market?"":" logo"}" src="${esc(d.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}<span class="t">${esc(d.title)}${d.paid?"":`<span class="conf ${esc(d.confidence)}">${esc(d.confidence)}</span>`}</span><span class="num">${d.price?(d.paid?money(d.price):fmt(d.price))+" SAR":""}</span>
     <small>${d.paid?`<span>${esc(d.community?`👥 Others paid this at ${d.source} (${d.people} ${d.people===1?"person":"people"})`:d.similar?`Similar at ${d.source}: ${d.found||"close match"}${d.foundPrice?` (${money(d.foundPrice)} SAR)`:""}`:"Found at "+d.source)}</span> · <span>${esc(`You paid ${money(d.paid)} SAR${d.paidStore?" at "+d.paidStore:""}`)}</span> · <b class="diff-down">${esc(`Save ${money(d.profit)} SAR (${d.pct}%)`)}</b>`:d.market?`Market ~${fmt(d.market)} SAR · <b class="diff-down">${d.pct}% below · +${fmt(d.profit)} SAR</b>`:`<b class="diff-down">${esc(d.offer||"Offer")}</b>${d.code?` · code <b>${esc(d.code)}</b>`:""}${d.ends?` · ends ${esc(d.ends)}`:""}`}${d.paid?"":" · "+esc(d.source)}${d.city?" · "+esc(d.city):""}${d.postedAt?" · posted "+esc(d.postedAt):""}${d.comps?` · ${d.comps} similar ads`:""}</small>
     <span class="acts">${d.url?`<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener" style="text-decoration:none">${d.market?"Open ad":d.paid?"See price":"Open offer"}</a>`:""}${d.community?"":`<button class="btn" type="button" data-fsave>${d.status==="saved"?"★ Saved":"☆ Save"}</button><button class="del" type="button" data-fhide>Hide</button>`}</span>
   </div>`).join("");
@@ -2039,7 +2049,7 @@ document.getElementById("fTerms").addEventListener("click",e=>{ const b=e.target
 document.getElementById("fUpd").addEventListener("click",()=>{ hunt.requestedAt=Date.now(); saveHunt(); });
 function connectDeals(){
   db.doc("settings/hunt").onSnapshot(d=>{ const x=d&&d.exists?(d.data()||{}):{}; hunt={terms:Array.isArray(x.terms)?x.terms.map(String):[],requestedAt:Number(x.requestedAt)||0,lastRunAt:Number(x.lastRunAt)||0,lastRunSummary:String(x.lastRunSummary||"")}; renderHunt(); },()=>{});
-  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||""),paid:Number(v.paid)||0,paidStore:String(v.paidStore||""),similar:!!v.similar,found:String(v.found||""),foundPrice:Number(v.foundPrice)||0}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
+  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||""),image:/^https:\/\//.test(v.image||"")?String(v.image):"",paid:Number(v.paid)||0,paidStore:String(v.paidStore||""),similar:!!v.similar,found:String(v.found||""),foundPrice:Number(v.foundPrice)||0}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
 }
 function connectPrices(){
   db.collection("prices").onSnapshot(snap=>{
