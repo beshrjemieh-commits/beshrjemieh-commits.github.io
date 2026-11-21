@@ -1611,7 +1611,7 @@ function renderPrices(){
       <summary>${photos[k]?`<img class="pimg" src="${esc(photos[k].url)}" alt="" loading="lazy">`:`<span class="pimg" aria-hidden="true">🛒</span>`}<b>${esc(g.item)}${g.size?` <span class="tag">${esc(g.size)}</span>`:""}${g.recs.some(r=>r.locked)?` <span title="Shared name">🔒</span>`:""}</b><span class="num">${money(low)} SAR</span>
         <small><span class="best">Cheapest: ${esc(best.store||"store not set")}</span> · ${sum}${com[0]?` · <span class="${com[0].price<low-0.009?"diff-down":""}">${esc(`👥 Others paid ${money(com[0].price)} at ${com[0].store||"a store"}`)}</span>`:""}</small></summary>
       <div class="phist"><div class="photoRow">${photos[k]?`<img src="${esc(photos[k].url)}" alt="Photo of ${esc(g.item)}">`:""}${assetsNS?`<label class="btn">${photos[k]?"Change photo":"📷 Add photo"}<input type="file" accept="image/*" data-photo="${esc(k)}"></label>`:""}</div>${recs.map(r=>`<div class="pr ${r.price===low?"low":""}"><span>${esc(r.store||"Store not set")}</span><span class="num">${money(r.price)}</span><button class="del" type="button" data-del="${esc(r.id)}" aria-label="Delete this price">Delete</button></div>`).join("")}${com.map(c=>`<div class="pr ${c.price<low-0.009?"low":""}"><span>${esc(`👥 ${c.store||"Store not set"} (${c.people} ${c.people===1?"person":"people"})`)}</span><span class="num">${money(c.price)}</span><span></span></div>`).join("")}
-        ${g.recs.some(r=>r.locked)?`<p class="tag" style="margin:6px 0 0">${esc("🔒 Shared name: other users bought the same item, so everyone sees one name.")}</p>`:`<span class="row" style="justify-content:flex-start;gap:6px;margin-top:6px"><input data-rname="${esc(k)}" value="${esc(g.item)}" maxlength="80" aria-label="Product name" style="flex:1;min-width:0;height:34px"><button class="btn" type="button" data-pren="${esc(k)}">✎ Rename</button></span>`}
+        ${g.recs.some(r=>r.locked)?`<p class="tag" style="margin:6px 0 0">${esc("🔒 Shared name: other users bought the same item, so everyone sees one name.")}</p>`:""}
         <span class="row" style="justify-content:flex-start;gap:6px;margin-top:6px"><button class="btn" type="button" data-shop="${esc(k)}">${shopKeys.includes(k)?"✓ On shopping list":"+ Shopping list"}</button><button class="btn" type="button" data-again="${esc(k)}">Add a new price for this item</button></span></div>
     </details>`;
   }).join("");
@@ -1621,16 +1621,6 @@ document.getElementById("pList").addEventListener("toggle", e=>{ const d=e.targe
 document.getElementById("pList").addEventListener("click", async e=>{
   const again = e.target.closest("[data-again]");
   if(again){ const p = prices.find(x=>keyOf(x)===again.dataset.again); if(p){ document.getElementById("pItem").value=norm(p.item); document.getElementById("pSize").value=norm(p.size); document.getElementById("pStore").value=""; document.getElementById("pPrice").value=""; document.getElementById("priceForm").scrollIntoView({behavior:"smooth"}); document.getElementById("pPrice").focus({preventScroll:true}); } return; }
-  const ren = e.target.closest("[data-pren]");
-  if(ren && db && ren.closest("#pList")){ const k=ren.dataset.pren, inp=[...document.querySelectorAll("#pList input[data-rname]")].find(x=>x.dataset.rname===k), name=norm(inp&&inp.value).slice(0,80);
-    const recs=prices.filter(p=>keyOf(p)===k); if(!name||!recs.length||name===norm(recs[0].item)||recs.some(p=>p.locked)) return;
-    ren.disabled=true; let n=0;
-    for(const p of recs){ try{ await db.doc("prices/"+p.id).update({item:name}); n++; }catch(err){} }
-    const nk=(name+"|"+norm(recs[0].size)).toLowerCase();
-    if(photos[k]){ try{ await db.doc("products/"+slug(nk)).set({key:nk, assetId:photos[k].assetId, url:photos[k].url, updatedAt:Date.now()}); if(slug(nk)!==slug(k)) await db.doc("products/"+slug(k)).delete(); }catch(err){} }
-    if(shopKeys.includes(k)){ shopKeys=shopKeys.map(x=>x===k?nk:x); saveShop(); }
-    if(pOpen.has(k)){ pOpen.delete(k); pOpen.add(nk); }
-    pStatus(n===recs.length?`Renamed to ${name}.`:`Renamed ${n} of ${recs.length}. Try again.`, n!==recs.length); return; }
   const del = e.target.closest("[data-del]"); if(!del || !db) return;
   if(del.dataset.armed!=="1"){ del.dataset.armed="1"; del.textContent="Tap again to delete"; setTimeout(()=>{ if(del.isConnected){ del.dataset.armed=""; del.textContent="Delete"; } },3000); return; }
   try{ await db.doc("prices/"+del.dataset.del).delete(); }catch(err){ pStatus("Couldn't delete. Try again.", true); }
