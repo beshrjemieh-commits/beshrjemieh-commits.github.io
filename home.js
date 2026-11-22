@@ -326,6 +326,7 @@
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
   body.framed #viewBal.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
+  body.framed #viewBal.ghost{display:block!important}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk, zoom is locked by the viewport so no focus zoom */
   body.framed #gSearch,body.framed #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
@@ -444,10 +445,10 @@
   }
   function renderHero(tab){
     const v = document.getElementById(VIEW[tab]); if(!v) return;
-    let el = v.querySelector(":scope > .tabHero"); const html = heroFor(tab);
+    const host = v.querySelector(":scope > .vbIn") || v; let el = host.querySelector(":scope > .tabHero"); const html = heroFor(tab);
     if(!html){ if(el) el.remove(); return; }
     const tmp = document.createElement("div"); tmp.innerHTML = html; const n = tmp.firstElementChild;
-    if(el) el.replaceWith(n); else v.prepend(n);
+    if(el) el.replaceWith(n); else host.prepend(n);
   }
   window.walletHero = renderHero;
   let rt = 0; const soon = () => { clearTimeout(rt); rt = setTimeout(() => { if(!document.getElementById("viewHome").hidden) render(); }, 250); };
@@ -484,43 +485,55 @@
     addEventListener("resize", sizeBal);
     const balCard = () => document.querySelector('#viewHome .hcard[data-go=bal]');
     window._vtBusy = false;
-    function expandOpen(card, go){
-      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); sizeBal(); return; }
-      /* The real Balance page is built first (instantly, under a frozen copy of Home), then the page itself grows
-         out of the card using transform/opacity only, so the phone's graphics chip does all the moving. */
-      const r = card.getBoundingClientRect(), wrap = wrapEl(), bs = getComputedStyle(document.body);
-      const navy = getComputedStyle(card).backgroundColor;
-      // 1) frozen copy of Home, exactly where it is
-      const snap = document.createElement("div");
+    /* Card <-> page with NO fades (Beshr 2026-11-22: "only the rectangle moves, colours must not change").
+       The box is a window: it grows/shrinks with transform, and its content gets the opposite scale every frame,
+       so the content never stretches or fades. Background is a still copy of Home. GPU transforms only. */
+    const bez = (x1, y1, x2, y2) => t => { let a = 0, b = 1, u = t; for(let k = 0; k < 24; k++){ u = (a + b) / 2; const x = 3*(1-u)*(1-u)*u*x1 + 3*(1-u)*u*u*x2 + u*u*u; if(x < t) a = u; else b = u; } return 3*(1-u)*(1-u)*u*y1 + 3*(1-u)*u*u*y2 + u*u*u; };
+    const EASE = bez(.32, .72, 0, 1), DUR = 420, STEPS = 30;
+    const inner = v => { let n = v.querySelector(":scope > .vbIn"); if(!n){ n = document.createElement("div"); n.className = "vbIn"; while(v.firstChild) n.appendChild(v.firstChild); v.appendChild(n); } return n; };
+    // box sits at rect B (its real place); animate it so it looks like rect A at p=0 and B at p=1 (or the reverse)
+    function morph(box, A, B, reverse){
+      const kin = inner(box), kb = [], kc = [];
+      for(let n = 0; n <= STEPS; n++){
+        let p = EASE(n / STEPS); if(reverse) p = 1 - EASE(n / STEPS);
+        const w = A.width + (B.width - A.width) * p, h = A.height + (B.height - A.height) * p;
+        const x = A.left + (B.left - A.left) * p, y = A.top + (B.top - A.top) * p;
+        const sx = w / B.width, sy = h / B.height;
+        kb.push({transform: `translate(${x - B.left}px,${y - B.top}px) scale(${sx},${sy})`, offset: n / STEPS});
+        kc.push({transform: `scale(${1 / sx},${1 / sy})`, offset: n / STEPS});
+      }
+      box.style.transformOrigin = "0 0"; kin.style.transformOrigin = "0 0"; box.style.willChange = kin.style.willChange = "transform";
+      const o = {duration: DUR, easing: "linear", fill: "both"};
+      const a = box.animate(kb, o); kin.animate(kc, o);
+      return a.finished.then(() => { box.getAnimations().concat(kin.getAnimations()).forEach(x => x.cancel()); box.style.willChange = kin.style.willChange = ""; });
+    }
+    function stillHome(){ // a frozen copy of Home, exactly where it is (keeps ids so it looks identical; lives < 0.5 s)
+      const wrap = wrapEl(), bs = getComputedStyle(document.body), snap = document.createElement("div");
       snap.style.cssText = `position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:${bs.backgroundColor};background-image:${bs.backgroundImage};`;
       const band = document.getElementById("homeBand"), wr = wrap.getBoundingClientRect();
-      if(band){ const b2 = band.cloneNode(true); /* keep ids so the copy looks identical (it lives < 0.5 s, after the real elements) */ b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; b2.querySelectorAll("svg").forEach(x => x.style.animation = "none"); snap.appendChild(b2); }
-      const w2 = wrap.cloneNode(true);
-      w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
-      snap.appendChild(w2); document.body.appendChild(snap);
-      // 2) switch to the framed Balance page underneath (cheap, invisible for one frame)
-      showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
-      const page = balView(); sizeBal(); page.scrollTop = 0;
-      const F = page.getBoundingClientRect();
-      const from = `translate(${r.left - F.left}px,${r.top - F.top}px) scale(${r.width / F.width},${r.height / F.height})`;
-      page.classList.add("growing");
-      const cover = document.createElement("div");
-      cover.style.cssText = `position:fixed;left:${F.left}px;top:${F.top}px;width:${F.width}px;height:${F.height}px;z-index:3;pointer-events:none;background:${navy};border-radius:28px;transform-origin:0 0;will-change:transform,opacity`;
-      document.body.appendChild(cover);
-      const opt = {duration: 420, easing: "cubic-bezier(.32,.72,0,1)", fill: "both"};
-      const a1 = page.animate([{transform: from}, {transform: "none"}], opt);
-      cover.animate([{transform: from, opacity: 1}, {opacity: 1, offset: .35}, {transform: "none", opacity: 0}], opt);
-      a1.onfinish = () => { a1.cancel(); page.classList.remove("growing"); cover.remove(); snap.remove(); };
+      if(band){ const b2 = band.cloneNode(true); b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; b2.querySelectorAll("svg").forEach(x => x.style.animation = "none"); snap.appendChild(b2); }
+      const w2 = wrap.cloneNode(true); w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
+      snap.appendChild(w2); document.body.appendChild(snap); return snap;
     }
-    window._balShrink = function(name){ // Balance page shrinks back into its card on the way Home
-      window._vtBusy = true; document.documentElement.classList.add("vt");
-      const w = balView(); if(w) w.style.viewTransitionName = "balcard";
-      const t = document.startViewTransition(() => {
-        if(w) w.style.viewTransitionName = "";
-        window.showTab(name);
-        const c = balCard(); if(c) c.style.viewTransitionName = "balcard";
-      });
-      t.finished.finally(() => { window._vtBusy = false; document.documentElement.classList.remove("vt"); const c = balCard(); if(c) c.style.viewTransitionName = ""; });
+    function expandOpen(card, go){
+      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); sizeBal(); return; }
+      window._vtBusy = true;
+      const A = card.getBoundingClientRect(), snap = stillHome();
+      showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
+      const page = balView(); sizeBal(); page.scrollTop = 0; inner(page);
+      page.classList.add("growing");
+      morph(page, A, page.getBoundingClientRect(), false).finally(() => { page.classList.remove("growing"); snap.remove(); window._vtBusy = false; });
+    }
+    window._balShrink = function(name){ // the page shrinks back into its card, no fades
+      const page = balView(); if(!page || reduced() || !document.body.animate){ window._vtBusy = true; window.showTab(name); window._vtBusy = false; return; }
+      window._vtBusy = true;
+      const B = page.getBoundingClientRect(), st = page.scrollTop;
+      const ghost = page.cloneNode(true); ghost.classList.add("ghost");
+      ghost.style.cssText = `position:fixed;left:${B.left}px;top:${B.top}px;width:${B.width}px;height:${B.height}px;margin:0;z-index:5;pointer-events:none`;
+      document.body.appendChild(ghost); ghost.scrollTop = st;
+      window.showTab(name); document.body.classList.add("framed"); // keep the same look while it shrinks
+      const c = balCard(), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
+      morph(ghost, A, B, true).finally(() => { ghost.remove(); document.body.classList.remove("framed"); window._vtBusy = false; });
     };
     function expandLayer(card, go){
       if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
