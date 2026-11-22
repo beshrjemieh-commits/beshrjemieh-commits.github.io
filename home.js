@@ -265,25 +265,19 @@
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
   /* Home: violet band behind title, search, Balance + Budget; organic wave edge; white below (Beshr 2026-11-22) */
   #homeBand{display:none;position:absolute;left:0;right:0;top:0;height:var(--band,320px);z-index:-1;pointer-events:none;background:#DCE4EE}
-  /* moving organic waves (Beshr 2026-11-22): GPU transform only, slow loop, paused when hidden, still under Reduce Motion */
+  /* one still sine curve separates the two colours (Beshr 2026-11-22) */
   #homeBand .wv{position:absolute;left:0;right:0;overflow:hidden;pointer-events:none}
-  #homeBand .wv svg{display:block;width:200%!important;max-width:none!important;height:100%!important;animation:wvMove 14s linear infinite;will-change:transform}
-  #homeBand .wv.rev svg{animation-direction:reverse;animation-duration:19s}
+  #homeBand .wv svg{display:block;width:100%!important;max-width:none!important;height:100%!important}
   #homeBand .wv.bot{bottom:-55px;height:56px}
-  #homeBand .wv.top{top:0;height:calc(env(safe-area-inset-top,0px) + 96px)}
-  #homeBand .wv.top.t2{height:calc(env(safe-area-inset-top,0px) + 70px)}
-  @keyframes wvMove{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
   /* sharper contrast between the white boxes and the light band (Beshr 2026-11-22) */
   body.onhome #gSearch,body.onhome #gAsk{border:1.5px solid #94A3B8!important;background:#FFFFFF!important;box-shadow:0 6px 14px -8px rgba(15,42,74,.45)!important}
   #viewHome>.hcard[data-go=budget]{border:1.5px solid #94A3B8!important;background:#FFFFFF!important}
   #viewHome>.hcard[data-go=bal],#viewHome>.hcard[data-go=budget]{box-shadow:0 14px 26px -12px rgba(15,42,74,.55),0 2px 4px rgba(15,42,74,.12)!important}
-  html.wv-paused #homeBand .wv svg{animation-play-state:paused}
-  @media (prefers-reduced-motion: reduce){#homeBand .wv svg{animation:none}}
   body.onhome #homeBand{display:block}
   #viewHome>.hcard[data-go=budget]+*,#viewHome>.hcard[data-go=bal]:not(:has(+ .hcard[data-go=budget]))+*{margin-top:40px!important}
   body.onhome::before{display:none!important}
   body.onhome{background:linear-gradient(180deg,#16365E 0%,#0F2A4A 100%)!important}
-  @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand .bot path{fill:var(--bg)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
+  @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand .bot path{fill:var(--bg)!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{font-size:clamp(16px,5vw,19px)!important}
@@ -369,9 +363,8 @@
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
-    const wave = (cls, fill, op) => `<div class="wv ${cls}"><svg viewBox="0 0 1600 60" preserveAspectRatio="none"><path d="M0,0 L0,30 C25,34.0 72,44.3 110,46 C148,47.7 193,44.7 230,40 C267,35.3 298,23.0 330,18 C362,13.0 388,8.7 420,10 C452,11.3 490,19.3 520,26 C550,32.7 572,48.0 600,50 C628,52.0 663,42.7 690,38 C717,33.3 742,23.3 760,22 C778,20.7 775,26.0 800,30 C825,34.0 872,44.3 910,46 C948,47.7 993,44.7 1030,40 C1067,35.3 1098,23.0 1130,18 C1162,13.0 1188,8.7 1220,10 C1252,11.3 1290,19.3 1320,26 C1350,32.7 1372,48.0 1400,50 C1428,52.0 1463,42.7 1490,38 C1517,33.3 1542,23.3 1560,22 C1578,20.7 1575,26.0 1600,30 L1600,0 Z" fill="${fill}" fill-opacity="${op}"/></svg></div>`;
-    band.innerHTML = wave("top", "#0F2A4A", .07) + wave("top t2 rev", "#0F2A4A", .06) + wave("bot", "#DCE4EE", 1);
-    document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("wv-paused", document.hidden));
+    /* one calm sine curve, still (Beshr 2026-11-22: "make it a curve or sin or cos function") */
+    band.innerHTML = `<div class="wv bot"><svg viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,0 L0,30.0 L4,29.0 L8,28.0 L12,27.0 L16,26.0 L20,25.1 L24,24.1 L28,23.2 L32,22.3 L36,21.4 L40,20.6 L44,19.8 L48,19.0 L52,18.3 L56,17.7 L60,17.1 L64,16.5 L68,16.0 L72,15.5 L76,15.1 L80,14.8 L84,14.5 L88,14.3 L92,14.1 L96,14.0 L100,14.0 L104,14.0 L108,14.1 L112,14.3 L116,14.5 L120,14.8 L124,15.1 L128,15.5 L132,16.0 L136,16.5 L140,17.1 L144,17.7 L148,18.3 L152,19.0 L156,19.8 L160,20.6 L164,21.4 L168,22.3 L172,23.2 L176,24.1 L180,25.1 L184,26.0 L188,27.0 L192,28.0 L196,29.0 L200,30.0 L204,31.0 L208,32.0 L212,33.0 L216,34.0 L220,34.9 L224,35.9 L228,36.8 L232,37.7 L236,38.6 L240,39.4 L244,40.2 L248,41.0 L252,41.7 L256,42.3 L260,42.9 L264,43.5 L268,44.0 L272,44.5 L276,44.9 L280,45.2 L284,45.5 L288,45.7 L292,45.9 L296,46.0 L300,46.0 L304,46.0 L308,45.9 L312,45.7 L316,45.5 L320,45.2 L324,44.9 L328,44.5 L332,44.0 L336,43.5 L340,42.9 L344,42.3 L348,41.7 L352,41.0 L356,40.2 L360,39.4 L364,38.6 L368,37.7 L372,36.8 L376,35.9 L380,34.9 L384,34.0 L388,33.0 L392,32.0 L396,31.0 L400,30.0 L400,0 Z" fill="#DCE4EE"/></svg></div>`;
     document.body.appendChild(band);
     const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
       const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
