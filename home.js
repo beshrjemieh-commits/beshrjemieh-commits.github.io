@@ -338,12 +338,13 @@
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
 
   /* ===== Wallet card (Beshr's wallet-card-morph.html): same tokens, timings and behaviour ===== */
-  #viewHome{--wm-navy:#0F2A4A;--wm-deep:#0B2240;--wm-soft:#1C3A5E;--wm-line:#24456B;--wm-stitch:#2E557F;--wm-ice:#E6F1FB;--wm-blue-200:#B5D4F4;--wm-blue-400:#85B7EB;--wm-amber:#FAC775;--wm-red-bg:#4A1B1B;--wm-red-text:#F7C1C1;--wm-red-bar:#F09595;--wm-red:#A32D2D;--wm-green-bar:#97C459;--wm-green-text:#C0DD97;--wm-green:#3B6D11;--wm-ease:cubic-bezier(.2,.9,.3,1.05);--wm-ease-flap:cubic-bezier(.3,1.3,.5,1);--wm-dur:.42s}
+  #viewHome{--wm-navy:#0F2A4A;--wm-deep:#0B2240;--wm-soft:#1C3A5E;--wm-line:#24456B;--wm-stitch:#2E557F;--wm-ice:#E6F1FB;--wm-blue-200:#B5D4F4;--wm-blue-400:#85B7EB;--wm-amber:#FAC775;--wm-red-bg:#4A1B1B;--wm-red-text:#F7C1C1;--wm-red-bar:#F09595;--wm-red:#A32D2D;--wm-green-bar:#97C459;--wm-green-text:#C0DD97;--wm-green:#3B6D11;--wm-ease:cubic-bezier(.3,.6,.2,1);--wm-ease-flap:cubic-bezier(.3,1.3,.5,1);--wm-dur:.42s}
   #viewHome>.wm-card,#viewHome>.wm-ph,#viewHome>.wm-card+.hcard[data-go=budget],#viewHome>.wm-ph+.hcard[data-go=budget]{grid-column:span 1!important}
   .wm-card{position:relative;height:156px;background:var(--wm-navy);border-radius:18px;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;box-shadow:0 10px 24px -14px rgba(15,42,74,.55);
     transition:all var(--wm-dur) var(--wm-ease),transform .12s}
   .wm-card:active{transform:scale(.97)}
   .wm-card.open,.wm-card.wm-closing{cursor:auto;z-index:20}
+  .wm-card.wm-closing{--wm-dur:.34s}
   .wm-in{position:absolute;inset:0;overflow:hidden;border-radius:inherit}
   .wm-card.open .wm-in{overflow-y:auto;overscroll-behavior:contain}
   .wm-card.open:active{transform:none}
@@ -418,6 +419,29 @@
   #fvClose{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);z-index:6;width:88px;height:24px;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #fvClose::before{content:"";display:block;width:40px;height:5px;margin:9px auto 0;border-radius:3px;background:rgba(100,116,139,.45)}
   body.framed:not(.fvbusy) #fvClose{display:block}
+  /* smooth-transitions skill: pages are cards that grow from their spot under the title (layout animation, never scaled) */
+  .view.fv{position:fixed!important;z-index:30;margin:0!important;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:14px 12px 24px;border-radius:22px;background:var(--bg,#F8FAFC);box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
+  .view.fv.pg-anim{overflow:hidden;transition:top .42s cubic-bezier(.3,.6,.2,1),left .42s cubic-bezier(.3,.6,.2,1),width .42s cubic-bezier(.3,.6,.2,1),height .42s cubic-bezier(.3,.6,.2,1),border-radius .42s cubic-bezier(.3,.6,.2,1),background-color .42s cubic-bezier(.3,.6,.2,1)}
+  .view.fv.pg-closing{transition-duration:.34s}
+  .pg-src{visibility:hidden}
+  #qBar{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)}
+  body.pgopen #viewHome>*,body.pgopen #gsBox,body.pgopen #qBar{opacity:0;transform:translateY(16px);pointer-events:none}
+  body.pgopen{overflow:hidden}
+  #pgClose{display:none;position:fixed;left:50%;transform:translateX(-50%);z-index:32;width:88px;height:22px;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #pgClose::before{content:"";display:block;width:40px;height:5px;margin:7px auto 0;border-radius:3px;background:rgba(100,116,139,.45)}
+  body.pgopen #pgClose{display:block;top:var(--pgTop,60px)}
+  .tabHero .thS{font-size:13px;color:var(--muted);margin-top:8px}
+  section > div:first-child h2::after{transition:transform .32s cubic-bezier(.3,.6,.2,1)}
+  #shScrim{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .38s cubic-bezier(.3,.6,.2,1);z-index:60}
+  body.shopen #shScrim{opacity:.38;pointer-events:auto}
+  #sheet{position:fixed;left:0;right:0;bottom:0;max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--card,#fff);color:var(--fg);border-radius:22px 22px 0 0;z-index:61;transform:translateY(105%);visibility:hidden;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s .38s;padding:6px 16px calc(18px + env(safe-area-inset-bottom,0px));box-sizing:border-box;box-shadow:0 -12px 30px -16px rgba(0,0,0,.4)}
+  body.shopen #sheet{transform:none;visibility:visible;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s}
+  #sheet.closing{transition-duration:.34s,0s;transition-delay:0s,.34s}
+  #sheet .shGrab{width:40px;height:5px;border-radius:3px;background:rgba(100,116,139,.45);margin:4px auto 8px}
+  #sheet .shHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  #sheet .shHead h3{margin:0;font-size:20px;font-weight:600}
+  #sheet .shBody>.card{margin:0;box-shadow:none}
+  body.shopen{overflow:hidden}
   html.homefit body.onhome .wrap{padding-bottom:0!important;height:100dvh;min-height:0!important;overflow:hidden}
   #viewBal.ghost{display:block!important;border-radius:28px;padding:12px;box-sizing:border-box;overflow:hidden}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
@@ -509,8 +533,10 @@
     const bottom = Math.max(...kids.map(e => e.getBoundingClientRect().bottom)) + scrollY, barTop = q.getBoundingClientRect().top + scrollY;
     const fit = bottom <= barTop - 6; h.classList.toggle("homefit", fit); if(fit && scrollY) scrollTo(0, 0); }
   addEventListener("resize", () => requestAnimationFrame(fitHome));
+  function budgetPerDay(){ try { const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {}; const flex = ITEMS.filter(i => i.daily && state[i.k]);
+    const plan = flex.reduce((a,i) => a + (+state[i.k].plan || 0), 0), spent = flex.reduce((a,i) => a + (sums[i.k] || 0), 0); return plan ? Math.max(0, (plan - spent) / daysLeftInMonth()) : 0; } catch(e){ return 0; } }
   function render(){
-    if(window._wmOpen) return;
+    if(window._wmOpen || window._pg) return; // the wallet card or a page is open
     requestAnimationFrame(() => requestAnimationFrame(fitHome)); // the wallet card is open: leave Home as it is until it closes
     setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
     const v = document.getElementById("viewHome"); if(!v) return;
@@ -548,7 +574,7 @@
     const pill = net < 0 ? `<span class="wm-pill">▼ ${fmt(-net)}</span>` : `<span class="wm-pill up">▲ ${fmt(net)}</span>`;
     const mini = lasts != null ? L(`Lasts ~${lasts} days`, `يكفي ~${lasts} يوم`) : L(`${R}${fmt(perDay)}/day for ${toPay} days`, `${R}${fmt(perDay)}/يوم لمدة ${toPay} يوم`);
     const chip = lasts != null ? L(`Lasts about ${lasts} days at your pace`, `يكفيك تقريباً ${lasts} يوم بنفس صرفك`) : L(`${R}${fmt(perDay)}/day until payday`, `${R}${fmt(perDay)}/يوم حتى الراتب`);
-    const warn = perDay > 0 && out24 > perDay * 1.5 ? `<div class="wm-chip warn wm-ex" style="--d:.48s;margin-top:12px">${window.PH ? PH("sparkle") : ""}<span>${L(`24h spend is ${Math.round(out24 / perDay)}× your ${fmt(perDay)}/day pace`, `صرف ٢٤ ساعة ${Math.round(out24 / perDay)}× معدلك ${fmt(perDay)}/يوم`)}</span></div>` : "";
+    const bpd = budgetPerDay() || perDay; const warn = bpd > 0 && out24 > bpd * 1.5 ? `<div class="wm-chip warn wm-ex" style="--d:.48s;margin-top:12px">${window.PH ? PH("sparkle") : ""}<span>${L(`24h spend is ${Math.round(out24 / bpd)}× your ${fmt(bpd)}/day budget`, `صرف ٢٤ ساعة ${Math.round(out24 / bpd)}× ميزانيتك ${fmt(bpd)}/يوم`)}</span></div>` : "";
     const rows = o24.length ? [o24[0]].map(x => `<div class="wm-rc"><span>${cat(x)}${x.note ? " · " + esc(x.note) : ""}</span><span>−${two(x.amount)}</span></div>`).join("") +
       (o24.length > 1 ? `<div class="wm-rc"><span>${L(`Other · ${o24.length - 1} item${o24.length > 2 ? "s" : ""}`, `أخرى · ${o24.length - 1}`)}</span><span>−${two(out24 - o24[0].amount)}</span></div>` : "")
       : `<div class="wm-rc"><span>${L("Nothing out in the last 24h","ما صرفت شي آخر ٢٤ ساعة")}</span><span></span></div>`;
@@ -575,7 +601,6 @@
         </div>
         ${warn}
         <div class="wm-pocket wm-ex" style="--d:.55s"><p class="h">${L("Out of your pocket · 24h","طلع من جيبك · ٢٤ ساعة")}</p>${rows}</div>
-        <button class="wm-all wm-ex" type="button" data-wm="all" style="--d:.62s">${L("All balance details ›","كل تفاصيل الرصيد ›")}</button>
       </div>
       </div>
     </div>`;
@@ -608,7 +633,9 @@
     }
     if(!num) return "";
     const hs = hintsFor(tab), h = (shown[tab] && hs.includes(shown[tab].h) && shown[tab].h) || hs.find(x => /^💡|^⚠|^💎|^🆕/.test(x)) || hs[0];
-    return `<div class="tabHero" data-noi18n><div class="thL">${label}</div><div class="thN${bad ? " bad" : ""}">${num}</div>${h ? `<div class="thH">${window.PH ? PH("sparkle") : ""}<span>${esc(clean(h))}</span></div>` : ""}</div>`;
+    const cardT = (CARDS.find(c => c.tab === tab) || {}).title || "", ic = window.PH ? PH(PHN[tab]) : "";
+    const top = tab === "bal" ? `<div class="thL">${label}</div>` : `<div class="thL"><span class="thI"><span class="thR"><span class="thF">${ic}</span><span class="thB">${ic}</span></span></span><span class="thT">${cardT}</span></div><div class="thS">${label}</div>`;
+    return `<div class="tabHero" data-noi18n>${top}<div class="thN${bad ? " bad" : ""}">${num}</div>${h ? `<div class="thH">${window.PH ? PH("sparkle") : ""}<span>${esc(clean(h))}</span></div>` : ""}</div>`;
   }
   function renderHero(tab){
     const v = document.getElementById(VIEW[tab]); if(!v) return;
@@ -664,7 +691,7 @@
     const SPRING = ((z, W) => { const wd = W * Math.sqrt(1 - z * z); return t => t >= 1 ? 1 : 1 - Math.exp(-z * W * t) * (Math.cos(wd * t) + (z * W / wd) * Math.sin(wd * t)); })(0.75, 10); // ~3% overshoot, settled by the end
     const EASE0 = SPRING, DUR0 = 560, STEPS = 48;
     // spec curves: grow 420ms, shrink 340ms, cubic-bezier(.2,.9,.3,1.05); icon flip 450ms cubic-bezier(.3,1.3,.5,1)
-    const MK = {ease: bez(.2, .9, .3, 1.05), open: 420, close: 340, flipEase: "cubic-bezier(.3,1.3,.5,1)", flip: 450, curve: "cubic-bezier(.2,.9,.3,1.05)"};
+    const MK = {ease: bez(.3, .6, .2, 1), open: 420, close: 340, flipEase: "cubic-bezier(.3,1.3,.5,1)", flip: 450, curve: "cubic-bezier(.3,.6,.2,1)"}; /* smooth-transitions skill: no 60fps frame over ~11% */
     const inner = v => { let n = v.querySelector(":scope > .vbIn"); if(!n){ n = document.createElement("div"); n.className = "vbIn"; while(v.firstChild) n.appendChild(v.firstChild); v.appendChild(n); } return n; };
     // box sits at rect B (its real place); animate it so it looks like rect A at p=0 and B at p=1 (or the reverse)
     function morph(box, A, B, reverse, zoom, rA, rB, pairs, tm){
@@ -777,16 +804,16 @@
       document.body.appendChild(q);
       const to = (tab, el, b) => { window._fromEl = b || null; window.showTab(tab); window._fromEl = null; const e = document.getElementById(el); const sec = e && e.closest("section"); if(sec && sec.classList.contains("collapsed")){ const h = sec.querySelector(":scope > div:first-child h2"); if(h) h.click(); } if(e){ const v = e.closest(".view"), go = () => { if(window._vtBusy) return setTimeout(go, 60); if(v){ const vr = v.getBoundingClientRect(), er = e.getBoundingClientRect(); v.scrollTo({top: Math.max(0, v.scrollTop + er.top - vr.top - vr.height / 3), behavior: "smooth"}); } }; setTimeout(go, 60); } return e; }; // scroll once the page has finished growing
       q.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const k = b.dataset.q;
-        if(k === "exp"){ const f = to("plan", "fAmount", b); if(f){ f.value = ""; try { f.focus({preventScroll: true}); } catch(x){ f.focus(); } } }
-        if(k === "bill"){ const f = document.getElementById("billFile"); if(f) f.click(); to("prices", "billsSec", b); } // opens the iPhone photo picker / camera
-        if(k === "hunt"){ const f = to("forsa", "fSearch", b); if(f){ f.value = ""; try { f.focus({preventScroll: true}); } catch(x){ f.focus(); } } }
+        if(k === "exp") window._sheet("exp");
+        if(k === "bill"){ const f = document.getElementById("billFile"); if(f) f.click(); window._sheet("bill"); } // opens the iPhone photo picker / camera
+        if(k === "hunt") window._sheet("hunt");
       });
     })();
     /* Wallet card behaviour (wallet-card-morph.html): tap grows the card itself from its spot; tap again (not on a tile/button) closes */
     (function(){
       const INNER = ".wm-mc, .wm-rc, .wm-start, button";
       let ph = null, busy = false;
-      const dur = () => reduced() ? 0 : 420;
+      const dur = () => reduced() ? 0 : 420, durC = () => reduced() ? 0 : 340;
       const set = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
       const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph),#gsBox")];
       const target = () => { const gs = document.getElementById("gsBox"), top = Math.max(48, gs ? gs.getBoundingClientRect().top + 30 : 48) /* room for the flipped icon tab above the card */, bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
@@ -808,7 +835,7 @@
         if(!window._wmOpen || busy) return; busy = true; const sc = card.querySelector(".wm-in"); if(sc) sc.scrollTop = 0;
         card.classList.add("wm-closing"); card.classList.remove("open"); document.body.classList.remove("wm-open"); set(card, ph.getBoundingClientRect());
         try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
-        setTimeout(() => { reset(card); render(); then && then(); }, dur() + 30);
+        setTimeout(() => { reset(card); render(); then && then(); }, durC() + 30);
       }
       window._wmReset = () => { const c = document.getElementById("wmCard"); document.body.classList.remove("wm-open"); if(c) reset(c); else { window._wmOpen = false; busy = false; } };
       const go = (fn) => { window._wmReset(); render(); window._openFramed ? window._openFramed("bal") : window.showTab("bal"); setTimeout(fn, 60); };
@@ -817,9 +844,8 @@
         if(card.classList.contains("open")){
           const k = e.target.closest(INNER);
           if(k){ const w = k.dataset && k.dataset.wm;
-            if(w === "in") go(() => { const b = document.getElementById("inToggle"); if(b && b.getAttribute("aria-expanded") !== "true") b.click(); });
-            else if(w === "all") go(() => {});
-            else if(k.classList.contains("wm-start")) go(() => { const b = document.getElementById("stToggle"); if(b && b.getAttribute("aria-expanded") !== "true") b.click(); });
+            if(w === "in" && window._sheet) window._sheet("in");
+            else if(k.classList.contains("wm-start") && window._sheet) window._sheet("start");
             return; }
           close(card); return; }
         open(card);
@@ -860,13 +886,168 @@
         const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "forwards"});
         fade.onfinish = () => fx.remove(); });
     }
-    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; expandOpen(c, c.dataset.go); });
+    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; window.showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(window._wmOpen && window._wmReset){ window._wmReset(); } const fr = document.body.classList.contains("framed");
-      if(!window._vtBusy && name === "home" && fr && !reduced() && window._balShrink){ window._balShrink(name); return; }
-      if(!window._vtBusy && VIEW[name] && !fr && cur === "home"){ const src = window._fromEl || homeCard(name); window._fromEl = null; if(src){ expandOpen(src, name); return; } }
-      if(!window._vtBusy && VIEW[name] && fr && cur !== name){ const nv = setFv(name); if(nv && !reduced() && nv.animate) requestAnimationFrame(() => nv.animate([{opacity: 0, transform: "translateX(24px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: MK.curve})); } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(!VIEW[name] || !document.querySelector(".view.fv")){ document.body.classList.remove("framed"); } if(name === "home" || !VIEW[name]) document.querySelectorAll(".view.fv").forEach(e => e.classList.remove("fv")); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    /* ===== Smooth transitions (Beshr's smooth-transitions skill, 2026-11-22): nothing cuts, everything moves ===== */
+    const EZ = "cubic-bezier(.3,.6,.2,1)";
+    let pg = null; window._pg = null; window._pgBusy = false;
+    const setR = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
+    const pgTarget = () => { const gs = document.getElementById("gsBox"), top = Math.max(48, gs ? gs.getBoundingClientRect().top : 48), sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+      document.documentElement.style.setProperty("--pgTop", top + "px");
+      return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - sab)}; };
+    const pgSides = () => [...document.querySelectorAll("#viewHome>*,#gsBox,#qBar")];
+    const solid = c => c && !/rgba\(.*,\s*0\)$|transparent/.test(c);
+    const bigOf = el => el && el.querySelector(".big");
+    function pgShow(name){ // the page's content shows while Home stays underneath
+      if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); }
+      cur = name; _show(name); try { renderHero(name); } catch(e){}
+      document.getElementById("viewHome").hidden = false; document.body.classList.add("onhome");
+    }
+    function pgOpen(src, go){
+      const v = viewOf(go); if(!v || window._pgBusy) return;
+      const fromHome = !!src.closest("#viewHome"), A = src.getBoundingClientRect(), cs = getComputedStyle(src);
+      const bg = solid(cs.backgroundColor) ? cs.backgroundColor : getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#fff";
+      const rA = parseFloat(cs.borderTopLeftRadius) || 18, nb = bigOf(src), fs0 = nb ? parseFloat(getComputedStyle(nb).fontSize) : 0;
+      pg = {go, src: fromHome ? src : homeCard(go), bg, rA, fs0}; window._pg = go;
+      if(reduced()){ pgShow(go); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen"); return; }
+      window._pgBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+      // peek lines of the card fade away in place (140ms)
+      const peeks = fromHome ? [...src.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), s2 = getComputedStyle(e);
+        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font:${s2.font};`;
+        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 140, easing: "ease-out", fill: "forwards"}); return c; }) : [];
+      if(pg.src) pg.src.classList.add("pg-src");
+      pgShow(go);
+      v.classList.add("fv", "pg-anim"); v.style.background = bg; v.style.borderRadius = rA + "px"; setR(v, A); v.scrollTop = 0;
+      pgSides().forEach(e => e.classList.add("wm-side-out"));
+      const n = v.querySelector(".tabHero .thN"); if(n && fs0) n.animate([{fontSize: fs0 + "px"}, {fontSize: getComputedStyle(n).fontSize}], {duration: 420, easing: EZ});
+      const fl = v.querySelector(".tabHero .thI .thR"); if(fl) fl.animate([{transform: "rotateX(0deg)"}, {transform: "rotateX(180deg)"}], {duration: 450, easing: MK.flipEase});
+      [...v.querySelectorAll(".tabHero .thS,.tabHero .thH"), ...detailsIn(v)].forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: EZ, fill: "backwards"}));
+      v.getBoundingClientRect(); // first frame = the card at rest
+      document.body.classList.add("pgopen");
+      v.style.background = ""; v.style.borderRadius = ""; setR(v, pgTarget());
+      setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); window._pgBusy = false; }, 440);
+    }
+    function pgDone(){ const p = pg; if(!p) return; const v = viewOf(p.go);
+      pg = null; window._pg = null; window._pgBusy = false;
+      window.showTab("home");
+      if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); }
+      pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen");
+      if(p.src) p.src.classList.remove("pg-src");
+    }
+    function pgClose(){
+      if(!pg || window._pgBusy) return; const p = pg, v = viewOf(p.go);
+      if(reduced() || !v){ pgDone(); return; }
+      window._pgBusy = true; v.scrollTop = 0; v.style.transform = ""; v.style.transition = "";
+      const card = p.src && p.src.isConnected ? p.src : homeCard(p.go), B = card ? card.getBoundingClientRect() : {left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80};
+      [...v.querySelectorAll(".tabHero .thS,.tabHero .thH"), ...detailsIn(v)].forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 90, fill: "forwards"}));
+      const n = v.querySelector(".tabHero .thN"); if(n && p.fs0) n.animate([{fontSize: getComputedStyle(n).fontSize}, {fontSize: p.fs0 + "px"}], {duration: 340, easing: EZ, fill: "forwards"});
+      const fl = v.querySelector(".tabHero .thI .thR"); if(fl) fl.animate([{transform: "rotateX(180deg)"}, {transform: "rotateX(0deg)"}], {duration: 400, easing: MK.flipEase, fill: "forwards"});
+      v.classList.add("pg-anim", "pg-closing"); v.style.background = p.bg; v.style.borderRadius = p.rA + "px"; setR(v, B);
+      document.body.classList.remove("pgopen");
+      if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 150, delay: 340, easing: "ease-out", fill: "backwards"}));
+      setTimeout(pgDone, 360);
+    }
+    function pgSwap(name){ // pages next to each other slide sideways (300ms)
+      const v = viewOf(name), old = viewOf(pg.go); if(!v || window._pgBusy) return;
+      const dir = ORDER.indexOf(name) > ORDER.indexOf(pg.go) ? 1 : -1, rtl = getComputedStyle(document.body).direction === "rtl";
+      if(pg.src) pg.src.classList.remove("pg-src");
+      const s2 = homeCard(name), cs = s2 ? getComputedStyle(s2) : null;
+      pg = {go: name, src: s2, bg: cs && solid(cs.backgroundColor) ? cs.backgroundColor : pg.bg, rA: cs ? parseFloat(cs.borderTopLeftRadius) || 18 : 18, fs0: bigOf(s2) ? parseFloat(getComputedStyle(bigOf(s2)).fontSize) : 0}; window._pg = name;
+      if(s2) s2.classList.add("pg-src");
+      goingBack = true; try { pgShow(name); } finally { goingBack = false; }
+      if(old){ old.classList.remove("fv", "pg-anim"); ["top","left","width","height","background","borderRadius"].forEach(k => old.style[k] = ""); }
+      v.classList.add("fv"); setR(v, pgTarget()); v.scrollTop = 0;
+      if(reduced()) return; window._pgBusy = true;
+      const dx = (rtl ? -1 : 1) * dir * Math.min(120, innerWidth * .3);
+      v.animate([{transform: `translateX(${dx}px)`, opacity: 0}, {transform: "none", opacity: 1}], {duration: 300, easing: EZ}).finished.then(() => { window._pgBusy = false; }, () => { window._pgBusy = false; });
+    }
+    // close: handle at the top, swipe down at the top (the page follows the finger), Back, Esc
+    (function(){
+      const fc = document.createElement("button"); fc.type = "button"; fc.id = "pgClose"; fc.setAttribute("aria-label", L("Back to Home","رجوع للرئيسية"));
+      fc.addEventListener("click", () => pgClose()); document.body.appendChild(fc);
+      let y0 = null, dy = 0, v = null;
+      document.addEventListener("touchstart", e => { v = pg && !window._pgBusy ? viewOf(pg.go) : null; y0 = v && v.contains(e.target) && v.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, {passive: true});
+      document.addEventListener("touchmove", e => { if(y0 == null || !v) return; dy = e.touches[0].clientY - y0; if(dy <= 0){ v.style.transform = ""; return; }
+        const k = Math.min(dy, 140) / 140; v.style.transition = "none"; v.style.transformOrigin = "50% 0"; v.style.transform = `translateY(${Math.min(dy * .5, 70)}px) scale(${1 - .04 * k})`; }, {passive: true});
+      document.addEventListener("touchend", () => { if(y0 == null || !v) return; y0 = null; const t = v; if(dy > 90){ t.style.transition = "transform .2s " + EZ; t.style.transform = ""; pgClose(); } else if(dy > 0){ t.style.transition = "transform .3s " + EZ; t.style.transform = ""; setTimeout(() => { t.style.transition = ""; }, 320); } }, {passive: true});
+      document.addEventListener("keydown", e => { if(e.key === "Escape" && pg && !document.body.classList.contains("shopen")) pgClose(); });
+      addEventListener("popstate", () => { if(pg) pgClose(); });
+      addEventListener("resize", () => { if(pg && !window._pgBusy) setR(viewOf(pg.go), pgTarget()); });
+    })();
+
+    /* Sections drop down in place, one open at a time (320ms); rows below slide to make room */
+    (function(){
+      let inner = false;
+      document.addEventListener("click", e => {
+        if(inner) return; const h = e.target.closest("section > div:first-child h2"); if(!h) return;
+        const host = h.closest(".view.fv, #sheet"); if(!host || reduced()) return;
+        const sec = h.closest("section"), opening = sec.classList.contains("collapsed");
+        const secs = [...host.querySelectorAll("section")], before = new Map(secs.map(s => [s, s.getBoundingClientRect()]));
+        setTimeout(() => {
+          if(opening && host.classList.contains("fv")){ inner = true; try { secs.forEach(s => { if(s !== sec && !s.contains(sec) && !sec.contains(s) && !s.classList.contains("collapsed")){ const hh = s.querySelector(":scope > div:first-child h2"); if(hh) hh.click(); } }); } finally { inner = false; } }
+          secs.forEach(s => { const a = before.get(s), b = s.getBoundingClientRect(); if(!a) return;
+            if(Math.abs(a.height - b.height) > 1){ s.style.overflow = "hidden"; s.style.flexShrink = "0"; s.animate([{height: a.height + "px", transform: `translateY(${a.top - b.top}px)`}, {height: b.height + "px", transform: "none"}], {duration: 320, easing: EZ}).finished.then(() => { s.style.overflow = ""; s.style.flexShrink = ""; }, () => {});
+              if(!s.classList.contains("collapsed")) [...s.children].slice(1).forEach(c => c.animate([{opacity: 0}, {opacity: 0, offset: .4}, {opacity: 1}], {duration: 320, easing: "ease-out"})); }
+            else if(Math.abs(a.top - b.top) > 1) s.animate([{transform: `translateY(${a.top - b.top}px)`}, {transform: "none"}], {duration: 320, easing: EZ}); });
+        }, 0);
+      }, true);
+    })();
+
+    /* Actions slide up as sheets over Home (380ms in, 340ms out); after saving, the card it belongs to pulses */
+    (function(){
+      const scrim = document.createElement("div"); scrim.id = "shScrim";
+      const sh = document.createElement("div"); sh.id = "sheet"; sh.setAttribute("role", "dialog"); sh.setAttribute("aria-modal", "true"); sh.setAttribute("data-noswipe", "");
+      sh.innerHTML = `<div class="shGrab"></div><div class="shHead"><h3 id="shTitle"></h3><button type="button" class="btn" id="shDone">${L("Done","تم")}</button></div><div class="shBody"></div>`;
+      document.body.append(scrim, sh);
+      const body = sh.querySelector(".shBody"); let moved = [], cur2 = null, busy = false;
+      const pulse = tab => { const c = homeCard(tab); if(!c || reduced()) return; c.animate([{transform: "scale(1)", boxShadow: "0 0 0 0 rgba(37,99,235,0)"}, {transform: "scale(1.03)", boxShadow: "0 0 0 6px rgba(37,99,235,.22)", offset: .31}, {transform: "scale(1)", boxShadow: "0 0 0 0 rgba(37,99,235,0)"}], {duration: 580, easing: EZ}); };
+      function close(after){
+        if(!cur2 || busy) return; busy = true; const k = cur2;
+        sh.classList.add("closing"); document.body.classList.remove("shopen"); sh.style.transform = ""; try { document.activeElement && document.activeElement.blur(); } catch(e){}
+        setTimeout(() => { moved.forEach(m => { m.mark.replaceWith(m.el); m.el.hidden = m.hidden; }); moved = []; sh.classList.remove("closing"); cur2 = null; busy = false; if(after) after(k); }, reduced() ? 0 : 350);
+      }
+      const ACT = {
+        exp:   {t: L("Add a cost","أضف مصروف"), els: ["addForm"], focus: "fAmount", tab: "plan", saved: () => !document.getElementById("fAmount").value},
+        hunt:  {t: L("New hunt","بحث جديد"), els: [() => { const f = document.getElementById("fSearch"); return f && f.parentElement; }, "fLinks", "fMsg", "fTerms"], focus: "fSearch", tab: "forsa"},
+        bill:  {t: L("Add bill","أضف فاتورة"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }, "billList"], tab: "prices"},
+        in:    {t: L("Money in","مبلغ داخل"), els: ["inBox"], focus: "inAmt", tab: "bal", saved: () => !document.getElementById("inAmt").value},
+        start: {t: L("Starting point","نقطة البداية"), els: ["stBox"], focus: "stCash", tab: "bal"}
+      };
+      window._sheet = function(k){
+        const a = ACT[k]; if(!a || busy) return; if(cur2) close();
+        cur2 = k; sh.querySelector("#shTitle").textContent = a.t;
+        a.els.map(x => typeof x === "function" ? x() : document.getElementById(x)).filter(Boolean).forEach(el => { const mark = document.createComment("sheet"); moved.push({el, mark, hidden: el.hidden}); el.replaceWith(mark); body.appendChild(el); el.hidden = false; if(el.id === "stBox" || el.id === "inBox") el.style.display = "flex"; });
+        sh.scrollTop = 0; document.body.classList.add("shopen");
+        if(!reduced()) [...body.querySelectorAll(".field, .row, .pastebox, .upl, .tablebox, #fTerms, #fMsg, p")].slice(0, 12).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 120 + 40 * i, easing: EZ, fill: "backwards"}));
+        const f = a.focus && document.getElementById(a.focus); if(f){ if(k === "exp" || k === "hunt") f.value = ""; try { f.focus({preventScroll: true}); } catch(e){} }
+      };
+      // saved -> sheet slides down, the card it belongs to pulses
+      document.addEventListener("submit", e => { if(!cur2 || !sh.contains(e.target)) return; const a = ACT[cur2];
+        setTimeout(() => { if(!a.saved || a.saved()) close(k => { if(k === "in" || k === "start"){ const w = document.getElementById("wmCard"); if(window._wmOpen && w) w.querySelector(".wm-label").click(); setTimeout(() => pulse("bal"), 400); } else pulse(a.tab); }); }, 450); }, true);
+      document.addEventListener("click", e => { if(cur2 === "hunt" && e.target.closest("#fWant") && sh.contains(e.target)) setTimeout(() => close(() => pulse("forsa")), 450);
+        if(cur2 === "start" && e.target.closest("#stSave")) setTimeout(() => close(() => { const w = document.getElementById("wmCard"); if(window._wmOpen && w) w.querySelector(".wm-label").click(); setTimeout(() => pulse("bal"), 400); }), 600); });
+      sh.querySelector("#shDone").addEventListener("click", () => close(k => { if(k === "bill") pulse("prices"); }));
+      scrim.addEventListener("click", () => close());
+      document.addEventListener("keydown", e => { if(e.key === "Escape" && cur2) close(); });
+      let y0 = null, dy = 0;
+      sh.addEventListener("touchstart", e => { y0 = sh.scrollTop <= 0 && !e.target.closest("input,textarea,select") ? e.touches[0].clientY : null; dy = 0; }, {passive: true});
+      sh.addEventListener("touchmove", e => { if(y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transition = "none"; sh.style.transform = `translateY(${dy}px)`; }, {passive: true});
+      sh.addEventListener("touchend", () => { if(y0 == null) return; y0 = null; sh.style.transition = ""; if(dy > 90) close(); else sh.style.transform = ""; }, {passive: true});
+      window._sheetPulse = pulse;
+    })();
+    window.showTab = function(name){
+      if(window._pgBusy) return; // one moving thing at a time
+      if(name === "bal" && window._wmOpen) name = "budget";
+      if(window._wmOpen && window._wmReset){ window._wmReset(); render(); }
+      if(pg){ if(name === "home"){ pgClose(); return; } if(VIEW[name]){ if(name !== pg.go) pgSwap(name); return; } const p = pg; pg = null; window._pg = null; const v = viewOf(p.go); if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform"].forEach(k => v.style[k] = ""); } pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen"); if(p.src) p.src.classList.remove("pg-src"); }
+      if(VIEW[name] && cur === "home" && !window._vtBusy){
+        if(name === "bal" && !window._fromEl){ const w = document.getElementById("wmCard"); if(w){ w.click(); return; } }
+        const src = window._fromEl || homeCard(name); window._fromEl = null; if(src){ pgOpen(src, name); return; } }
+      if(name === "home" && !window._vtBusy) seed = Math.random();
+      if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name;
+      document.body.classList.remove("framed"); document.querySelectorAll(".view.fv").forEach(e => e.classList.remove("fv"));
+      _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
