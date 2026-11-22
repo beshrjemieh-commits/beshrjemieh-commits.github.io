@@ -336,7 +336,17 @@
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
-  body.framed #viewBal.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
+  /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
+  body.framed #viewBal{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important}
+  body.framed .wrap>header,body.framed #gsBox{visibility:hidden}
+  #viewBal.ghost{border-radius:22px!important}
+  .tabHero .thL:has(.thI) .thI{background:none!important;perspective:400px}
+  .thI .thR{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(180deg);border-radius:inherit}
+  .thI .thF,.thI .thB{position:absolute;inset:0;display:grid;place-items:center;border-radius:inherit;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .thI .thF{background:rgba(255,255,255,.18)}
+  .thI .thB{background:rgba(255,255,255,.08);transform:rotateX(180deg)}
+  #viewHome .hcard[data-go=bal] .hh .ic{background:rgba(255,255,255,.18)!important}
+  body.framed #viewBal.growing{z-index:3;transform-origin:0 0;will-change:transform}
   #viewBal.ghost{display:block!important;border-radius:28px;padding:12px;box-sizing:border-box;overflow:hidden}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk, zoom is locked by the viewport so no focus zoom */
@@ -434,7 +444,7 @@
     const b = bodyFor(tab) || {};
     const clean = x => x ? x.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, "") : "";
     let label = "", num = "", bad = false;
-    if(tab === "bal"){ label = `<span class="thI">${window.PH ? PH(PHN.bal) : ""}</span><span class="thT">${CARDS[0].title}</span>`; num = b.big; bad = b.bad; } // same icon + title as the card, so they fly into place (Beshr 2026-11-22)
+    if(tab === "bal"){ label = `<span class="thI"><span class="thR"><span class="thF">${window.PH ? PH(PHN.bal) : ""}</span><span class="thB">${window.PH ? PH(PHN.bal) : ""}</span></span></span><span class="thT">${CARDS[0].title}</span>`; num = b.big; bad = b.bad; } // same icon + title as the card, so they fly into place (Beshr 2026-11-22)
     if(tab === "budget"){ label = L("You can spend per day","تقدر تصرف باليوم"); num = String(b.big || "").replace(/<span class="pd">.*<\/span>/, ""); bad = b.bad; }
     if(tab === "plan"){
       const ymd = g("ymd") || (d => d.toISOString().slice(0,10)), t = ymd(new Date());
@@ -506,10 +516,13 @@
     const bez = (x1, y1, x2, y2) => t => { let a = 0, b = 1, u = t; for(let k = 0; k < 24; k++){ u = (a + b) / 2; const x = 3*(1-u)*(1-u)*u*x1 + 3*(1-u)*u*u*x2 + u*u*u; if(x < t) a = u; else b = u; } return 3*(1-u)*(1-u)*u*y1 + 3*(1-u)*u*u*y2 + u*u*u; };
     // spring, like iPhone (Beshr 2026-11-22: "growth and getting smaller shall be dynamic"): quick start, tiny overshoot, settles
     const SPRING = ((z, W) => { const wd = W * Math.sqrt(1 - z * z); return t => t >= 1 ? 1 : 1 - Math.exp(-z * W * t) * (Math.cos(wd * t) + (z * W / wd) * Math.sin(wd * t)); })(0.75, 10); // ~3% overshoot, settled by the end
-    const EASE = SPRING, DUR = 560, STEPS = 48;
+    const EASE0 = SPRING, DUR0 = 560, STEPS = 48;
+    // spec curves: grow 420ms, shrink 340ms, cubic-bezier(.2,.9,.3,1.05); icon flip 450ms cubic-bezier(.3,1.3,.5,1)
+    const MK = {ease: bez(.2, .9, .3, 1.05), open: 420, close: 340, flipEase: "cubic-bezier(.3,1.3,.5,1)", flip: 450, curve: "cubic-bezier(.2,.9,.3,1.05)"};
     const inner = v => { let n = v.querySelector(":scope > .vbIn"); if(!n){ n = document.createElement("div"); n.className = "vbIn"; while(v.firstChild) n.appendChild(v.firstChild); v.appendChild(n); } return n; };
     // box sits at rect B (its real place); animate it so it looks like rect A at p=0 and B at p=1 (or the reverse)
-    function morph(box, A, B, reverse, zoom, rA, rB, pairs){
+    function morph(box, A, B, reverse, zoom, rA, rB, pairs, tm){
+      const DUR = (tm && tm.dur) || DUR0, EASE = (tm && tm.ease) || EASE0;
       const kin = inner(box), kb = [], kc = [], ks = (pairs || []).map(() => []); const IB = kin.getBoundingClientRect();
       if(rB == null) rB = parseFloat(getComputedStyle(box).borderTopLeftRadius) || 28; if(rA == null) rA = rB;
       for(let n = 0; n <= STEPS; n++){
@@ -548,7 +561,7 @@
         const ox = (rtl ? tb.right : tb.left) - b.left, oy = tb.top - b.top + tb.height / 2; // anchor: start of the words, middle of the line
         out.push({el, a: {left: (rtl ? r.right : r.left) - ox * s, top: r.top + r.height / 2 - oy * s}, b: {left: b.left, top: b.top}, s}); };
       const q = x => box.querySelector(".tabHero " + x);
-      add(q(".thI"), cs.icon, "icon"); add(q(".thT"), cs.title, "same"); add(q(".thN"), cs.num, "same"); add(q(".thH"), cs.tip, "tip");
+      add(q(".thI"), cs.icon, "icon"); add(q(".thT"), cs.title, "same"); add(q(".thN"), cs.num, "same"); // anchors only: text never morphs into different text
       return out;
     }
     function stillHome(){ // a frozen copy of Home, exactly where it is (keeps ids so it looks identical; lives < 0.5 s)
@@ -559,29 +572,62 @@
       const w2 = wrap.cloneNode(true); w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
       snap.appendChild(w2); document.body.appendChild(snap); return snap;
     }
+    // roles (spec): siblings step aside, peek fades, details fade up one by one, icon flips
+    const sibsIn = root => [...root.querySelectorAll(".wrap>header,#gsBox,#viewHome>.hgreet,#viewHome>.hcard:not([data-go=bal])")];
+    const detailsIn = box => { const h = box.querySelector(".tabHero"), out = []; if(h){ const t = h.querySelector(".thH"); if(t) out.push(t); }
+      const k = box.querySelector(":scope > .vbIn") || box; [...k.children].forEach(c => { if(c.classList.contains("tabHero")) return; const kids = c.tagName === "SECTION" ? [...c.children] : [c]; kids.forEach(x => out.push(x)); }); return out; };
+    const flip = (box, open, dur) => { const r = box.querySelector(".thI .thR"); if(r) r.animate([{transform: `rotateX(${open ? 0 : 180}deg)`}, {transform: `rotateX(${open ? 180 : 0}deg)`}], {duration: dur, easing: MK.flipEase, fill: "both"}); };
     function expandOpen(card, go){
-      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); sizeBal(); return; }
-      window._vtBusy = true;
-      const A = card.getBoundingClientRect(), rA = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 20, spots = cardSpots(card), snap = stillHome();
+      if(window._vtBusy) return; // taps during the motion are ignored (no half states)
+      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); return; }
+      window._vtBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+      const A = card.getBoundingClientRect(), rA = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 18, spots = cardSpots(card), snap = stillHome();
+      // siblings in the still copy: fade out + drop 16px
+      sibsIn(snap).forEach(el => el.animate([{transform: "none"}, {transform: "translateY(16px)"}], {duration: 300, easing: MK.curve, fill: "both"}));
+      sibsIn(snap).forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "both"}));
+      const sc = snap.querySelector("#viewHome>.hcard[data-go=bal]"); if(sc) sc.style.visibility = "hidden"; snap.querySelectorAll(".wrap>header,#gsBox").forEach(e => e.style.visibility = "visible");
+      // peek: the card's own lines fade away in place (150ms)
+      const peeks = [...card.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), cs = getComputedStyle(e);
+        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:6;pointer-events:none;color:${cs.color};font:${cs.font};`;
+        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 150, easing: "ease-out", fill: "both"}).finished.then(() => c.remove()); return c; });
       showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
-      const page = balView(); sizeBal(); page.scrollTop = 0; inner(page);
+      const page = balView(); page.scrollTop = 0; inner(page);
       page.classList.add("growing");
-      morph(page, A, page.getBoundingClientRect(), false, false, rA, null, pairsFor(page, spots)).finally(() => { page.classList.remove("growing"); snap.remove(); window._vtBusy = false; });
+      // details: hidden, then fade up 10px one after another (200ms + 70ms each, 300ms long)
+      detailsIn(page).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: MK.curve, fill: "backwards"}));
+      flip(page, true, MK.flip);
+      morph(page, A, page.getBoundingClientRect(), false, false, rA, 22, pairsFor(page, spots), {dur: MK.open, ease: MK.ease})
+        .finally(() => { page.classList.remove("growing"); snap.remove(); peeks.forEach(c => c.remove()); window._vtBusy = false; });
     }
-    window._balShrink = function(name){ // the page shrinks back into its card, no fades
+    window._balShrink = function(name){ // same motion reversed, faster (340ms); details vanish at once; lands exactly on the card
       const page = balView(); if(!page || reduced() || !document.body.animate){ window._vtBusy = true; window.showTab(name); window._vtBusy = false; return; }
       window._vtBusy = true;
-      const B = page.getBoundingClientRect(), st = page.scrollTop;
+      page.scrollTop = 0; // spec: reset scroll to top first
+      const B = page.getBoundingClientRect();
       const ghost = page.cloneNode(true); ghost.classList.add("ghost");
       ghost.style.cssText = `position:fixed;max-height:none;left:${B.left}px;top:${B.top}px;width:${B.width}px;height:${B.height}px;margin:0;z-index:5;pointer-events:none`;
-      document.body.appendChild(ghost); ghost.scrollTop = st;
-      window.showTab(name); // Home in its real layout, so the box lands exactly on the card (no late jump)
-      Promise.resolve().then(() => { // measure after the riyal symbols settle, or the card is one line taller for a moment
+      document.body.appendChild(ghost);
+      detailsIn(ghost).forEach(el => el.style.visibility = "hidden");
+      window.showTab(name); document.body.classList.remove("framed");
+      Promise.resolve().then(() => { // measure after the riyal symbols settle
         const c = balCard(), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
-        const rA = c ? parseFloat(getComputedStyle(c).borderTopLeftRadius) || 20 : 28;
-        return morph(ghost, A, B, true, false, rA, 28, pairsFor(ghost, cardSpots(c)));
+        const rA = c ? parseFloat(getComputedStyle(c).borderTopLeftRadius) || 18 : 18;
+        // siblings come back: rise 16px + fade in; the card's own lines fade back at the end
+        sibsIn(document).forEach(el => { el.animate([{transform: "translateY(16px)"}, {transform: "none"}], {duration: 300, easing: MK.curve, fill: "backwards"}); el.animate([{opacity: 0}, {opacity: 1}], {duration: 200, delay: 60, easing: "ease-out", fill: "backwards"}); });
+        if(c) c.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 150, delay: MK.close, easing: "ease-out", fill: "backwards"}));
+        flip(ghost, false, MK.close + 60);
+        return morph(ghost, A, B, true, false, rA, 22, pairsFor(ghost, cardSpots(c)), {dur: MK.close, ease: MK.ease});
       }).finally(() => { ghost.remove(); window._vtBusy = false; });
     };
+    // close: tap the open card (not a button, link, field or anything tappable), swipe down at the top, Back or Esc
+    (function(){ const isTap = el => { for(let n = el; n && n.id !== "viewBal"; n = n.parentElement){ if(n.matches("button,a,input,select,textarea,label,summary,[contenteditable],[role=button]") || getComputedStyle(n).cursor === "pointer") return true; } return false; };
+      const open = () => document.body.classList.contains("framed") && !window._vtBusy;
+      document.addEventListener("click", e => { const v = balView(); if(!open() || !v || !v.contains(e.target) || isTap(e.target)) return; window.showTab("home"); });
+      document.addEventListener("keydown", e => { if(e.key === "Escape" && open()) window.showTab("home"); });
+      let y0 = null, x0 = 0; document.addEventListener("touchstart", e => { const v = balView(); y0 = open() && v && v.contains(e.target) && v.scrollTop <= 0 ? e.touches[0].clientY : null; x0 = e.touches[0].clientX; }, {passive: true});
+      document.addEventListener("touchend", e => { if(y0 == null) return; const t = e.changedTouches[0], dy = t.clientY - y0, dx = Math.abs(t.clientX - x0); y0 = null; if(dy > 90 && dx < 60 && open()) window.showTab("home"); }, {passive: true});
+      addEventListener("popstate", () => { if(open()) window.showTab("home"); });
+    })();
     function expandLayer(card, go){
       if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
       const r = card.getBoundingClientRect(), W = innerWidth, H = innerHeight, cs = getComputedStyle(card);
@@ -604,7 +650,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && document.startViewTransition && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
