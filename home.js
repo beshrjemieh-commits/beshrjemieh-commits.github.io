@@ -269,7 +269,7 @@
   #homeBand .wv{position:absolute;left:0;right:0;overflow:hidden;pointer-events:none}
   #homeBand .wv svg{display:block;width:200%!important;max-width:none!important;height:100%!important;animation:wvMove 14s linear infinite;will-change:transform}
   #homeBand .wv.rev svg{animation-direction:reverse;animation-duration:19s}
-  #homeBand .wv.bot{bottom:-39px;height:40px}
+  #homeBand .wv.bot{bottom:-55px;height:56px}
   #homeBand .wv.top{top:0;height:calc(env(safe-area-inset-top,0px) + 96px)}
   #homeBand .wv.top.t2{height:calc(env(safe-area-inset-top,0px) + 70px)}
   @keyframes wvMove{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
@@ -369,7 +369,7 @@
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
-    const wave = (cls, fill, op) => `<div class="wv ${cls}"><svg viewBox="0 0 800 40" preserveAspectRatio="none"><path d="M0,0 L0,20 C60,36 140,36 200,20 C260,4 340,4 400,20 C460,36 540,36 600,20 C660,4 740,4 800,20 L800,0 Z" fill="${fill}" fill-opacity="${op}"/></svg></div>`;
+    const wave = (cls, fill, op) => `<div class="wv ${cls}"><svg viewBox="0 0 1600 60" preserveAspectRatio="none"><path d="M0,0 L0,30 C25,34.0 72,44.3 110,46 C148,47.7 193,44.7 230,40 C267,35.3 298,23.0 330,18 C362,13.0 388,8.7 420,10 C452,11.3 490,19.3 520,26 C550,32.7 572,48.0 600,50 C628,52.0 663,42.7 690,38 C717,33.3 742,23.3 760,22 C778,20.7 775,26.0 800,30 C825,34.0 872,44.3 910,46 C948,47.7 993,44.7 1030,40 C1067,35.3 1098,23.0 1130,18 C1162,13.0 1188,8.7 1220,10 C1252,11.3 1290,19.3 1320,26 C1350,32.7 1372,48.0 1400,50 C1428,52.0 1463,42.7 1490,38 C1517,33.3 1542,23.3 1560,22 C1578,20.7 1575,26.0 1600,30 L1600,0 Z" fill="${fill}" fill-opacity="${op}"/></svg></div>`;
     band.innerHTML = wave("top", "#0F2A4A", .07) + wave("top t2 rev", "#0F2A4A", .06) + wave("bot", "#DCE4EE", 1);
     document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("wv-paused", document.hidden));
     document.body.appendChild(band);
