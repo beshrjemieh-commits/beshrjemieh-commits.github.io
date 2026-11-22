@@ -432,6 +432,7 @@
   @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
   /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
   body.framed #viewBal{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important}
+  body.framed .wrap>header,body.framed #gsBox{visibility:hidden}
   .wrap>header.frz,#gsBox.frz{position:fixed!important;margin:0!important;z-index:27;box-sizing:border-box}
   .frzSp{flex:none;pointer-events:none}
   #topCap{position:fixed;left:0;right:0;top:0;z-index:26;pointer-events:none;background:#FFFFFF;overflow:hidden}
@@ -739,7 +740,7 @@
     document.body.appendChild(band);
     /* Beshr 2026-11-23 (red marks): the title row and search bar are frozen — they never scroll, move or fade, whatever opens.
        They sit fixed on a cap that matches the white band; Home scrolls underneath. Spacers keep the layout the same. */
-    (function freezeTop(){
+    (function freezeTop(){ return; // Beshr 2026-11-23: "Don't freeze the top" (undone; kept here switched off)
       const hd = document.querySelector(".wrap>header"), gs = document.getElementById("gsBox"); if(!hd || !gs) return;
       const cap = document.createElement("div"); cap.id = "topCap"; cap.setAttribute("aria-hidden", "true");
       const tw = band.querySelector(".wv.top"); if(tw) cap.appendChild(tw.cloneNode(true));
