@@ -6,6 +6,7 @@
   window.setWalletLang = function(l){ try{ localStorage.setItem("w-lang", l === "ar" ? "ar" : "en"); }catch(e){} location.reload(); };
 
   const D = {
+"Delete":"حذف","Tap again to delete":"اضغط مرة أخرى للحذف","Tap again":"اضغط مرة أخرى",
 "Smart Wallet":"المحفظة الذكية","Personal finance · SAR":"مالي الشخصي · ريال","+ All":"+ الكل","− All":"− الكل","✏️ Edit":"✏️ تعديل","✓ Done":"✓ تم",
 "My Wallet":"محفظتي","Your balance, daily spending, price book and best deals, in one place.":"رصيدك ومصاريفك اليومية ودفتر الأسعار وأفضل العروض، في مكان واحد.",
 "Balance":"الرصيد","Budget":"الميزانية","Expenses":"المصاريف","Prices":"الأسعار","Prices Log":"سجل الأسعار","Forsa":"فرصة",
