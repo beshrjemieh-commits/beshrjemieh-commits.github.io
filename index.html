@@ -454,6 +454,10 @@ form.card .logform{row-gap:11px!important}
 .tiles:not(.slim),#debtList,#goalList,.donuts{display:flex!important;flex-direction:row!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tiles:not(.slim)::-webkit-scrollbar,#debtList::-webkit-scrollbar,#goalList::-webkit-scrollbar,.donuts::-webkit-scrollbar{display:none}
 .tiles:not(.slim) > .tile{flex:0 0 40%;max-width:180px;scroll-snap-align:start}
+#debts .tiles{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;overflow:visible!important;scroll-snap-type:none!important}
+#debts .tiles > .tile{flex:none!important;max-width:none!important;min-width:0;padding:10px!important}
+#debts .tiles .v{font-size:18px!important;overflow-wrap:anywhere}
+#debts .tiles .eyebrow{letter-spacing:.02em}
 #debtList{padding:8px}
 #debtList > .catrow,#goalList > .card{flex:0 0 82%;max-width:340px;scroll-snap-align:start;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface)}
 .donuts > *{flex:0 0 70%;max-width:260px;scroll-snap-align:start}
