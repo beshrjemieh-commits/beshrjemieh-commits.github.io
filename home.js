@@ -261,11 +261,7 @@
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]),#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{grid-column:span 1;justify-content:flex-start}
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hint{display:none!important}
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .sub,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .sub{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:13px!important}
-  /* Balance card shows the same tip as the Balance page, so it flies across without changing words (Beshr 2026-11-22) */
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]):has(.hint) .sub{display:none!important}
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint{display:flex!important;align-items:center;gap:6.9px;margin-top:6px!important;padding:8.6px 10.3px!important;border-radius:10.3px!important;font-size:12px!important;line-height:normal!important}
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint>svg{width:15.4px;height:15.4px;flex:none}
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint>span{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;min-width:0} /* one line, like the page tip it flies into */
+  /* Balance card keeps its month line (Beshr 2026-11-22: show the data as before) */
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hh .big{font-size:clamp(22px,7.5vw,28px)!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh{flex-wrap:wrap}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
