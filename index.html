@@ -144,7 +144,7 @@ var tips=[["Small daily savings add up fast.","التوفير اليومي ال�
 var tp=tips[Math.floor(Math.random()*tips.length)],i=ar?1:0;document.getElementById("spT").textContent=g[i];var S=document.getElementById("spS");S.textContent=tp[i];if(ar){S.dir="rtl";document.getElementById("spT").dir="rtl"}
 var t0=Date.now(),seen=0,done=0;function hide(){if(done)return;done=1;var s=document.getElementById("splash");if(!s)return;requestAnimationFrame(function(){requestAnimationFrame(function(){s.classList.add("out");setTimeout(function(){s.remove()},300)})})}
 (function tick(){if(done)return;var p=window.__pend||{},n=Object.keys(p).length,el=Date.now()-t0;if(n)seen=1;
-if((seen&&!n&&el>=900)||(!seen&&el>=1200)||el>=3000){setTimeout(hide,seen?150:0);return}setTimeout(tick,50)})()})()</script>
+if((seen&&!n&&el>=1900)||(!seen&&el>=2200)||el>=4000){setTimeout(hide,seen?150:0);return}setTimeout(tick,50)})()})()</script>
 <script>document.documentElement.setAttribute("data-theme","dark");</script>
 <style>
 /* Layout: one narrow column; daily log on top (used every day), then this month vs plan, then the plan itself and reference sections */
