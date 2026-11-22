@@ -14,7 +14,7 @@
     const t = theme(), h = document.documentElement;
     h.classList.toggle("oled", t === "black"); h.classList.toggle("force-light", t === "light");
     for(const sh of document.styleSheets){ try { fixRules(sh.cssRules); } catch(e){} }
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const isLight = !/^#[0-9A-F]{6}$/i.test(m.content) || m.content.toUpperCase() === "#F8FAFC"; m.setAttribute("media", (t === "light") === isLight ? "all" : "not all"); });
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { const isLight = !/^#[0-9A-F]{6}$/i.test(m.content) || /^#(F8FAFC|DCE4EE)$/i.test(m.content); m.setAttribute("media", (t === "light") === isLight ? "all" : "not all"); });
   }
   applyTheme();
   // styles keep arriving while the page loads (and from other scripts): re-apply when a <style> is added

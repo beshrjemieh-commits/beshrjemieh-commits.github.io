@@ -392,6 +392,10 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(c) showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
+    /* status bar strip on Home takes the band colour, so the light top reaches the very top edge (Beshr 2026-11-22) */
+    const lightMeta = () => [...document.querySelectorAll('meta[name="theme-color"]')].find(m => /light/.test(m.media || "") || /^#F8FAFC$|^#DCE4EE$/i.test(m.content));
+    const syncBar = () => { const m = lightMeta(); if(m) m.content = document.body.classList.contains("onhome") ? "#DCE4EE" : "#F8FAFC"; };
+    new MutationObserver(syncBar).observe(document.body, {attributes:true, attributeFilter:["class"]}); syncBar();
     window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
