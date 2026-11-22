@@ -400,11 +400,12 @@
       const rad = parseFloat(cs.borderTopLeftRadius) || 20;
       // transform + opacity only (runs on the GPU, stays smooth while the page builds underneath)
       const fx = document.createElement("div");
-      fx.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${H}px;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};transform-origin:0 0;will-change:transform,opacity;border-radius:44px;`; // fixed radius: animating it would leave the GPU path
+      const M = 12, FW = W - 2 * M, FH = H - 2 * M; // stops just short of the edges, leaving a frame around it (Beshr 2026-11-22)
+      fx.style.cssText = `position:fixed;left:${M}px;top:${M}px;width:${FW}px;height:${FH}px;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};transform-origin:0 0;will-change:transform,opacity;border-radius:28px;box-shadow:0 20px 50px -20px rgba(15,42,74,.6);`; // fixed radius: animating it would leave the GPU path
       document.body.appendChild(fx);
-      const sx = r.width / W, sy = r.height / H;
+      const sx = r.width / FW, sy = r.height / FH;
       const grow = fx.animate([
-        {transform: `translate(${r.left}px,${r.top}px) scale(${sx},${sy})`},
+        {transform: `translate(${r.left - M}px,${r.top - M}px) scale(${sx},${sy})`},
         {transform: "translate(0,0) scale(1,1)"}
       ], {duration: 300, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
       setTimeout(() => { showTab(go); try { scrollTo(0, 0); } catch(e){} }, 40); // build the page while the layer grows
