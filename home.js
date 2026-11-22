@@ -400,7 +400,7 @@
   .wm-mini span{overflow:hidden;text-overflow:ellipsis}
   .wm-card.open .wm-mini{opacity:0;pointer-events:none}
   .wm-ex{opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .15s,transform .15s}
-  .wm-card.open .wm-ex{opacity:1;transform:none;pointer-events:auto;transition:opacity .3s var(--d,.2s),transform .3s var(--d,.2s)}
+  .wm-card.open .wm-ex{opacity:1;transform:none;pointer-events:auto;transition:opacity .2s var(--d,.2s),transform .2s var(--d,.2s)}
   .wm-start{position:absolute;inset-inline-start:16px;inset-inline-end:16px;top:106px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--wm-blue-400);cursor:pointer}
   .wm-start svg{width:14px;height:14px;flex:none}
   .wm-body{position:absolute;left:14px;right:14px;top:138px;padding-bottom:14px}
@@ -426,8 +426,8 @@
   .wm-rc span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .wm-rc span:last-child{color:var(--wm-red);flex:none}
   .wm-all{display:block;margin:12px auto 0;background:none;border:none;color:var(--wm-blue-200);font-size:13px;cursor:pointer;min-height:44px}
-  .wm-side-out{transition:opacity .24s ease,transform .36s var(--wm-ease);will-change:opacity,transform}
-  body.wm-open #viewHome>*:not(.wm-card):not(.wm-ph){opacity:0;transform:translateY(16px);pointer-events:none}
+  .wm-side-out{transition:opacity .3s ease;will-change:opacity}
+  body.wm-open #viewHome>*:not(.wm-card):not(.wm-ph){opacity:0;pointer-events:none}
   body.wm-open{overflow:hidden}
   @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
   /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
@@ -481,7 +481,7 @@
   [dir=rtl] #rows tr.group.gc td::after{transform:translateY(-40%) rotate(135deg)}
   .view:not(#viewBal) .tabHero .thL{color:var(--fg);font-weight:700}
   .tabHero .thN .pd{font-size:.32em;font-weight:500;letter-spacing:0}
-  body.onhome #gsBox.wm-side-out{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)!important}
+  body.onhome #gsBox.wm-side-out{transition:opacity .3s ease!important}
   section > div:first-child h2::after{transition:transform .32s cubic-bezier(.3,.6,.2,1)}
   #shScrim{position:fixed;left:0;right:0;bottom:0;top:var(--hLine,0px);background:#000;opacity:0;pointer-events:none;transition:opacity .38s cubic-bezier(.3,.6,.2,1);z-index:60}
   body.shopen #shScrim{opacity:.38;pointer-events:auto}
@@ -589,7 +589,8 @@
   function budgetPerDay(){ try { const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {}; const flex = ITEMS.filter(i => i.daily && state[i.k]);
     const plan = flex.reduce((a,i) => a + (+state[i.k].plan || 0), 0), spent = flex.reduce((a,i) => a + (sums[i.k] || 0), 0); return plan ? Math.max(0, (plan - spent) / daysLeftInMonth()) : 0; } catch(e){ return 0; } }
   function render(){
-    if(window._wmOpen || window._pg) return; // the wallet card or a page is open
+    if(window._wmOpen || window._pg){ window._homeDirty = true; return; } // the wallet card or a page is open: rebuild later
+    window._homeDirty = false;
     requestAnimationFrame(() => requestAnimationFrame(fitHome)); // the wallet card is open: leave Home as it is until it closes
     setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
     const v = document.getElementById("viewHome"); if(!v) return;
@@ -627,7 +628,7 @@
     const pill = net < 0 ? `<span class="wm-pill">▼ ${fmt(-net)}</span>` : `<span class="wm-pill up">▲ ${fmt(net)}</span>`;
     const mini = lasts != null ? L(`Lasts ~${lasts} days`, `يكفي ~${lasts} يوم`) : L(`${R}${fmt(perDay)}/day for ${toPay} days`, `${R}${fmt(perDay)}/يوم لمدة ${toPay} يوم`);
     const chip = lasts != null ? L(`Lasts about ${lasts} days at your pace`, `يكفيك تقريباً ${lasts} يوم بنفس صرفك`) : L(`${R}${fmt(perDay)}/day until payday`, `${R}${fmt(perDay)}/يوم حتى الراتب`);
-    const bpd = budgetPerDay() || perDay; const warn = bpd > 0 && out24 > bpd * 1.5 ? `<div class="wm-chip warn wm-ex" style="--d:.48s;margin-top:12px">${window.PH ? PH("sparkle") : ""}<span>${L(`24h spend is ${Math.round(out24 / bpd)}× your ${fmt(bpd)}/day budget`, `صرف ٢٤ ساعة ${Math.round(out24 / bpd)}× ميزانيتك ${fmt(bpd)}/يوم`)}</span></div>` : "";
+    const bpd = budgetPerDay() || perDay; const warn = bpd > 0 && out24 > bpd * 1.5 ? `<div class="wm-chip warn wm-ex" style="--d:.36s;margin-top:12px">${window.PH ? PH("sparkle") : ""}<span>${L(`24h spend is ${Math.round(out24 / bpd)}× your ${fmt(bpd)}/day budget`, `صرف ٢٤ ساعة ${Math.round(out24 / bpd)}× ميزانيتك ${fmt(bpd)}/يوم`)}</span></div>` : "";
     const rows = o24.length ? [o24[0]].map(x => `<div class="wm-rc"><span>${cat(x)}${x.note ? " · " + esc(x.note) : ""}</span><span>−${two(x.amount)}</span></div>`).join("") +
       (o24.length > 1 ? `<div class="wm-rc"><span>${L(`Other · ${o24.length - 1} item${o24.length > 2 ? "s" : ""}`, `أخرى · ${o24.length - 1}`)}</span><span>−${two(out24 - o24[0].amount)}</span></div>` : "")
       : `<div class="wm-rc"><span>${L("Nothing out in the last 24h","ما صرفت شي آخر ٢٤ ساعة")}</span><span></span></div>`;
@@ -640,20 +641,20 @@
       <p class="wm-mini">${window.PH ? PH("sparkle") : ""}<span>${mini}</span></p>
       <div class="wm-start wm-ex" style="--d:.2s">${window.PH ? PH("flag") : ""}<span>${st ? L(`From ${two(start)} · ${day} · bank ${fmt(st.bank)} · cash ${fmt(st.cash)}`, `من ${two(start)} · ${day} · بنك ${fmt(st.bank)} · كاش ${fmt(st.cash)}`) : L("Set your starting point","حدد نقطة البداية")}</span>${window.PH ? PH("pencil-simple") : ""}</div>
       <div class="wm-body">
-        <div class="wm-chip wm-ex" style="--d:.27s">${window.PH ? PH("sparkle") : ""}<span>${chip}</span></div>
-        <div class="wm-ex" style="--d:.34s">
+        <div class="wm-chip wm-ex" style="--d:.24s">${window.PH ? PH("sparkle") : ""}<span>${chip}</span></div>
+        <div class="wm-ex" style="--d:.28s">
           <p class="wm-flow-title">${L("How you got here","كيف وصلت هنا")}</p>
           <div class="wm-fr"><span class="k">${L("Start","البداية")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:0;width:${pct(start)}%;background:var(--wm-blue-400)"></span></span><span class="v" style="color:var(--wm-ice)">${two(start)}</span></div>
           <div class="wm-fr"><span class="k">${L("In","داخل")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:${pct(start)}%;width:${pct(inn)}%;background:var(--wm-green-bar)"></span></span><span class="v" style="color:var(--wm-green-text)">+${two(inn)}</span></div>
           <div class="wm-fr"><span class="k">${L("Out","خارج")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:${pct(Math.max(0, b))}%;width:${pct(out)}%;background:var(--wm-red-bar)"></span></span><span class="v" style="color:var(--wm-red-text)">−${two(out)}</span></div>
           <div class="wm-fr"><span class="k">${L("Now","الآن")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:0;width:${pct(Math.max(0, b))}%;background:#fff"></span></span><span class="v" style="color:#fff;font-weight:500">${two(b)}</span></div>
         </div>
-        <div class="wm-grid wm-ex" style="--d:.41s">
+        <div class="wm-grid wm-ex" style="--d:.32s">
           <div class="wm-mc"><p class="h">${L("Money in · 24h","الداخل · ٢٤ ساعة")}</p><p class="n" style="color:var(--wm-green)">${two(in24)}</p><button class="wm-btn" type="button" data-wm="in">${L("+ Add money in","+ أضف مبلغ داخل")}</button></div>
           <div class="wm-mc"><p class="h">${L("Money out · 24h","الخارج · ٢٤ ساعة")}</p><p class="n" style="color:var(--wm-red)">${two(out24)}</p><p class="s">${last ? L(`Latest: ${two(last.amount)} · ${cat(last)}${last.note ? " · " + esc(last.note) : ""}`, `آخر مصروف: ${two(last.amount)} · ${cat(last)}${last.note ? " · " + esc(last.note) : ""}`) : ""}</p></div>
         </div>
         ${warn}
-        <div class="wm-pocket wm-ex" style="--d:.55s"><p class="h">${L("Out of your pocket · 24h","طلع من جيبك · ٢٤ ساعة")}</p>${rows}</div>
+        <div class="wm-pocket wm-ex" style="--d:.4s"><p class="h">${L("Out of your pocket · 24h","طلع من جيبك · ٢٤ ساعة")}</p>${rows}</div>
       </div>
       </div>
     </div>`;
@@ -876,8 +877,9 @@
         return {top, left: 12, width: ((window.visualViewport && visualViewport.width) || document.documentElement.clientWidth || innerWidth) - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
       function open(card){
         if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
+        card.getAnimations().forEach(a => a.cancel()); card.style.transform = ""; // drop the 0.97 press first so we measure the real card
         const r = card.getBoundingClientRect();
-        ph = document.createElement("div"); ph.className = "wm-ph"; ph.style.height = r.height + "px"; card.after(ph);
+        ph = document.createElement("div"); ph.className = "wm-ph"; ph.style.height = card.offsetHeight + "px"; ph.style.minHeight = card.offsetHeight + "px"; card.after(ph);
         sides().forEach(e => e.classList.add("wm-side-out"));
         card.style.position = "fixed"; card.style.margin = "0"; set(card, r); card.getBoundingClientRect();
         card.classList.add("open"); document.body.classList.add("wm-open"); set(card, target());
@@ -891,7 +893,7 @@
         if(!window._wmOpen || busy) return; busy = true; const sc = card.querySelector(".wm-in"); if(sc) sc.scrollTop = 0;
         card.classList.add("wm-closing"); card.classList.remove("open"); document.body.classList.remove("wm-open"); set(card, ph.getBoundingClientRect());
         try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
-        setTimeout(() => { reset(card); render(); then && then(); }, durC() + 30);
+        setTimeout(() => { reset(card); if(window._homeDirty) render(); then && then(); }, durC() + 30); // same card, same size: no rebuild unless data changed
       }
       window._wmReset = () => { const c = document.getElementById("wmCard"); document.body.classList.remove("wm-open"); if(c) reset(c); else { window._wmOpen = false; busy = false; } };
       const go = (fn) => { window._wmReset(); render(); window._openFramed ? window._openFramed("bal") : window.showTab("bal"); setTimeout(fn, 60); };
@@ -983,7 +985,7 @@
     const scrim = () => { let d = document.getElementById("pgBack"); if(!d){ d = document.createElement("div"); d.id = "pgBack"; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); } return d; };
     const notCard = e => !e.classList.contains("pg-src") && !e.classList.contains("pg-land");
     const homeAt = k => { const d = scrim(); d.style.display = k >= 1 ? "none" : "block"; d.style.opacity = (1 - k).toFixed(3);
-      pgSides().filter(notCard).forEach(e => { e.style.opacity = k >= 1 ? "" : k.toFixed(3); e.style.transform = k >= 1 ? "" : `translateY(${(16 * (1 - k)).toFixed(2)}px)`; }); };
+      pgSides().filter(notCard).forEach(e => { e.style.opacity = k >= 1 ? "" : k.toFixed(3); e.style.transform = ""; }); }; // fade only: nothing below a card ever moves
     // M = the live motion: geometry measured once per gesture, then apply(state) each frame
     let M = null, raf = 0;
     function measure(card, closing){
@@ -1011,12 +1013,13 @@
     }
     const restState = () => ({W: M.T, X: 0, Y: 0, sc: 1, r: 22, a: 1, bg: "", po: 1, k: 0});
     // critically damped spring: x(t) from x0 with velocity v0 (units/s) to 1
-    function spring(x0, v0, w, step, done){ cancelAnimationFrame(raf); let t0 = 0; const c1 = x0 - 1, c2 = v0 + w * c1;
+    function spring(x0, v0, w, step, done, end){ cancelAnimationFrame(raf); let t0 = 0; const c1 = x0 - 1, c2 = v0 + w * c1;
       const tick = now => { if(!t0) t0 = now; const t = (now - t0) / 1000, ex = Math.exp(-w * t), x = 1 + (c1 + c2 * t) * ex;
+        if(end && x >= end){ step(1); done(); return; } // landed: finish now, no frozen tail
         if(t > 0.12 && Math.abs(1 - x) < .0015 && Math.abs((c2 - w * (c1 + c2 * t)) * ex) < .05){ step(1); done(); return; }
         step(x); raf = requestAnimationFrame(tick); };
       raf = requestAnimationFrame(tick); }
-    const W_OPEN = 13, W_CLOSE = 15;
+    const W_OPEN = 13, W_CLOSE = 20;
     function pgOpen(src, go){
       const v = viewOf(go); if(!v || window._pgBusy) return;
       const fromHome = !!src.closest("#viewHome"), cs = getComputedStyle(src);
@@ -1064,19 +1067,19 @@
       const kk = v.querySelector(":scope > .vbIn") || v, s = v.scrollTop;
       if(s > 0){ v.scrollTop = 0; [...kk.children].forEach(c => { if(!c.classList.contains("tabHero")) c.style.transform = `translateY(${-s}px)`; }); }
       // Home is rebuilt now (same picks), and the card's slot is measured NOW, so it lands exactly on it
-      window._pg = null; try { render(); } finally { window._pg = p.go; }
+      window._pg = null; if(window._homeDirty){ window._homeDirty = false; try { render(); } finally { window._pg = p.go; } } else window._pg = p.go; // no rebuild (and no freeze) unless data changed
       const card = homeCard(p.go); if(card){ card.classList.add("pg-land"); card.getAnimations().forEach(a => a.cancel()); }
       const keep = M.state; const G = measure(card, true); G.state = keep; M = G; M.mode = "closing";
       const {B, rB, cardBg, pageBg} = M; const bg0 = rgb(S0.bg || `rgb(${pageBg.slice(0, 3).join(",")})`), clear = [cardBg[0], cardBg[1], cardBg[2], 0];
       const po0 = S0.po == null ? 1 : S0.po;
-      const at = e => { const q = clamp01(e); return {W: lerpR(S0.W, B, q), X: lerp(S0.X, 0, q), Y: lerp(S0.Y, 0, q), sc: lerp(S0.sc, 1, q), r: lerp(S0.r || 22, rB, q), a: 1 - q, from: from0,
-        bg: q < .85 ? mix(bg0, cardBg, q / .85) : mix(cardBg, clear, (q - .85) / .15), po: po0 * clamp01(1 - q / .18), k: lerp(S0.k || 0, 1, clamp01(q * 1.1))}; };
+      const at = e => { const q = clamp01(e / .97); return {W: lerpR(S0.W, B, q), X: lerp(S0.X, 0, q), Y: lerp(S0.Y, 0, q), sc: lerp(S0.sc, 1, q), r: lerp(S0.r || 22, rB, q), a: 1 - q, from: from0,
+        bg: q < .85 ? mix(bg0, cardBg, q / .85) : mix(cardBg, clear, (q - .85) / .15), po: po0 * clamp01(1 - q / .4), k: lerp(S0.k || 0, 1, clamp01(q * 1.1))}; };
       // the release speed (pt/s) as progress per second along the path to the card
       const dist = Math.max(80, Math.hypot(B.top - S0.W.top, B.left - S0.W.left) + Math.abs(B.height - S0.W.height) * .5), v0 = from && from.vel > 0 ? Math.min(8, from.vel / dist) : 0;
       apply(at(0)); M.state = at(0);
       if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.style.opacity = "0");
-      spring(0, v0, W_CLOSE, e => { const st = at(e); M.state = st; apply(st); if(card){ const o = clamp01((e - .82) / .18).toFixed(3); card.querySelectorAll(".sub,.hint").forEach(x => x.style.opacity = o); } },
-        () => { if(card) card.querySelectorAll(".sub,.hint").forEach(x => x.style.opacity = ""); pgDone(); });
+      spring(0, v0, W_CLOSE, e => { const st = at(e); M.state = st; apply(st); if(card){ const o = clamp01((e - .65) / .32).toFixed(3); card.querySelectorAll(".sub,.hint").forEach(x => x.style.opacity = o); } },
+        () => { if(card) card.querySelectorAll(".sub,.hint").forEach(x => x.style.opacity = ""); pgDone(); }, .97);
     }
     function pgSwap(name){ // pages next to each other slide sideways (300ms)
       const v = viewOf(name), old = viewOf(pg.go); if(!v || window._pgBusy) return;
