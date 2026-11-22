@@ -452,6 +452,9 @@
   /* smooth-transitions skill: pages are cards that grow from their spot under the title (layout animation, never scaled) */
   .view.fv{position:fixed!important;z-index:30;margin:0!important;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:14px 12px 24px;border-radius:22px;background:var(--bg,#F8FAFC);box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   .view.fv.pg-anim{overflow:hidden}
+  /* plain, even background behind an open page (Beshr 2026-11-22: "Fix background") — starts at the red line, the header stays */
+  #pgBack{display:none;position:fixed;left:0;right:0;top:var(--hLine,0px);bottom:0;z-index:29;background:#FFFFFF;pointer-events:none}
+  @media (prefers-color-scheme: dark){#pgBack{background:#0F2A4A}}
   #viewHome>.pg-src,body.pgopen #viewHome>.pg-src{opacity:0;transform:none}
   /* status bar strip: nothing shows under the clock */
   body::after{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg,#F8FAFC);z-index:59;pointer-events:none}
@@ -667,12 +670,12 @@
       priceGroups().forEach(recs => { const byStore = new Map(); recs.forEach(p => { const k = p.store || "?"; if(!byStore.has(k) || p.price < byStore.get(k).price) byStore.set(k, p); });
         const r = [...byStore.values()]; if(r.length < 2) return; r.sort((a,b) => a.price - b.price);
         const pct = Math.round((1 - r[0].price / r[r.length-1].price) * 100); if(!best || pct > best.pct) best = {pct, item: r[0].item, store: r[0].store}; });
-      if(best){ label = L(`Best saving · ${esc(best.item)} at ${esc(best.store || "?")}`, `أفضل توفير · ${esc(best.item)} في ${esc(best.store || "?")}`); num = `<span class="thG"><span class="thA">▼</span>${best.pct}%</span>`; }
+      if(best){ label = L(`Cheapest ${esc(best.item)} at ${esc(best.store || "?")}`, `أرخص ${esc(best.item)} في ${esc(best.store || "?")}`); num = `<span class="thG"><span class="thA">▼</span>${best.pct}%</span>`; }
       else { label = L("Prices saved","أسعار محفوظة"); num = String((g("prices") || []).length); }
     }
     if(tab === "forsa"){
       const live = (g("deals") || []).filter(d => d.status !== "hidden" && d.profit > 0).sort((a,b) => b.profit - a.profit);
-      if(live.length){ label = L(`Best deal · ${esc(live[0].title)}`, `أفضل فرصة · ${esc(live[0].title)}`); num = `<span class="thD">+${sar(live[0].profit)}</span>`; }
+      if(live.length){ label = `<bdi dir="auto">${esc(live[0].title)}</bdi>`; num = `<span class="thD">+${sar(live[0].profit)}</span>`; }
       else { label = L("Deals found","فرص موجودة"); num = "0"; }
     }
     if(!num) return "";
@@ -861,7 +864,7 @@
       const set = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
       const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph)")]; /* title + search stay put */
       const target = () => { const top = Math.max(48, window._hLine() + 36) /* the flipped icon tab sits on the red line; nothing goes above it */, bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
-        return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
+        return {top, left: 12, width: ((window.visualViewport && visualViewport.width) || document.documentElement.clientWidth || innerWidth) - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
       function open(card){
         if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
         const r = card.getBoundingClientRect();
@@ -939,7 +942,7 @@
     const setR = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
     const pgTarget = () => { const top = Math.max(48, window._hLine()), sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
       document.documentElement.style.setProperty("--pgTop", top + "px");
-      return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - sab)}; };
+      return {top, left: 12, width: ((window.visualViewport && visualViewport.width) || document.documentElement.clientWidth || innerWidth) - 24, height: Math.max(300, innerHeight - top - 12 - sab)}; };
     const pgSides = () => [...document.querySelectorAll("#viewHome>*,#qBar")];
     const solid = c => c && !/rgba\(.*,\s*0\)$|transparent/.test(c);
     const bigOf = el => el && el.querySelector(".big");
@@ -965,9 +968,11 @@
     let lockY = 0; // the page under the clock never scrolls while a page is open (Beshr: title went under the clock)
     const lockBody = on => { const b = document.body.style; if(on){ lockY = scrollY; Object.assign(b, {position: "fixed", top: -lockY + "px", left: "0", right: "0"}); }
       else if(b.position === "fixed"){ Object.assign(b, {position: "", top: "", left: "", right: ""}); scrollTo(0, lockY); } };
-    const sidesAnim = (out, dur) => pgSides().filter(e => !e.classList.contains("pg-src")).forEach(e => {
+    const sidesAnim = (out, dur) => { const d = scrim(); d.getAnimations().forEach(a => a.cancel()); d.style.display = "block"; const a = d.animate(out ? [{opacity: 0}, {opacity: 1}] : [{opacity: 1}, {opacity: 0}], {duration: out ? 200 : dur, easing: "ease-out", fill: "both"}); if(!out) a.finished.then(() => { if(!pg) d.style.display = "none"; }, () => {}); sidesAnim2(out, dur); };
+    const sidesAnim2 = (out, dur) => pgSides().filter(e => !e.classList.contains("pg-src")).forEach(e => {
       e.animate(out ? [{opacity: 1}, {opacity: 0}] : [{opacity: 0}, {opacity: 1}], {duration: out ? 200 : dur, easing: "ease-out", fill: "both"});
       e.animate(out ? [{transform: "none"}, {transform: "translateY(16px)"}] : [{transform: "translateY(16px)"}, {transform: "none"}], {duration: dur, easing: EZ, fill: "both"}); });
+    const scrim = () => { let d = document.getElementById("pgBack"); if(!d){ d = document.createElement("div"); d.id = "pgBack"; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); } return d; };
     const sidesClear = () => pgSides().forEach(e => e.getAnimations().forEach(a => a.cancel()));
     function pgOpen(src, go){
       const v = viewOf(go); if(!v || window._pgBusy) return;
@@ -998,7 +1003,7 @@
       document.body.classList.remove("pgopen", "pgready"); lockBody(false);
       window.showTab("home");
       if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition","opacity"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); [...v.querySelectorAll("*")].forEach(e => { if(e.style.transform) e.style.transform = ""; }); }
-      sidesClear(); pgSides().forEach(e => e.classList.remove("wm-side-out"));
+      sidesClear(); pgSides().forEach(e => e.classList.remove("wm-side-out")); const sb2 = document.getElementById("pgBack"); if(sb2){ sb2.getAnimations().forEach(a => a.cancel()); sb2.style.display = "none"; }
       document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src"));
     }
     function pgClose(){
