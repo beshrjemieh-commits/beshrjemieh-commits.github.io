@@ -289,14 +289,18 @@
   /* Balance opened from Home stays as a big framed card: page inside a rounded card, navy frame around (Beshr 2026-11-22) */
   body.framed{background:#0F2A4A!important}
   body.framed::before{display:none!important}
-  body.framed .wrap{margin:12px!important;max-width:none!important;border-radius:28px;background:var(--bg);min-height:calc(100dvh - 24px);box-sizing:border-box;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);overflow:clip}
+  body.framed .wrap{margin:12px!important;max-width:none!important;border-radius:28px;background:var(--bg);height:calc(100dvh - 24px);min-height:0!important;box-sizing:border-box;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  body.framed{overflow:hidden;height:100dvh}
+  body.framed .wrap>*{flex-shrink:0}
   @media (prefers-color-scheme: dark){body.framed{background:#000!important}}
-  /* card <-> page morph (View Transitions) */
-  ::view-transition-group(balcard){animation-duration:.38s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
-  ::view-transition-old(balcard),::view-transition-new(balcard){height:100%;width:100%;object-fit:cover;object-position:top left;border-radius:28px}
-  ::view-transition-old(balcard){animation-duration:.18s}
-  ::view-transition-new(balcard){animation-duration:.3s;animation-delay:.08s}
-  ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
+  /* card <-> page morph (View Transitions). Kept light: no page cross-fade, viewport-sized snapshot, waves paused, iOS-style curve */
+  ::view-transition-group(balcard){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
+  ::view-transition-old(balcard),::view-transition-new(balcard){height:100%;width:100%;object-fit:cover;object-position:top left;mix-blend-mode:normal}
+  ::view-transition-old(balcard){animation:vtOut .16s linear both}
+  ::view-transition-new(balcard){animation:vtIn .22s linear .06s both}
+  @keyframes vtOut{to{opacity:0}} @keyframes vtIn{from{opacity:0}}
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
+  html.vt #homeBand .wv svg{animation-play-state:paused}
   @media (prefers-reduced-motion: reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
@@ -416,27 +420,27 @@
     function expandOpen(card, go){
       if(reduced()){ showTab(go); document.body.classList.add("framed"); return; }
       if(document.startViewTransition){
-        window._vtBusy = true;
+        window._vtBusy = true; document.documentElement.classList.add("vt");
         card.style.viewTransitionName = "balcard";
         const t = document.startViewTransition(() => {
           card.style.viewTransitionName = "";
           showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
           const w = wrapEl(); if(w) w.style.viewTransitionName = "balcard";
         });
-        t.finished.finally(() => { window._vtBusy = false; const w = wrapEl(); if(w) w.style.viewTransitionName = ""; });
+        t.finished.finally(() => { window._vtBusy = false; document.documentElement.classList.remove("vt"); const w = wrapEl(); if(w) w.style.viewTransitionName = ""; });
         return;
       }
       return expandLayer(card, go);
     }
     window._balShrink = function(name){ // Balance page shrinks back into its card on the way Home
-      window._vtBusy = true;
+      window._vtBusy = true; document.documentElement.classList.add("vt");
       const w = wrapEl(); if(w) w.style.viewTransitionName = "balcard";
       const t = document.startViewTransition(() => {
         if(w) w.style.viewTransitionName = "";
         window.showTab(name);
         const c = balCard(); if(c) c.style.viewTransitionName = "balcard";
       });
-      t.finished.finally(() => { window._vtBusy = false; const c = balCard(); if(c) c.style.viewTransitionName = ""; });
+      t.finished.finally(() => { window._vtBusy = false; document.documentElement.classList.remove("vt"); const c = balCard(); if(c) c.style.viewTransitionName = ""; });
     };
     function expandLayer(card, go){
       if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
