@@ -492,7 +492,9 @@
        The box is a window: it grows/shrinks with transform, and its content gets the opposite scale every frame,
        so the content never stretches or fades. Background is a still copy of Home. GPU transforms only. */
     const bez = (x1, y1, x2, y2) => t => { let a = 0, b = 1, u = t; for(let k = 0; k < 24; k++){ u = (a + b) / 2; const x = 3*(1-u)*(1-u)*u*x1 + 3*(1-u)*u*u*x2 + u*u*u; if(x < t) a = u; else b = u; } return 3*(1-u)*(1-u)*u*y1 + 3*(1-u)*u*u*y2 + u*u*u; };
-    const EASE = bez(.32, .72, 0, 1), DUR = 420, STEPS = 30;
+    // spring, like iPhone (Beshr 2026-11-22: "growth and getting smaller shall be dynamic"): quick start, tiny overshoot, settles
+    const SPRING = ((z, W) => { const wd = W * Math.sqrt(1 - z * z); return t => t >= 1 ? 1 : 1 - Math.exp(-z * W * t) * (Math.cos(wd * t) + (z * W / wd) * Math.sin(wd * t)); })(0.75, 10); // ~3% overshoot, settled by the end
+    const EASE = SPRING, DUR = 560, STEPS = 48;
     const inner = v => { let n = v.querySelector(":scope > .vbIn"); if(!n){ n = document.createElement("div"); n.className = "vbIn"; while(v.firstChild) n.appendChild(v.firstChild); v.appendChild(n); } return n; };
     // box sits at rect B (its real place); animate it so it looks like rect A at p=0 and B at p=1 (or the reverse)
     function morph(box, A, B, reverse, zoom, rA, rB, pairs){
