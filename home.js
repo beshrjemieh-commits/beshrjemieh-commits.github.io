@@ -273,13 +273,6 @@
   #homeBand .wv.top{top:0;height:calc(env(safe-area-inset-top,0px) + 96px)}
   #homeBand .wv.top.t2{height:calc(env(safe-area-inset-top,0px) + 70px)}
   @keyframes wvMove{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-  /* up-and-down swell on top of the sideways drift */
-  #homeBand .wv{transform-origin:50% 0;animation:wvBob 5s ease-in-out infinite alternate}
-  #homeBand .wv.rev{animation-duration:6.5s;animation-delay:-2s}
-  #homeBand .wv.bot{animation-duration:4.5s}
-  @keyframes wvBob{from{transform:scaleY(.55)}to{transform:scaleY(1.45)}}
-  html.wv-paused #homeBand .wv{animation-play-state:paused}
-  @media (prefers-reduced-motion: reduce){#homeBand .wv{animation:none}}
   /* sharper contrast between the white boxes and the light band (Beshr 2026-11-22) */
   body.onhome #gSearch,body.onhome #gAsk{border:1.5px solid #94A3B8!important;background:#FFFFFF!important;box-shadow:0 6px 14px -8px rgba(15,42,74,.45)!important}
   #viewHome>.hcard[data-go=budget]{border:1.5px solid #94A3B8!important;background:#FFFFFF!important}
