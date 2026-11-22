@@ -158,7 +158,8 @@
       const e = es[0], today = g("ymd") ? g("ymd")(new Date()) : "", y = new Date(); y.setDate(y.getDate()-1);
       const when = e.date === today ? L("today","اليوم") : (g("ymd") && e.date === g("ymd")(y)) ? L("yesterday","أمس") : e.date;
       const td = es.filter(x => x.date === today).reduce((a,x) => a + x.amount, 0);
-      return {big: neg(e.amount), subHtml: `<span>${esc((BY[e.cat] || {}).s || e.cat)}</span>${e.note ? " · " + esc(e.note) : ""} · ${when} · ${L("Total today","مجموع اليوم")}: <b>${sar(td)}</b>`};
+      // same number as the Expenses page ("Spent today"), so it never changes while it moves (Beshr 2026-11-22)
+      return {big: td ? neg(td) : sar(0), bad: td > 0, subHtml: `${L("Last","آخر")}: <span>${esc((BY[e.cat] || {}).s || e.cat)}</span>${e.note ? " · " + esc(e.note) : ""} · ${when} · <b>${neg(e.amount)}</b>`};
     }
     if(tab === "prices"){
       const groups = [...priceGroups().values()];
@@ -336,6 +337,10 @@
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
+  .tabHero .thList{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff);overflow:hidden}
+  .tabHero .thList>div{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;font-size:14px}
+  .tabHero .thList>div+div{border-top:1px solid var(--line)}
+  .tabHero .thList b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
 
   /* ===== Wallet card (Beshr's wallet-card-morph.html): same tokens, timings and behaviour ===== */
   #viewHome{--wm-navy:#0F2A4A;--wm-deep:#0B2240;--wm-soft:#1C3A5E;--wm-line:#24456B;--wm-stitch:#2E557F;--wm-ice:#E6F1FB;--wm-blue-200:#B5D4F4;--wm-blue-400:#85B7EB;--wm-amber:#FAC775;--wm-red-bg:#4A1B1B;--wm-red-text:#F7C1C1;--wm-red-bar:#F09595;--wm-red:#A32D2D;--wm-green-bar:#97C459;--wm-green-text:#C0DD97;--wm-green:#3B6D11;--wm-ease:cubic-bezier(.3,.6,.2,1);--wm-ease-flap:cubic-bezier(.3,1.3,.5,1);--wm-dur:.42s}
@@ -421,11 +426,12 @@
   body.framed:not(.fvbusy) #fvClose{display:block}
   /* smooth-transitions skill: pages are cards that grow from their spot under the title (layout animation, never scaled) */
   .view.fv{position:fixed!important;z-index:30;margin:0!important;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:14px 12px 24px;border-radius:22px;background:var(--bg,#F8FAFC);box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
-  .view.fv.pg-anim{overflow:hidden;transition:top .42s cubic-bezier(.3,.6,.2,1),left .42s cubic-bezier(.3,.6,.2,1),width .42s cubic-bezier(.3,.6,.2,1),height .42s cubic-bezier(.3,.6,.2,1),border-radius .42s cubic-bezier(.3,.6,.2,1),background-color .42s cubic-bezier(.3,.6,.2,1)}
-  .view.fv.pg-closing{transition-duration:.34s}
-  .pg-src{visibility:hidden}
+  .view.fv.pg-anim{overflow:hidden}
+  #viewHome>.pg-src,body.pgopen #viewHome>.pg-src{opacity:0;transform:none}
+  /* status bar strip: nothing shows under the clock */
+  body::after{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg,#F8FAFC);z-index:59;pointer-events:none}
   #qBar{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)}
-  body.pgopen #viewHome>*,body.pgopen #qBar{opacity:0;transform:translateY(16px);pointer-events:none}
+  body.pgopen #viewHome>*,body.pgopen #qBar{pointer-events:none}
   body.pgopen{overflow:hidden}
   #pgClose{display:none;position:fixed;left:50%;transform:translateX(-50%);z-index:32;width:88px;height:22px;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #pgClose::before{content:"";display:block;width:40px;height:5px;margin:7px auto 0;border-radius:3px;background:rgba(100,116,139,.45)}
@@ -620,13 +626,16 @@
   function heroFor(tab){
     const b = bodyFor(tab) || {};
     const clean = x => x ? x.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, "") : "";
-    let label = "", num = "", bad = false;
+    let label = "", num = "", bad = false, list = "";
     if(tab === "bal"){ label = `<span class="thI"><span class="thR"><span class="thF">${window.PH ? PH(PHN.bal) : ""}</span><span class="thB">${window.PH ? PH(PHN.bal) : ""}</span></span></span><span class="thT">${CARDS[0].title}</span>`; num = b.big; bad = b.bad; } // same icon + title as the card, so they fly into place (Beshr 2026-11-22)
     if(tab === "budget"){ label = L("You can spend per day","تقدر تصرف باليوم"); num = String(b.big || ""); bad = b.bad; } /* same words as the card: "/ day" stays (smooth-transitions: text never changes) */
     if(tab === "plan"){
       const ymd = g("ymd") || (d => d.toISOString().slice(0,10)), t = ymd(new Date());
       const td = (g("entries") || []).filter(e => e.date === t).reduce((a, e) => a + e.amount, 0);
       label = L("Spent today","صرفت اليوم"); num = td ? neg(td) : sar(0); bad = td > 0;
+      const BY = g("BY") || {}, es = (g("entries") || []).filter(e => e.date === t).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+      list = es.length ? `<div class="thList">${es.slice(0, 12).map(e => `<div><span>${esc((BY[e.cat] || {}).s || e.cat || L("Other","أخرى"))}${e.note ? " · " + esc(e.note) : ""}</span><b>${neg(e.amount)}</b></div>`).join("")}${es.length > 12 ? `<div><span>${L(`+${es.length - 12} more`, `+${es.length - 12} أخرى`)}</span><b></b></div>` : ""}</div>`
+        : `<div class="thList"><div><span>${L("Nothing spent today yet","ما صرفت شي اليوم")}</span><b></b></div></div>`;
     }
     if(tab === "prices"){
       let best = null;
@@ -645,7 +654,7 @@
     const hs = hintsFor(tab), h = (shown[tab] && hs.includes(shown[tab].h) && shown[tab].h) || hs.find(x => /^💡|^⚠|^💎|^🆕/.test(x)) || hs[0];
     const cardT = (CARDS.find(c => c.tab === tab) || {}).title || "", ic = window.PH ? PH(PHN[tab]) : "";
     const top = tab === "bal" ? `<div class="thL">${label}</div>` : `<div class="thL"><span class="thI"><span class="thR"><span class="thF">${ic}</span><span class="thB">${ic}</span></span></span><span class="thT">${cardT}</span></div><div class="thS">${label}</div>`;
-    return `<div class="tabHero" data-noi18n>${top}<div class="thN${bad ? " bad" : ""}">${num}</div>${h ? `<div class="thH">${window.PH ? PH("sparkle") : ""}<span>${esc(clean(h))}</span></div>` : ""}</div>`;
+    return `<div class="tabHero" data-noi18n>${top}<div class="thN${bad ? " bad" : ""}">${num}</div>${h ? `<div class="thH">${window.PH ? PH("sparkle") : ""}<span>${esc(clean(h))}</span></div>` : ""}${list}</div>`;
   }
   function renderHero(tab){
     const v = document.getElementById(VIEW[tab]); if(!v) return;
@@ -910,61 +919,83 @@
     const solid = c => c && !/rgba\(.*,\s*0\)$|transparent/.test(c);
     const bigOf = el => el && el.querySelector(".big");
     const ANCH = [[".thI", ".ic"], [".thT", ".tt"], [".thN", ".big"]];
-    function anchors(v, card, box){ // where each page anchor must start so it sits exactly on the card's own icon, title and number
-      if(!card || !card.closest("#viewHome")) return []; const rtl = getComputedStyle(v).direction === "rtl", vb = v.getBoundingClientRect(), out = [];
-      ANCH.forEach(([ps, cs]) => { const pe = v.querySelector(".tabHero " + ps), ce = card.querySelector(cs); if(!pe || !ce) return;
-        const pr = pe.getBoundingClientRect(), cr = ce.getBoundingClientRect();
-        const dx = rtl ? (cr.right - box.left - box.width) - (pr.right - vb.right) : (cr.left - box.left) - (pr.left - vb.left), dy = (cr.top - box.top) - (pr.top - vb.top);
-        pe.style.transformOrigin = rtl ? "right top" : "left top"; out.push({el: pe, t: `translate(${dx}px,${dy}px)`}); });
-      return out; }
     function pgShow(name){ // the page's content shows while Home stays underneath
       if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); }
       cur = name; _show(name); try { renderHero(name); } catch(e){}
       document.getElementById("viewHome").hidden = false; document.body.classList.add("onhome");
     }
+    /* Pattern B (Beshr 2026-11-22): the page stays still and full size; a clip window grows from the card to the page and
+       shrinks back the exact same way (no layout each frame, so no dropped frames). Only the anchors (icon, title, number) travel. */
+    const clipOf = (r, T, rad) => `inset(${r.top - T.top}px ${T.left + T.width - (r.left + r.width)}px ${T.top + T.height - (r.top + r.height)}px ${r.left - T.left}px round ${rad}px)`;
+    const fsOf = el => parseFloat(getComputedStyle(el).fontSize) || 16;
+    function anchors(card){ // translate + scale that puts each page anchor exactly on the card's own icon, title and number
+      const v = viewOf(pg && pg.go); if(!v || !card || !card.closest("#viewHome")) return []; const rtl = getComputedStyle(v).direction === "rtl", out = [];
+      ANCH.forEach(([ps, cs]) => { const pe = v.querySelector(".tabHero " + ps), ce = card.querySelector(cs); if(!pe || !ce || !ce.getClientRects().length) return;
+        const pr = pe.getBoundingClientRect(), cr = ce.getBoundingClientRect(), s = ps === ".thI" ? (cr.height / (pr.height || 1)) : fsOf(ce) / fsOf(pe);
+        const dx = rtl ? cr.right - pr.right : cr.left - pr.left, dy = cr.top - pr.top;
+        pe.style.transformOrigin = rtl ? "right top" : "left top"; out.push({el: pe, t: `translate(${dx}px,${dy}px) scale(${s})`}); });
+      return out; }
+    const pageOnly = v => { const k = v.querySelector(":scope > .vbIn") || v, h = k.querySelector(":scope > .tabHero");
+      return [...k.children].filter(c => c !== h && c.getClientRects().length).concat(h ? [...h.querySelectorAll(":scope > .thS,:scope > .thH,:scope > .thList")] : []); };
+    let lockY = 0; // the page under the clock never scrolls while a page is open (Beshr: title went under the clock)
+    const lockBody = on => { const b = document.body.style; if(on){ lockY = scrollY; Object.assign(b, {position: "fixed", top: -lockY + "px", left: "0", right: "0"}); }
+      else if(b.position === "fixed"){ Object.assign(b, {position: "", top: "", left: "", right: ""}); scrollTo(0, lockY); } };
+    const sidesAnim = (out, dur) => pgSides().filter(e => !e.classList.contains("pg-src")).forEach(e => {
+      e.animate(out ? [{opacity: 1}, {opacity: 0}] : [{opacity: 0}, {opacity: 1}], {duration: out ? 200 : dur, easing: "ease-out", fill: "both"});
+      e.animate(out ? [{transform: "none"}, {transform: "translateY(16px)"}] : [{transform: "translateY(16px)"}, {transform: "none"}], {duration: dur, easing: EZ, fill: "both"}); });
+    const sidesClear = () => pgSides().forEach(e => e.getAnimations().forEach(a => a.cancel()));
     function pgOpen(src, go){
       const v = viewOf(go); if(!v || window._pgBusy) return;
       const fromHome = !!src.closest("#viewHome"), A = src.getBoundingClientRect(), cs = getComputedStyle(src);
       const bg = solid(cs.backgroundColor) ? cs.backgroundColor : getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#fff";
-      const rA = parseFloat(cs.borderTopLeftRadius) || 18, nb = bigOf(src), fs0 = nb ? parseFloat(getComputedStyle(nb).fontSize) : 0;
-      pg = {go, src: fromHome ? src : homeCard(go), bg, rA, fs0}; window._pg = go;
-      if(reduced()){ pgShow(go); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen", "pgready"); return; }
+      const rA = parseFloat(cs.borderTopLeftRadius) || 18;
+      pg = {go, src: fromHome ? src : homeCard(go), bg, rA}; window._pg = go;
+      if(reduced()){ pgShow(go); lockBody(true); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen", "pgready"); return; }
       window._pgBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
-      // peek lines of the card fade away in place (140ms)
-      const peeks = fromHome ? [...src.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), s2 = getComputedStyle(e);
-        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width + 2}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font-family:${s2.fontFamily};font-size:${s2.fontSize};font-weight:${s2.fontWeight};line-height:${s2.lineHeight};letter-spacing:${s2.letterSpacing};overflow:hidden;`;
-        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 80, easing: "ease-out", fill: "forwards"}); return c; }) : [];
+      lockBody(true);
+      const T = pgTarget(), A2 = src.getBoundingClientRect(); // same spot after the lock
       if(pg.src) pg.src.classList.add("pg-src");
       pgShow(go);
-      v.classList.add("fv"); setR(v, pgTarget()); v.scrollTop = 0; const an = anchors(v, pg.src, A);
-      v.style.background = bg; v.style.borderRadius = rA + "px"; setR(v, A); v.getBoundingClientRect(); v.classList.add("pg-anim");
+      v.classList.add("fv", "pg-anim"); setR(v, T); v.scrollTop = 0;
+      const an = anchors(pg.src), pv = getComputedStyle(v).backgroundColor;
+      // the card's own lines fade away in place while the window grows
+      const peeks = fromHome ? [...src.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), s2 = getComputedStyle(e);
+        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width + 2}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font-family:${s2.fontFamily};font-size:${s2.fontSize};font-weight:${s2.fontWeight};line-height:${s2.lineHeight};letter-spacing:${s2.letterSpacing};overflow:hidden;`;
+        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 90, easing: "ease-out", fill: "forwards"}); return c; }) : [];
+      v.animate([{clipPath: clipOf(A2, T, rA), backgroundColor: bg}, {clipPath: clipOf(T, T, 22), backgroundColor: pv}], {duration: 420, easing: EZ});
       an.forEach(a => a.el.animate([{transform: a.t}, {transform: "none"}], {duration: 420, easing: EZ}));
-      pgSides().forEach(e => e.classList.add("wm-side-out"));
-      const n = v.querySelector(".tabHero .thN"); if(n && fs0) n.animate([{fontSize: fs0 + "px"}, {fontSize: getComputedStyle(n).fontSize}], {duration: 420, easing: EZ});
-      [...v.querySelectorAll(".tabHero .thS,.tabHero .thH"), ...detailsIn(v)].forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: EZ, fill: "backwards"}));
-      v.getBoundingClientRect(); // first frame = the card at rest
-      document.body.classList.add("pgopen");
-      v.style.background = ""; v.style.borderRadius = ""; setR(v, pgTarget());
-      setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); document.body.classList.add("pgready"); window._pgBusy = false; }, 440);
+      pageOnly(v).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: EZ, fill: "backwards"}));
+      sidesAnim(true, 360); document.body.classList.add("pgopen");
+      setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); document.body.classList.add("pgready"); window._pgBusy = false; }, 430);
     }
     function pgDone(){ const p = pg; if(!p) return; const v = viewOf(p.go);
       pg = null; window._pg = null; window._pgBusy = false;
+      document.body.classList.remove("pgopen", "pgready"); lockBody(false);
       window.showTab("home");
-      if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); }
-      pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen", "pgready");
-      if(p.src) p.src.classList.remove("pg-src");
+      if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition","opacity"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); [...v.querySelectorAll("*")].forEach(e => { if(e.style.transform) e.style.transform = ""; }); }
+      sidesClear(); pgSides().forEach(e => e.classList.remove("wm-side-out"));
+      document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src"));
     }
     function pgClose(){
       if(!pg || window._pgBusy) return; const p = pg, v = viewOf(p.go);
       if(reduced() || !v){ pgDone(); return; }
-      window._pgBusy = true; v.scrollTop = 0; v.style.transform = ""; v.style.transition = "";
-      const card = p.src && p.src.isConnected ? p.src : homeCard(p.go), B = card ? card.getBoundingClientRect() : {left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80};
-      [...v.querySelectorAll(".tabHero .thS,.tabHero .thH"), ...detailsIn(v)].forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 90, fill: "forwards"}));
-      const n = v.querySelector(".tabHero .thN"); if(n && p.fs0) n.animate([{fontSize: getComputedStyle(n).fontSize}, {fontSize: p.fs0 + "px"}], {duration: 340, easing: EZ, fill: "forwards"});
-      document.body.classList.remove("pgready"); const an = anchors(v, card, B); an.forEach(a => a.el.animate([{transform: "none"}, {transform: a.t}], {duration: 340, easing: EZ, fill: "forwards"}));
-      v.classList.add("pg-anim", "pg-closing"); v.style.background = p.bg; v.style.borderRadius = p.rA + "px"; setR(v, B);
-      document.body.classList.remove("pgopen");
-      if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 150, delay: 340, easing: "ease-out", fill: "backwards"}));
+      window._pgBusy = true; v.style.transform = ""; v.style.transition = ""; document.body.classList.remove("pgready");
+      // 1) scroll goes back to the top invisibly: the content is shifted by the same amount, so nothing moves on screen
+      const k = v.querySelector(":scope > .vbIn") || v, s = v.scrollTop;
+      if(s > 0){ v.scrollTop = 0; [...k.children].forEach(c => c.style.transform = `translateY(${-s}px)`); }
+      // 2) Home is rebuilt now (same picks, nothing reshuffles), still hidden, so we can measure the REAL card
+      window._pg = null; try { render(); } finally { window._pg = p.go; }
+      const card = homeCard(p.go); if(card) card.classList.add("pg-src");
+      const T = v.getBoundingClientRect(), B = card ? card.getBoundingClientRect() : {left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80};
+      const ccs = card ? getComputedStyle(card) : null, bg = ccs && solid(ccs.backgroundColor) ? ccs.backgroundColor : p.bg, rB = ccs ? parseFloat(ccs.borderTopLeftRadius) || p.rA : p.rA;
+      const an = anchors(card);
+      // 3) the exact reverse of open: page-only content fades in 90ms, the window shrinks onto the card, anchors travel home
+      pageOnly(v).forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 90, easing: "ease-out", fill: "forwards"}));
+      v.animate([{clipPath: clipOf(T, T, 22), backgroundColor: getComputedStyle(v).backgroundColor}, {clipPath: clipOf(B, T, rB), backgroundColor: bg}], {duration: 340, easing: EZ, fill: "forwards"});
+      an.forEach(a => a.el.animate([{transform: "none"}, {transform: a.t}], {duration: 340, easing: EZ, fill: "forwards"}));
+      v.animate([{opacity: 1}, {opacity: 0}], {duration: 90, delay: 260, easing: "linear", fill: "forwards"}); // hands over to the real card
+      if(card) card.animate([{opacity: 0}, {opacity: 1}], {duration: 120, delay: 200, easing: "linear", fill: "both"});
+      sidesAnim(false, 340);
       setTimeout(pgDone, 360);
     }
     function pgSwap(name){ // pages next to each other slide sideways (300ms)
@@ -1070,11 +1101,10 @@
       if(window._pgBusy) return; // one moving thing at a time
       if(name === "bal" && window._wmOpen) name = "budget";
       if(window._wmOpen && window._wmReset){ window._wmReset(); render(); }
-      if(pg){ if(name === "home"){ pgClose(); return; } if(VIEW[name]){ if(name !== pg.go) pgSwap(name); return; } const p = pg; pg = null; window._pg = null; const v = viewOf(p.go); if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform"].forEach(k => v.style[k] = ""); } pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen"); if(p.src) p.src.classList.remove("pg-src"); }
+      if(pg){ if(name === "home"){ pgClose(); return; } if(VIEW[name]){ if(name !== pg.go) pgSwap(name); return; } const p = pg; pg = null; window._pg = null; const v = viewOf(p.go); if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform"].forEach(k => v.style[k] = ""); } sidesClear(); pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen", "pgready"); lockBody(false); document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src")); }
       if(VIEW[name] && cur === "home" && !window._vtBusy){
         if(name === "bal" && !window._fromEl){ const w = document.getElementById("wmCard"); if(w){ w.click(); return; } }
         const src = window._fromEl || homeCard(name); window._fromEl = null; if(src){ pgOpen(src, name); return; } }
-      if(name === "home" && !window._vtBusy) seed = Math.random();
       if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name;
       document.body.classList.remove("framed"); document.querySelectorAll(".view.fv").forEach(e => e.classList.remove("fv"));
       _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
