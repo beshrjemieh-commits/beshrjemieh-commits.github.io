@@ -735,6 +735,7 @@
   #viewHome>.hx .tabHero{padding-top:0}
   #viewHome>.hx .tabHero>.thL,#viewHome>.hx .tabHero>.thN,#viewHome>.hx .tabHero>.thH{display:none!important}
   #viewHome .hcard .hh{padding-inline-start:36px;margin-top:-6px;min-height:24px}
+  #viewHome>.hcard:not([data-go=budget]):not([data-go=bal]) .sub.rows>.rw{padding-inline-start:36px!important;box-sizing:border-box} /* Beshr 2026-11-23: text lines start under the title, not under the icon */
   #viewHome .hcard .hh .ic{position:absolute!important;top:-1px!important;inset-inline-start:-1px!important;margin:0!important;width:38px!important;height:38px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:12px!important;box-shadow:none!important;background:#E8EEF6!important;color:#0F2A4A!important}
   #viewHome .hcard .hh .ic svg{width:18px!important;height:18px!important}
   #viewHome .hcard[data-go=forsa] .hh .ic{background:#FCD98A!important;color:#92400E!important}
