@@ -608,7 +608,7 @@
         // only our own short, bilingual hints on Home (no app offers like pizza, nothing cut off)
         const keep = shown[c.tab] && shown[c.tab].seed === seed && hintsFor(c.tab).includes(shown[c.tab].h) ? shown[c.tab].h : null;
         const h = keep || pick(mine.length ? mine : all.filter(x => /^💡/.test(x)).slice(-1), 11 + i); if(!keep){ lastHint[c.tab] = h; shown[c.tab] = {seed, h}; }
-        if(c.tab === "bal" && window.lastBalance != null) return wmCard();
+        if(c.tab === "bal" && window.lastBalance != null) return wmCard() + '<i class="hsep" hidden></i>'; // Beshr 2026-11-23: Budget is its own full-width card under Balance
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.rows ? `<span class="sub rows" data-noi18n>${b.rows}</span>` : b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
@@ -717,6 +717,10 @@
        Budget's bottom line is an AI hint chip lined up with Balance's "Lasts" chip. */
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
+  html body #viewHome>.wm-card,html body #viewHome>.wm-ph,html body #viewHome>.hcard[data-go=bal]{grid-column:1 / -1!important}
+  #viewHome>.hsep{display:none!important}
+  html body #viewHome>.hcard[data-go=budget]+*{margin-top:0!important}
+  html body #viewHome>.hsep+*{margin-top:40px!important}
   #viewHome .hcard .hh{padding-inline-start:36px;margin-top:-6px;min-height:24px}
   #viewHome .hcard .hh .ic{position:absolute!important;top:-1px!important;inset-inline-start:-1px!important;margin:0!important;width:38px!important;height:38px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:12px!important;box-shadow:none!important;background:#E8EEF6!important;color:#0F2A4A!important}
   #viewHome .hcard .hh .ic svg{width:18px!important;height:18px!important}
@@ -762,7 +766,7 @@
       window._freezeAgain = again; [0, 300, 1000, 2500].forEach(ms => setTimeout(again, ms)); // re-measure once Home has its final layout
     })();
     const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
-      const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
+      const c = v.querySelector('#viewHome>.wm-ph,#viewHome>.wm-card,#viewHome>.hcard[data-go=bal]') || v.querySelector('.hcard[data-go=budget]'); if(!c) return; // the white band ends under the big Balance card
       const r = c.getBoundingClientRect(); band.style.setProperty("--band", Math.round(r.bottom + window.scrollY + 8) + "px"); };
     window.addEventListener("resize", sizeBand); window._sizeBand = sizeBand;
     const first = document.querySelector(".view"); if(!first) return;
@@ -1000,7 +1004,11 @@
     const EZ = "cubic-bezier(.3,.6,.2,1)";
     let pg = null; window._pg = null; window._pgBusy = false;
     const setR = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
-    const pgTarget = () => { const top = Math.max(48, window._hLine()), sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+    /* Beshr 2026-11-23: the full-width cards (Budget, Expenses, Prices log, Forsa) open by dropping DOWN from where they are:
+       the page's top stays on the card's top (moved up only as much as needed to leave a useful height). Cards above stay in view. */
+    const pgTarget = src => { const hl = Math.max(48, window._hLine()), sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+      let top = hl; if(src && src.dataset && src.dataset.go && src.dataset.go !== "bal" && src.closest("#viewHome")){ const minH = Math.max(320, (innerHeight - hl - sab) * .62), ct = src.getBoundingClientRect().top;
+        top = Math.round(Math.max(hl, Math.min(ct, innerHeight - sab - 12 - minH))); }
       document.documentElement.style.setProperty("--pgTop", top + "px");
       return {top, left: 12, width: ((window.visualViewport && visualViewport.width) || document.documentElement.clientWidth || innerWidth) - 24, height: Math.max(300, innerHeight - top - 12 - sab)}; };
     const pgSides = () => [...document.querySelectorAll("#viewHome>*,#qBar")];
@@ -1034,7 +1042,7 @@
     const scrim = () => { let d = document.getElementById("pgBack"); if(!d){ d = document.createElement("div"); d.id = "pgBack"; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); } return d; };
     const notCard = e => !e.classList.contains("pg-src") && !e.classList.contains("pg-land");
     const homeAt = k => { const d = scrim(); d.style.display = k >= 1 ? "none" : "block"; d.style.opacity = (1 - k).toFixed(3);
-      pgSides().filter(notCard).forEach(e => { e.style.opacity = k >= 1 ? "" : k.toFixed(3); e.style.transform = ""; }); }; // fade only: nothing below a card ever moves
+      pgSides().filter(e => notCard(e) && !(pg && pg.keep && pg.keep.has(e))).forEach(e => { e.style.opacity = k >= 1 ? "" : k.toFixed(3); e.style.transform = ""; }); }; // fade only: nothing below a card ever moves
     // M = the live motion: geometry measured once per gesture, then apply(state) each frame
     let M = null, raf = 0;
     function measure(card, closing){
@@ -1079,13 +1087,18 @@
       src.getAnimations().forEach(a => a.cancel()); // the press (0.97) hands over to the grow
       if(reduced()){ pgShow(go); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen", "pgready"); homeAt(0); return; }
       window._pgBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
-      const T = pgTarget();
+      const T = pgTarget(pg.src);
+      // cards fully above the page stay in view (no fade), the backdrop starts under them
+      pg.keep = new Set(T.top > Math.max(48, window._hLine()) + 4 ? pgSides().filter(e => e.id !== "qBar" && e.getClientRects().length && e.getBoundingClientRect().bottom <= T.top - 2) : []);
+      scrim().style.top = pg.keep.size ? (T.top - 6) + "px" : "";
       pgShow(go); v.classList.add("fv", "pg-anim"); setR(v, T); v.scrollTop = 0;
       M = measure(pg.src, false); const {B, rB, cardBg, pageBg} = M;
       // the card's own extra lines fade away in place
-      const peeks = fromHome ? [...src.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), s2 = getComputedStyle(e);
-        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width + 2}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font-family:${s2.fontFamily};font-size:${s2.fontSize};font-weight:${s2.fontWeight};line-height:${s2.lineHeight};letter-spacing:${s2.letterSpacing};overflow:hidden;`;
-        document.body.appendChild(c); return c; }) : [];
+      // the card's own lines fade away in place: a see-through copy of the card (same layout, same styles) without its moving parts
+      const peeks = fromHome ? (() => { const r = src.getBoundingClientRect(), c = src.cloneNode(true); c.classList.remove("pg-src", "pg-land"); c.classList.add("pg-peek"); c.removeAttribute("id"); c.setAttribute("aria-hidden", "true");
+        c.style.cssText = `position:fixed!important;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0!important;z-index:31!important;pointer-events:none!important;background:transparent!important;border-color:transparent!important;box-shadow:none!important;transform:none!important;opacity:1`;
+        c.querySelectorAll(".hh>.ic,.hh>.tt,.hh>.big,.hh>.go").forEach(e => e.style.visibility = "hidden");
+        src.parentNode.appendChild(c); return [c]; })() : [];
       if(pg.src) pg.src.classList.add("pg-src");
       document.body.classList.add("pgopen");
       const at = e => ({W: lerpR(B, M.T, e), X: 0, Y: 0, sc: 1, r: lerp(rB, 22, e), a: e, bg: mix(cardBg, pageBg, clamp01(e * 1.6)), po: clamp01((e - .5) / .4), k: 1 - clamp01(e * 1.15)});
@@ -1103,7 +1116,7 @@
       an.forEach(a => { a.el.style.willChange = ""; });
       // swap to the real Home in the same frame: the landing card shows its own icon/title/number exactly where the page's were
       window._pgQuiet = true; try { window.showTab("home"); } finally { window._pgQuiet = false; }
-      const d = document.getElementById("pgBack"); if(d){ d.style.display = "none"; d.style.opacity = ""; }
+      const d = document.getElementById("pgBack"); if(d){ d.style.display = "none"; d.style.opacity = ""; d.style.top = ""; }
       pgSides().forEach(e => { e.classList.remove("wm-side-out"); e.style.opacity = ""; e.style.transform = ""; e.getAnimations().forEach(a => a.cancel()); });
       document.querySelectorAll("#viewHome .pg-src,#viewHome .pg-land").forEach(e => { e.classList.remove("pg-src", "pg-land"); });
     }
@@ -1119,6 +1132,7 @@
       if(s > 0){ v.scrollTop = 0; [...kk.children].forEach(c => { if(!c.classList.contains("tabHero")) c.style.transform = `translateY(${-s}px)`; }); }
       // Home is rebuilt now (same picks), and the card's slot is measured NOW, so it lands exactly on it
       window._pg = null; if(window._homeDirty){ window._homeDirty = false; try { render(); } finally { window._pg = p.go; } } else window._pg = p.go; // no rebuild (and no freeze) unless data changed
+      if(p.keep && p.keep.size){ const tt = v.getBoundingClientRect().top; p.keep = new Set(pgSides().filter(e => e.id !== "qBar" && e.getClientRects().length && e.getBoundingClientRect().bottom <= tt - 2)); } // Home may have been rebuilt: keep the new copies of the cards above
       const card = homeCard(p.go); if(card){ card.classList.add("pg-land"); card.getAnimations().forEach(a => a.cancel()); }
       const keep = M.state; const G = measure(card, true); G.state = keep; M = G; M.mode = "closing";
       const {B, rB, cardBg, pageBg} = M; const bg0 = rgb(S0.bg || `rgb(${pageBg.slice(0, 3).join(",")})`), clear = [cardBg[0], cardBg[1], cardBg[2], 0];
@@ -1141,7 +1155,7 @@
       if(s2) s2.classList.add("pg-src");
       goingBack = true; try { pgShow(name); } finally { goingBack = false; }
       if(old){ old.classList.remove("fv", "pg-anim"); ["top","left","width","height","background","borderRadius"].forEach(k => old.style[k] = ""); }
-      v.classList.add("fv"); setR(v, pgTarget()); v.scrollTop = 0;
+      v.classList.add("fv"); setR(v, M ? {top: M.T.top, left: M.T.left, width: M.T.width, height: M.T.height} : pgTarget()); v.scrollTop = 0; // same frame as the page it replaces
       if(M){ M.v.style.clipPath = ""; M.v.style.transform = ""; } M = measure(s2, false); M.an.forEach(x => x.el.style.transform = ""); M.mode = "open"; M.state = restState();
       if(reduced()) return; window._pgBusy = true;
       const dx = (rtl ? -1 : 1) * dir * Math.min(120, innerWidth * .3);
@@ -1177,7 +1191,7 @@
       document.addEventListener("touchend", end, {passive: true}); document.addEventListener("touchcancel", end, {passive: true});
       document.addEventListener("keydown", e => { if(e.key === "Escape" && pg && !document.body.classList.contains("shopen")) pgClose(); });
       addEventListener("popstate", () => { if(pg) pgClose(); });
-      addEventListener("resize", () => { if(pg && !window._pgBusy) setR(viewOf(pg.go), pgTarget()); });
+      addEventListener("resize", () => { if(pg && !window._pgBusy) setR(viewOf(pg.go), pgTarget(pg.src)); });
     })();
 
     /* Pattern G on every Home card: touch-down only presses (0.97, 100ms); open on touch-up inside; move >10pt or leave = cancel.
