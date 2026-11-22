@@ -395,7 +395,7 @@
   .wm-rc span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .wm-rc span:last-child{color:var(--wm-red);flex:none}
   .wm-all{display:block;margin:12px auto 0;background:none;border:none;color:var(--wm-blue-200);font-size:13px;cursor:pointer;min-height:44px}
-  .wm-side-out{transition:opacity .2s,transform .3s}
+  .wm-side-out{transition:opacity .24s ease,transform .36s var(--wm-ease);will-change:opacity,transform}
   body.wm-open #viewHome>*:not(.wm-card):not(.wm-ph),body.wm-open #gsBox{opacity:0;transform:translateY(16px);pointer-events:none}
   body.wm-open{overflow:hidden}
   @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
@@ -410,6 +410,15 @@
   .thI .thB{background:rgba(255,255,255,.08);transform:rotateX(180deg)}
   #viewHome .hcard[data-go=bal] .hh .ic{background:rgba(255,255,255,.18)!important}
   body.framed #viewBal.growing{z-index:3;transform-origin:0 0;will-change:transform}
+  /* every page opens as a card that grows from Home and shrinks back (Beshr 2026-11-22: "always a smooth transition, one single page") */
+  body.framed .view.fv:not(#viewBal),.view.ghost:not(#viewBal){position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important;background:#F8FAFC;padding:12px;padding-top:26px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
+  .view.ghost:not(#viewBal){display:block!important;overflow:hidden}
+  @media (prefers-color-scheme: dark){body.framed .view.fv:not(#viewBal),.view.ghost:not(#viewBal){background:var(--surface,#0B1220)}}
+  body.framed .view.fv.growing{will-change:transform}
+  #fvClose{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);z-index:6;width:88px;height:24px;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #fvClose::before{content:"";display:block;width:40px;height:5px;margin:9px auto 0;border-radius:3px;background:rgba(100,116,139,.45)}
+  body.framed:not(.fvbusy) #fvClose{display:block}
+  html.homefit body.onhome .wrap{padding-bottom:0!important;height:100dvh;min-height:0!important;overflow:hidden}
   #viewBal.ghost{display:block!important;border-radius:28px;padding:12px;box-sizing:border-box;overflow:hidden}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk, zoom is locked by the viewport so no focus zoom */
@@ -493,8 +502,16 @@
   function mood(){ try { const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {}, now = new Date();
     const flex = ITEMS.filter(i => i.daily && state[i.k] && +state[i.k].plan > 0), plan = flex.reduce((a,i) => a + +state[i.k].plan, 0), used = flex.reduce((a,i) => a + (sums[i.k] || 0), 0);
     if(!plan) return ""; const pace = now.getDate() / new Date(now.getFullYear(), now.getMonth()+1, 0).getDate(); return used / plan <= pace ? "good" : "over"; } catch(e){ return ""; } }
+  // Home never scrolls when everything fits above the quick bar (Beshr 2026-11-22: cards went up and down)
+  function fitHome(){ const h = document.documentElement, v = document.getElementById("viewHome"), q = document.getElementById("qBar");
+    if(!v || v.hidden || !q){ h.classList.remove("homefit"); return; }
+    const kids = [...v.children].filter(e => e.getClientRects().length && !e.classList.contains("wm-ph")); if(!kids.length) return;
+    const bottom = Math.max(...kids.map(e => e.getBoundingClientRect().bottom)) + scrollY, barTop = q.getBoundingClientRect().top + scrollY;
+    const fit = bottom <= barTop - 6; h.classList.toggle("homefit", fit); if(fit && scrollY) scrollTo(0, 0); }
+  addEventListener("resize", () => requestAnimationFrame(fitHome));
   function render(){
-    if(window._wmOpen) return; // the wallet card is open: leave Home as it is until it closes
+    if(window._wmOpen) return;
+    requestAnimationFrame(() => requestAnimationFrame(fitHome)); // the wallet card is open: leave Home as it is until it closes
     setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
     const v = document.getElementById("viewHome"); if(!v) return;
     const hr = new Date().getHours(), greet = hr < 12 ? L("Good morning","صباح الخير") : hr < 18 ? L("Good afternoon","مساء الخير") : L("Good evening","مساء الخير");
@@ -630,7 +647,11 @@
        Older phones fall back to a simple grow layer. */
     const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
     const wrapEl = () => document.querySelector(".wrap");
-    const balView = () => document.getElementById("viewBal");
+    const viewOf = t => document.getElementById(VIEW[t]);
+    const balView = () => document.querySelector(".view.fv") || document.getElementById("viewBal");
+    const setFv = t => { document.querySelectorAll(".view.fv").forEach(e => e.classList.remove("fv")); const v = viewOf(t); if(v) v.classList.add("fv"); return v; };
+    const homeCard = t => t === "bal" ? (document.getElementById("wmCard") || document.querySelector('#viewHome .hcard[data-go=bal]')) : document.querySelector(`#viewHome .hcard[data-go=${t}]`);
+    window._openFramed = t => { window._vtBusy = true; try { setFv(t); showTab(t); document.body.classList.add("framed"); scrollTo(0, 0); } finally { window._vtBusy = false; } };
     const sizeBal = () => { const v = balView(); if(!v || !document.body.classList.contains("framed")) return; v.style.setProperty("--vbH", Math.max(240, innerHeight - v.getBoundingClientRect().top - 12) + "px"); };
     addEventListener("resize", sizeBal);
     const balCard = () => document.querySelector('#viewHome .hcard[data-go=bal]');
@@ -698,34 +719,34 @@
       snap.appendChild(w2); document.body.appendChild(snap); return snap;
     }
     // roles (spec): siblings step aside, peek fades, details fade up one by one, icon flips
-    const sibsIn = root => [...root.querySelectorAll(".wrap>header,#gsBox,#viewHome>.hgreet,#viewHome>.hcard:not([data-go=bal])")];
+    const sibsIn = (root, go) => [...root.querySelectorAll(`.wrap>header,#gsBox,#viewHome>*:not([data-go=${go || "bal"}]):not(#wmCard):not(.wm-ph)${go && go !== "bal" ? ",#viewHome>#wmCard" : ""}`)];
     const detailsIn = box => { const h = box.querySelector(".tabHero"), out = []; if(h){ const t = h.querySelector(".thH"); if(t) out.push(t); }
       const k = box.querySelector(":scope > .vbIn") || box; [...k.children].forEach(c => { if(c.classList.contains("tabHero")) return; const kids = c.tagName === "SECTION" ? [...c.children] : [c]; kids.forEach(x => out.push(x)); }); return out; };
     const flip = (box, open, dur) => { const r = box.querySelector(".thI .thR"); if(r) r.animate([{transform: `rotateX(${open ? 0 : 180}deg)`}, {transform: `rotateX(${open ? 180 : 0}deg)`}], {duration: dur, easing: MK.flipEase, fill: "both"}); };
     function expandOpen(card, go){
       if(window._vtBusy) return; // taps during the motion are ignored (no half states)
-      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); return; }
+      if(reduced() || !document.body.animate){ window._openFramed(go); return; }
       window._vtBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
       const A = card.getBoundingClientRect(), rA = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 18, spots = cardSpots(card), snap = stillHome();
       // siblings in the still copy: fade out + drop 16px
-      sibsIn(snap).forEach(el => el.animate([{transform: "none"}, {transform: "translateY(16px)"}], {duration: 300, easing: MK.curve, fill: "both"}));
-      sibsIn(snap).forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "both"}));
-      const sc = snap.querySelector("#viewHome>.hcard[data-go=bal]"); if(sc) sc.style.visibility = "hidden"; snap.querySelectorAll(".wrap>header,#gsBox").forEach(e => e.style.visibility = "visible");
+      sibsIn(snap, go).forEach(el => el.animate([{transform: "none"}, {transform: "translateY(16px)"}], {duration: 300, easing: MK.curve, fill: "both"}));
+      sibsIn(snap, go).forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "both"}));
+      const sc = go === "bal" ? snap.querySelector("#viewHome>#wmCard,#viewHome>.hcard[data-go=bal]") : snap.querySelector(`#viewHome>.hcard[data-go=${go}]`); if(sc && card.closest("#viewHome")) sc.style.visibility = "hidden"; snap.querySelectorAll(".wrap>header,#gsBox").forEach(e => e.style.visibility = "visible");
       // peek: the card's own lines fade away in place (150ms)
       const peeks = [...card.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), cs = getComputedStyle(e);
         c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:6;pointer-events:none;color:${cs.color};font:${cs.font};`;
         document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 150, easing: "ease-out", fill: "both"}).finished.then(() => c.remove()); return c; });
-      showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
-      const page = balView(); page.scrollTop = 0; inner(page);
+      setFv(go); showTab(go); document.body.classList.add("framed", "fvbusy"); try { scrollTo(0, 0); } catch(e){}
+      const page = viewOf(go); page.scrollTop = 0; inner(page);
       page.classList.add("growing");
       // details: hidden, then fade up 10px one after another (200ms + 70ms each, 300ms long)
       detailsIn(page).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: MK.curve, fill: "backwards"}));
       flip(page, true, MK.flip);
       morph(page, A, page.getBoundingClientRect(), false, false, rA, 22, pairsFor(page, spots), {dur: MK.open, ease: MK.ease})
-        .finally(() => { page.classList.remove("growing"); snap.remove(); peeks.forEach(c => c.remove()); window._vtBusy = false; });
+        .finally(() => { page.classList.remove("growing"); document.body.classList.remove("fvbusy"); snap.remove(); peeks.forEach(c => c.remove()); window._vtBusy = false; });
     }
     window._balShrink = function(name){ // same motion reversed, faster (340ms); details vanish at once; lands exactly on the card
-      const page = balView(); if(!page || reduced() || !document.body.animate){ window._vtBusy = true; window.showTab(name); window._vtBusy = false; return; }
+      const from = cur, page = viewOf(from) || balView(); if(!page || reduced() || !document.body.animate){ window._vtBusy = true; window.showTab(name); window._vtBusy = false; return; }
       window._vtBusy = true;
       page.scrollTop = 0; // spec: reset scroll to top first
       const B = page.getBoundingClientRect();
@@ -733,12 +754,12 @@
       ghost.style.cssText = `position:fixed;max-height:none;left:${B.left}px;top:${B.top}px;width:${B.width}px;height:${B.height}px;margin:0;z-index:5;pointer-events:none`;
       document.body.appendChild(ghost);
       detailsIn(ghost).forEach(el => el.style.visibility = "hidden");
-      window.showTab(name); document.body.classList.remove("framed");
+      window.showTab(name); document.body.classList.remove("framed"); page.classList.remove("fv");
       Promise.resolve().then(() => { // measure after the riyal symbols settle
-        const c = balCard(), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
+        const c = homeCard(from), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
         const rA = c ? parseFloat(getComputedStyle(c).borderTopLeftRadius) || 18 : 18;
         // siblings come back: rise 16px + fade in; the card's own lines fade back at the end
-        sibsIn(document).forEach(el => { el.animate([{transform: "translateY(16px)"}, {transform: "none"}], {duration: 300, easing: MK.curve, fill: "backwards"}); el.animate([{opacity: 0}, {opacity: 1}], {duration: 200, delay: 60, easing: "ease-out", fill: "backwards"}); });
+        sibsIn(document, from).forEach(el => { el.animate([{transform: "translateY(16px)"}, {transform: "none"}], {duration: 300, easing: MK.curve, fill: "backwards"}); el.animate([{opacity: 0}, {opacity: 1}], {duration: 200, delay: 60, easing: "ease-out", fill: "backwards"}); });
         if(c) c.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 150, delay: MK.close, easing: "ease-out", fill: "backwards"}));
         flip(ghost, false, MK.close + 60);
         return morph(ghost, A, B, true, false, rA, 22, pairsFor(ghost, cardSpots(c)), {dur: MK.close, ease: MK.ease});
@@ -754,11 +775,11 @@
         `<button type="button" data-q="bill">${ic("camera")}<span>${L("Add bill","أضف فاتورة")}</span></button>` +
         `<button type="button" data-q="hunt">${ic("magnifying-glass")}<span>${L("New hunt","بحث جديد")}</span></button>`;
       document.body.appendChild(q);
-      const to = (tab, el) => { window.showTab(tab); const e = document.getElementById(el); const sec = e && e.closest("section"); if(sec && sec.classList.contains("collapsed")){ const h = sec.querySelector(":scope > div:first-child h2"); if(h) h.click(); } if(e){ try { e.scrollIntoView({block: "center"}); } catch(x){} } return e; };
+      const to = (tab, el, b) => { window._fromEl = b || null; window.showTab(tab); window._fromEl = null; const e = document.getElementById(el); const sec = e && e.closest("section"); if(sec && sec.classList.contains("collapsed")){ const h = sec.querySelector(":scope > div:first-child h2"); if(h) h.click(); } if(e){ const v = e.closest(".view"), go = () => { if(window._vtBusy) return setTimeout(go, 60); if(v){ const vr = v.getBoundingClientRect(), er = e.getBoundingClientRect(); v.scrollTo({top: Math.max(0, v.scrollTop + er.top - vr.top - vr.height / 3), behavior: "smooth"}); } }; setTimeout(go, 60); } return e; }; // scroll once the page has finished growing
       q.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const k = b.dataset.q;
-        if(k === "exp"){ const f = to("plan", "fAmount"); if(f){ f.value = ""; f.focus(); } }
-        if(k === "bill"){ const f = document.getElementById("billFile"); if(f) f.click(); to("prices", "billsSec"); } // opens the iPhone photo picker / camera
-        if(k === "hunt"){ const f = to("forsa", "fSearch"); if(f){ f.value = ""; f.focus(); } }
+        if(k === "exp"){ const f = to("plan", "fAmount", b); if(f){ f.value = ""; try { f.focus({preventScroll: true}); } catch(x){ f.focus(); } } }
+        if(k === "bill"){ const f = document.getElementById("billFile"); if(f) f.click(); to("prices", "billsSec", b); } // opens the iPhone photo picker / camera
+        if(k === "hunt"){ const f = to("forsa", "fSearch", b); if(f){ f.value = ""; try { f.focus({preventScroll: true}); } catch(x){ f.focus(); } } }
       });
     })();
     /* Wallet card behaviour (wallet-card-morph.html): tap grows the card itself from its spot; tap again (not on a tile/button) closes */
@@ -790,7 +811,7 @@
         setTimeout(() => { reset(card); render(); then && then(); }, dur() + 30);
       }
       window._wmReset = () => { const c = document.getElementById("wmCard"); document.body.classList.remove("wm-open"); if(c) reset(c); else { window._wmOpen = false; busy = false; } };
-      const go = (fn) => { window._wmReset(); render(); window.showTab("bal"); setTimeout(fn, 60); };
+      const go = (fn) => { window._wmReset(); render(); window._openFramed ? window._openFramed("bal") : window.showTab("bal"); setTimeout(fn, 60); };
       document.addEventListener("click", e => {
         const card = e.target.closest("#wmCard"); if(!card) return;
         if(card.classList.contains("open")){
@@ -811,9 +832,10 @@
       addEventListener("resize", () => { const c = document.getElementById("wmCard"); if(c && window._wmOpen && !busy) set(c, target()); });
     })();
     // close: tap the open card (not a button, link, field or anything tappable), swipe down at the top, Back or Esc
-    (function(){ const isTap = el => { for(let n = el; n && n.id !== "viewBal"; n = n.parentElement){ if(n.matches("button,a,input,select,textarea,label,summary,[contenteditable],[role=button]") || getComputedStyle(n).cursor === "pointer") return true; } return false; };
+    (function(){ const isTap = el => { for(let n = el; n && !n.classList.contains("fv"); n = n.parentElement){ if(n.matches("button,a,input,select,textarea,label,summary,[contenteditable],[role=button]") || getComputedStyle(n).cursor === "pointer") return true; } return false; };
       const open = () => document.body.classList.contains("framed") && !window._vtBusy;
-      document.addEventListener("click", e => { const v = balView(); if(!open() || !v || !v.contains(e.target) || isTap(e.target)) return; window.showTab("home"); });
+      document.addEventListener("click", e => { const v = balView(); if(!open() || !v || v.id !== "viewBal" || !v.contains(e.target) || isTap(e.target)) return; window.showTab("home"); });
+      const fc = document.createElement("button"); fc.type = "button"; fc.id = "fvClose"; fc.setAttribute("aria-label", L("Back to Home","رجوع للرئيسية")); fc.addEventListener("click", () => { if(open()) window.showTab("home"); }); document.body.appendChild(fc);
       document.addEventListener("keydown", e => { if(e.key === "Escape" && open()) window.showTab("home"); });
       let y0 = null, x0 = 0; document.addEventListener("touchstart", e => { const v = balView(); y0 = open() && v && v.contains(e.target) && v.scrollTop <= 0 ? e.touches[0].clientY : null; x0 = e.touches[0].clientX; }, {passive: true});
       document.addEventListener("touchend", e => { if(y0 == null) return; const t = e.changedTouches[0], dy = t.clientY - y0, dx = Math.abs(t.clientX - x0); y0 = null; if(dy > 90 && dx < 60 && open()) window.showTab("home"); }, {passive: true});
@@ -838,10 +860,13 @@
         const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "forwards"});
         fade.onfinish = () => fx.remove(); });
     }
-    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
+    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; expandOpen(c, c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(window._wmOpen && window._wmReset){ window._wmReset(); } if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(window._wmOpen && window._wmReset){ window._wmReset(); } const fr = document.body.classList.contains("framed");
+      if(!window._vtBusy && name === "home" && fr && !reduced() && window._balShrink){ window._balShrink(name); return; }
+      if(!window._vtBusy && VIEW[name] && !fr && cur === "home"){ const src = window._fromEl || homeCard(name); window._fromEl = null; if(src){ expandOpen(src, name); return; } }
+      if(!window._vtBusy && VIEW[name] && fr && cur !== name){ const nv = setFv(name); if(nv && !reduced() && nv.animate) requestAnimationFrame(() => nv.animate([{opacity: 0, transform: "translateX(24px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: MK.curve})); } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(!VIEW[name] || !document.querySelector(".view.fv")){ document.body.classList.remove("framed"); } if(name === "home" || !VIEW[name]) document.querySelectorAll(".view.fv").forEach(e => e.classList.remove("fv")); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
