@@ -727,6 +727,7 @@
       new MutationObserver(unc).observe(lg, {attributes: true, attributeFilter: ["class"]}); unc(); } catch(e){}
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
+  #viewPrices #billsSec{display:none!important} /* Beshr 2026-11-23: Add bill lives in the quick action bar */
   #viewPlan #log>div:first-child,#viewPlan #log>#addForm,#viewPlan #log>#month{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
   /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */
   #rotMsg{display:none}
