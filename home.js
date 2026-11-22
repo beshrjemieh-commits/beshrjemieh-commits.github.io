@@ -452,6 +452,7 @@
   /* smooth-transitions skill: pages are cards that grow from their spot under the title (layout animation, never scaled) */
   .view.fv{position:fixed!important;z-index:30;margin:0!important;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:14px 12px 24px;border-radius:22px;background:var(--bg,#F8FAFC);box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   .view.fv.pg-anim{overflow:hidden}
+  html body header #expAll,html body header #colAll{display:none!important} /* Beshr 2026-11-22: remove open-all / close-all */
   /* plain, even background behind an open page (Beshr 2026-11-22: "Fix background") — starts at the red line, the header stays */
   #pgBack{display:none;position:fixed;left:0;right:0;top:var(--hLine,0px);bottom:0;z-index:29;background:#FFFFFF;pointer-events:none}
   @media (prefers-color-scheme: dark){#pgBack{background:#0F2A4A}}
