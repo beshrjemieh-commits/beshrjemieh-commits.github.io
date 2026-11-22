@@ -397,7 +397,7 @@
   .wm-rc span:last-child{color:var(--wm-red);flex:none}
   .wm-all{display:block;margin:12px auto 0;background:none;border:none;color:var(--wm-blue-200);font-size:13px;cursor:pointer;min-height:44px}
   .wm-side-out{transition:opacity .24s ease,transform .36s var(--wm-ease);will-change:opacity,transform}
-  body.wm-open #viewHome>*:not(.wm-card):not(.wm-ph),body.wm-open #gsBox{opacity:0;transform:translateY(16px);pointer-events:none}
+  body.wm-open #viewHome>*:not(.wm-card):not(.wm-ph){opacity:0;transform:translateY(16px);pointer-events:none}
   body.wm-open{overflow:hidden}
   @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
   /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
@@ -425,7 +425,7 @@
   .view.fv.pg-closing{transition-duration:.34s}
   .pg-src{visibility:hidden}
   #qBar{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)}
-  body.pgopen #viewHome>*,body.pgopen #gsBox,body.pgopen #qBar{opacity:0;transform:translateY(16px);pointer-events:none}
+  body.pgopen #viewHome>*,body.pgopen #qBar{opacity:0;transform:translateY(16px);pointer-events:none}
   body.pgopen{overflow:hidden}
   #pgClose{display:none;position:fixed;left:50%;transform:translateX(-50%);z-index:32;width:88px;height:22px;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #pgClose::before{content:"";display:block;width:40px;height:5px;margin:7px auto 0;border-radius:3px;background:rgba(100,116,139,.45)}
@@ -440,9 +440,9 @@
   .tabHero .thN .pd{font-size:.32em;font-weight:500;letter-spacing:0}
   body.onhome #gsBox.wm-side-out{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)!important}
   section > div:first-child h2::after{transition:transform .32s cubic-bezier(.3,.6,.2,1)}
-  #shScrim{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .38s cubic-bezier(.3,.6,.2,1);z-index:60}
+  #shScrim{position:fixed;left:0;right:0;bottom:0;top:var(--hLine,0px);background:#000;opacity:0;pointer-events:none;transition:opacity .38s cubic-bezier(.3,.6,.2,1);z-index:60}
   body.shopen #shScrim{opacity:.38;pointer-events:auto}
-  #sheet{position:fixed;left:0;right:0;bottom:0;max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--card,#fff);color:var(--fg);border-radius:22px 22px 0 0;z-index:61;transform:translateY(105%);visibility:hidden;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s .38s;padding:6px 16px calc(18px + env(safe-area-inset-bottom,0px));box-sizing:border-box;box-shadow:0 -12px 30px -16px rgba(0,0,0,.4)}
+  #sheet{position:fixed;left:0;right:0;bottom:0;max-height:calc(100dvh - var(--hLine,12dvh));overflow-y:auto;overscroll-behavior:contain;background:var(--card,#fff);color:var(--fg);border-radius:22px 22px 0 0;z-index:61;transform:translateY(105%);visibility:hidden;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s .38s;padding:6px 16px calc(18px + env(safe-area-inset-bottom,0px));box-sizing:border-box;box-shadow:0 -12px 30px -16px rgba(0,0,0,.4)}
   body.shopen #sheet{transform:none;visibility:visible;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s}
   #sheet.closing{transition-duration:.34s,0s;transition-delay:0s,.34s}
   #sheet .shGrab{width:40px;height:5px;border-radius:3px;background:rgba(100,116,139,.45);margin:4px auto 8px}
@@ -541,6 +541,8 @@
     const bottom = Math.max(...kids.map(e => e.getBoundingClientRect().bottom)) + scrollY, barTop = q.getBoundingClientRect().top + scrollY;
     const fit = bottom <= barTop - 6; h.classList.toggle("homefit", fit); if(fit && scrollY) scrollTo(0, 0); }
   addEventListener("resize", () => requestAnimationFrame(fitHome));
+  // Beshr 2026-11-22: nothing moves above the top of the Balance/Budget row (only the wallet icon tab may poke above it)
+  window._hLine = () => { const c = document.querySelector("#viewHome>.wm-ph,#viewHome>.wm-card:not(.open):not(.wm-closing),#viewHome>.hcard"); const t = c ? c.getBoundingClientRect().top : 140; document.documentElement.style.setProperty("--hLine", t + "px"); return t; };
   function budgetPerDay(){ try { const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {}; const flex = ITEMS.filter(i => i.daily && state[i.k]);
     const plan = flex.reduce((a,i) => a + (+state[i.k].plan || 0), 0), spent = flex.reduce((a,i) => a + (sums[i.k] || 0), 0); return plan ? Math.max(0, (plan - spent) / daysLeftInMonth()) : 0; } catch(e){ return 0; } }
   function render(){
@@ -823,8 +825,8 @@
       let ph = null, busy = false;
       const dur = () => reduced() ? 0 : 420, durC = () => reduced() ? 0 : 340;
       const set = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
-      const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph),#gsBox")];
-      const target = () => { const gs = document.getElementById("gsBox"), top = Math.max(48, gs ? gs.getBoundingClientRect().top + 30 : 48) /* room for the flipped icon tab above the card */, bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+      const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph)")]; /* title + search stay put */
+      const target = () => { const top = Math.max(48, window._hLine() + 36) /* the flipped icon tab sits on the red line; nothing goes above it */, bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
         return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
       function open(card){
         if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
@@ -901,10 +903,10 @@
     const EZ = "cubic-bezier(.3,.6,.2,1)";
     let pg = null; window._pg = null; window._pgBusy = false;
     const setR = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
-    const pgTarget = () => { const gs = document.getElementById("gsBox"), top = Math.max(48, gs ? gs.getBoundingClientRect().top : 48), sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+    const pgTarget = () => { const top = Math.max(48, window._hLine()), sab = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
       document.documentElement.style.setProperty("--pgTop", top + "px");
       return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - sab)}; };
-    const pgSides = () => [...document.querySelectorAll("#viewHome>*,#gsBox,#qBar")];
+    const pgSides = () => [...document.querySelectorAll("#viewHome>*,#qBar")];
     const solid = c => c && !/rgba\(.*,\s*0\)$|transparent/.test(c);
     const bigOf = el => el && el.querySelector(".big");
     const ANCH = [[".thI", ".ic"], [".thT", ".tt"], [".thN", ".big"]];
@@ -1044,7 +1046,7 @@
       };
       window._sheet = function(k){
         const a = ACT[k]; if(!a || busy) return; if(cur2) close();
-        cur2 = k; sh.querySelector("#shTitle").textContent = a.t;
+        cur2 = k; window._hLine(); sh.querySelector("#shTitle").textContent = a.t;
         a.els.map(x => typeof x === "function" ? x() : document.getElementById(x)).filter(Boolean).forEach(el => { const mark = document.createComment("sheet"); moved.push({el, mark, hidden: el.hidden}); el.replaceWith(mark); body.appendChild(el); el.hidden = false; if(el.id === "stBox" || el.id === "inBox") el.style.display = "flex"; });
         sh.scrollTop = 0; document.body.classList.add("shopen");
         if(!reduced()) [...body.querySelectorAll(".field, .row, .pastebox, .upl, .tablebox, #fTerms, #fMsg, p")].slice(0, 12).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 120 + 40 * i, easing: EZ, fill: "backwards"}));
