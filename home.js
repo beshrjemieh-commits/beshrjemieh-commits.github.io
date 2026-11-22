@@ -393,7 +393,21 @@
     if(grp) grp.insertBefore(hb, grp.firstChild);
     TABS.home = ["tabHome", "viewHome"];
     hb.addEventListener("click", () => showTab("home"));
-    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(c) showTab(c.dataset.go); });
+    /* Balance card grows to fill the screen, then the Balance page shows (Beshr 2026-11-22). Short and GPU-only; skipped under Reduce Motion. */
+    function expandOpen(card, go){
+      if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
+      const r = card.getBoundingClientRect(), W = innerWidth, H = innerHeight, cs = getComputedStyle(card);
+      const rad = parseFloat(cs.borderTopLeftRadius) || 20;
+      const fx = document.createElement("div");
+      fx.style.cssText = `position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};`;
+      document.body.appendChild(fx);
+      const from = `inset(${r.top}px ${W - r.right}px ${H - r.bottom}px ${r.left}px round ${rad}px)`;
+      const grow = fx.animate([{clipPath: from}, {clipPath: "inset(0px 0px 0px 0px round 0px)"}], {duration: 280, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
+      grow.onfinish = () => { showTab(go); try { scrollTo(0, 0); } catch(e){}
+        const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 180, easing: "ease-out", fill: "forwards"});
+        fade.onfinish = () => fx.remove(); };
+    }
+    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
     window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
