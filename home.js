@@ -159,18 +159,22 @@
       const when = e.date === today ? L("today","اليوم") : (g("ymd") && e.date === g("ymd")(y)) ? L("yesterday","أمس") : e.date;
       const td = es.filter(x => x.date === today).reduce((a,x) => a + x.amount, 0);
       // same number as the Expenses page ("Spent today"), so it never changes while it moves (Beshr 2026-11-22)
-      return {big: td ? neg(td) : sar(0), bad: td > 0, subHtml: `${L("Last","آخر")}: <span>${esc((BY[e.cat] || {}).s || e.cat)}</span>${e.note ? " · " + esc(e.note) : ""} · ${when} · <b>${neg(e.amount)}</b>`};
+      // Beshr's card rule: one fact per line, key number top-right, no "·" chains, no "…" cuts
+      return {big: td ? neg(td) : sar(0), bad: td > 0, rows: `<span class="rw"><span class="rl">${L("Latest","آخر مصروف")}: <bdi>${esc(e.note || (BY[e.cat] || {}).s || e.cat)}</bdi> <i>${when}</i></span><b>${neg(e.amount)}</b></span>`};
     }
     if(tab === "prices"){
       const groups = [...priceGroups().values()];
       const multi = groups.map(r => { const best = new Map(); r.forEach(p => { const s = p.store || "?"; if(!best.has(s) || p.price < best.get(s).price) best.set(s, p); }); return [...best.values()].sort((a,b) => a.price - b.price); }).filter(r => r.length >= 2);
       if(multi.length){ multi.sort((a,b) => (b[b.length-1].price - b[0].price) - (a[a.length-1].price - a[0].price)); const r = pick(multi.slice(0, 3), 5), lo = r[0], hi = r[r.length-1], save = hi.price - lo.price;
-        return {big: `${esc(lo.item)}${lo.size ? " · " + esc(lo.size) : ""}`, mid:true,
+        const sameName = (lo.store || "").replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase() === (hi.store || "").replace(/\s*\(.*\)\s*$/, "").trim().toLowerCase();
+        const lab = x => { const on = /\(online\)/i.test(x.store || ""); return sameName ? (on ? L("Online","أونلاين") : L("In store","في المحل")) : esc((x.store || "?").replace(/\s*\((?:online|shared)\)\s*$/i, "")) + (on ? " " + L("online","أونلاين") : ""); };
+        return {big: `<span class="gain">▼ ${Math.round(save / hi.price * 100)}%</span>`,
+          rows: `<span class="rw"><bdi class="rl strong">${esc(lo.item)}${lo.size ? " " + esc(lo.size) : ""}</bdi></span><span class="pbx"><span class="pb good"><i>${lab(lo)}</i><b><bdi dir="ltr">\u20C1${money(lo.price)}</bdi></b></span><span class="pb old"><i>${lab(hi)}</i><s><bdi dir="ltr">\u20C1${money(hi.price)}</bdi></s></span></span>`,
           subHtml: L(`<b>${money(lo.price)}</b> at ${esc(lo.store)} vs ${money(hi.price)} at ${esc(hi.store)} · <span class="gain">▼ ${Math.round(save / hi.price * 100)}% (−${money(save)})</span>`,
                      `<b>${money(lo.price)}</b> في ${esc(lo.store)} مقابل ${money(hi.price)} في ${esc(hi.store)} · <span class="gain">▼ ${Math.round(save / hi.price * 100)}٪ (−${money(save)})</span>`)}; }
       const all = groups.flat(); if(!all.length) return {big: L("Start your price book","ابدأ دفتر الأسعار"), sub: L("Save what things cost and where.","سجّل أسعار الأشياء وأين."), small:true};
       const p = pick(all, 5);
-      return {big: `${esc(p.item)}${p.size ? " · " + esc(p.size) : ""}`, mid:true, subHtml: L(`${money(p.price)} SAR at ${esc(p.store || "?")} on ${esc(p.date)}`, `${money(p.price)} ريال في ${esc(p.store || "?")} بتاريخ ${esc(p.date)}`)};
+      return {big: `<bdi dir="ltr">\u20C1${money(p.price)}</bdi>`, rows: `<span class="rw"><bdi class="rl strong">${esc(p.item)}${p.size ? " " + esc(p.size) : ""}</bdi></span><span class="rw"><span class="rl">${esc(p.store || "?")}</span><i>${esc(p.date)}</i></span>`, subHtml: L(`${money(p.price)} SAR at ${esc(p.store || "?")} on ${esc(p.date)}`, `${money(p.price)} ريال في ${esc(p.store || "?")} بتاريخ ${esc(p.date)}`)};
     }
     if(tab === "forsa"){
       const live = (g("deals") || []).filter(d => d.status !== "hidden"), terms = ((g("hunt") || {}).terms || []).map(t => String(t).toLowerCase());
@@ -185,7 +189,11 @@
       if(d.paid > 0) sub = L(`${money(d.profit)} SAR cheaper than you paid · ${esc(d.source)}`, `أرخص بـ ${money(d.profit)} ريال مما دفعت · ${esc(d.source)}`);
       else if(d.market > 0) sub = L(`${fmt(d.profit)} SAR below market (${d.pct}%) · ${esc(d.source)}${d.city ? " · " + esc(d.city) : ""}`, `أقل من السوق بـ ${fmt(d.profit)} ريال (${d.pct}٪) · ${esc(d.source)}`);
       else sub = esc(d.offer || d.source) + (d.code ? " · " + L("code","كود") + " " + esc(d.code) : "");
-      return {big: esc(d.title), mid:true, subHtml: (d.price > 0 ? `<b>${sar(d.price)}</b> · ` : "") + sub};
+      const where = `<span class="rr"><bdi>${esc(d.source)}</bdi>${d.city ? `<bdi>${esc(d.city)}</bdi>` : ""}</span>`;
+      const line2 = d.paid > 0 ? `<span class="rl">${L(`You paid ${sar(d.paid)}`, `دفعت ${sar(d.paid)}`)} <b class="gain">▼ ${sar(d.profit)} ${L("less","أقل")}</b></span>`
+        : d.market > 0 ? `<span class="rl">${L("Market","السوق")} ${sar(d.market)} <b class="gain">▼ ${sar(d.profit)} ${L("below","أقل")}</b></span>`
+        : `<span class="rl">${esc(d.offer || "")}${d.code ? ` <b>${L("code","كود")} ${esc(d.code)}</b>` : ""}</span>`;
+      return {big: d.price > 0 ? sar(d.price) : `<span class="gain">${L("Offer","عرض")}</span>`, rows: `<span class="rw"><bdi dir="auto" class="rl strong">${esc(d.title)}</bdi></span><span class="rw">${line2}${where}</span>`, subHtml: (d.price > 0 ? `<b>${sar(d.price)}</b> · ` : "") + sub};
     }
     return {big:""};
   }
@@ -212,6 +220,20 @@
   .hcard .big.bad{color:var(--bad)}
   .hcard .sub{color:var(--muted);font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hcard .sub br{display:none}
+  .hcard .sub.rows{display:flex;flex-direction:column;gap:4px;white-space:normal;overflow:visible;font-size:13px}
+  .hcard .rows .rw{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0}
+  .hcard .rows .rl{min-width:0;overflow-wrap:anywhere}
+  .hcard .rows .rl.strong{color:var(--fg)!important;font-weight:600;font-size:15px}
+  .hcard .rows i{font-style:normal;color:var(--muted);font-size:12px;white-space:nowrap}
+  .hcard .rows .rw>b{white-space:nowrap;font-variant-numeric:tabular-nums}
+  .hcard .rows .rr{display:flex;flex-direction:column;align-items:flex-end;text-align:end;font-size:12px;flex:none;max-width:45%}
+  .hcard .rows .gain,.hcard .big .gain{color:var(--gain,#16A34A)!important}
+  .hcard .rows .pbx{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
+  .hcard .rows .pb{display:flex;flex-direction:column;gap:2px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface,#fff)}
+  .hcard .rows .pb.good{border-color:color-mix(in srgb,var(--gain,#16A34A) 45%,transparent);background:color-mix(in srgb,var(--gain,#16A34A) 9%,var(--surface,#fff))}
+  .hcard .rows .pb.good b{color:var(--gain,#16A34A)!important;font-size:16px}
+  .hcard .rows .pb.old s{color:var(--muted);font-size:14px}
+  .hcard .rows .pb i{font-size:11.5px}
   .hcard .sub b{color:var(--fg)}
   .hcard .hint{display:block;margin-top:3px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.045);font-size:11.5px;line-height:1.35;color:var(--fg)}
   .hcard .hint>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -566,7 +588,7 @@
         if(c.tab === "bal" && window.lastBalance != null) return wmCard();
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
-          ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
+          ${b.rows ? `<span class="sub rows" data-noi18n>${b.rows}</span>` : b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
           ${h ? `<span class="hint">${window.PH ? PH("sparkle") : ""}<span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
     requestAnimationFrame(() => window._sizeBand && window._sizeBand());
   }
