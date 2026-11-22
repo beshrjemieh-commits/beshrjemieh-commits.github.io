@@ -263,6 +263,14 @@
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hh .big{font-size:clamp(22px,7.5vw,28px)!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh{flex-wrap:wrap}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
+  /* Home: violet band behind title, search, Balance + Budget; organic wave edge; white below (Beshr 2026-11-22) */
+  #homeBand{display:none;position:absolute;left:0;right:0;top:0;height:var(--band,320px);z-index:-1;pointer-events:none;background:linear-gradient(165deg,#C9B8FF 0%,#B39BFC 55%,#A78BFA 100%)}
+  #homeBand svg{position:absolute;left:0;bottom:-39px;width:100%;height:40px;display:block}
+  body.onhome #homeBand{display:block}
+  #viewHome>.hcard[data-go=budget]+*,#viewHome>.hcard[data-go=bal]:not(:has(+ .hcard[data-go=budget]))+*{margin-top:40px!important}
+  body.onhome::before{display:none!important}
+  body.onhome{background:#FFFFFF!important}
+  @media (prefers-color-scheme: dark){#homeBand{background:linear-gradient(165deg,#4C3A8F 0%,#3F2F7D 100%)}#homeBand svg path{fill:#3F2F7D!important}body.onhome{background:var(--bg)!important}}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px}
   .hcard .hint>span{flex:1;min-width:0}
@@ -331,11 +339,19 @@
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
           ${h ? `<span class="hint">${window.PH ? PH("sparkle") : ""}<span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
+    requestAnimationFrame(() => window._sizeBand && window._sizeBand());
   }
   let rt = 0; const soon = () => { clearTimeout(rt); rt = setTimeout(() => { if(!document.getElementById("viewHome").hidden) render(); }, 250); };
 
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+    const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
+    band.innerHTML = '<svg viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0,0 L400,0 L400,14 C340,40 290,4 220,18 C150,32 110,40 60,22 C35,13 15,16 0,24 Z" fill="#A78BFA"/></svg>';
+    document.body.appendChild(band);
+    const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
+      const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
+      const r = c.getBoundingClientRect(); band.style.setProperty("--band", Math.round(r.bottom + window.scrollY + 8) + "px"); };
+    window.addEventListener("resize", sizeBand); window._sizeBand = sizeBand;
     const first = document.querySelector(".view"); if(!first) return;
     const v = document.createElement("div"); v.className = "view"; v.id = "viewHome"; v.setAttribute("role", "tabpanel"); v.hidden = true;
     first.parentNode.insertBefore(v, first);
