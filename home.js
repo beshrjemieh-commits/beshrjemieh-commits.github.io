@@ -296,18 +296,18 @@
   /* Balance opened from Home: the page is a big card that starts at the Balance card's top edge; title + search stay above (Beshr 2026-11-22) */
   body.framed{overflow:hidden;height:100dvh}
   body.framed::before{display:none!important}
-  body.framed #viewBal{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:28px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
+  body.framed #viewBal,#viewBal.ghost{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:28px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   body.framed #hintBar{display:none!important}
   /* the opened page keeps the Balance card's navy, so no colour changes while it grows (Beshr 2026-11-22) */
-  body.framed #viewBal{background:#0F2A4A!important;border:none!important}
-  body.framed #viewBal .tabHero .thL{color:#A9C1E0}
-  body.framed #viewBal .tabHero .thN{color:#FFFFFF}
-  body.framed #viewBal .tabHero .thN.bad{color:#FCA5A5}
-  body.framed #viewBal .tabHero .thH{background:rgba(255,255,255,.1);color:#E2E8F0}
-  body.framed #viewBal .tabHero .thH svg{color:#A9C1E0}
-  body.framed #viewBal .balhero,body.framed #viewBal .balhero .tag,body.framed #viewBal .balhero .hrow{color:#A9C1E0!important}
-  body.framed #viewBal .balhero .v,body.framed #viewBal #balNow{color:#FFFFFF!important}
-  @media (prefers-color-scheme: dark){body.framed #viewBal{background:var(--surface);border-color:var(--line)}}
+  body.framed #viewBal,#viewBal.ghost{background:#0F2A4A!important;border:none!important}
+  body.framed #viewBal .tabHero .thL,#viewBal.ghost .tabHero .thL{color:#A9C1E0}
+  body.framed #viewBal .tabHero .thN,#viewBal.ghost .tabHero .thN{color:#FFFFFF}
+  body.framed #viewBal .tabHero .thN.bad,#viewBal.ghost .tabHero .thN.bad{color:#FCA5A5}
+  body.framed #viewBal .tabHero .thH,#viewBal.ghost .tabHero .thH{background:rgba(255,255,255,.1);color:#E2E8F0}
+  body.framed #viewBal .tabHero .thH svg,#viewBal.ghost .tabHero .thH svg{color:#A9C1E0}
+  body.framed #viewBal .balhero,body.framed #viewBal .balhero .tag,body.framed #viewBal .balhero .hrow,#viewBal.ghost .balhero,#viewBal.ghost .balhero .tag,#viewBal.ghost .balhero .hrow{color:#A9C1E0!important}
+  body.framed #viewBal .balhero .v,body.framed #viewBal #balNow,#viewBal.ghost .balhero .v,#viewBal.ghost #balNow{color:#FFFFFF!important}
+  @media (prefers-color-scheme: dark){body.framed #viewBal,#viewBal.ghost{background:var(--surface);border-color:var(--line)}}
   /* card <-> page morph (View Transitions). Kept light: no page cross-fade, viewport-sized snapshot, waves paused, iOS-style curve */
   ::view-transition-group(balcard){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
   ::view-transition-old(balcard),::view-transition-new(balcard){height:100%;width:100%;object-fit:cover;object-position:top left;mix-blend-mode:normal}
@@ -326,7 +326,7 @@
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
   body.framed #viewBal.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
-  body.framed #viewBal.ghost{display:block!important}
+  #viewBal.ghost{display:block!important;border-radius:28px;padding:12px;box-sizing:border-box;overflow:hidden}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk, zoom is locked by the viewport so no focus zoom */
   body.framed #gSearch,body.framed #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
@@ -492,15 +492,18 @@
     const EASE = bez(.32, .72, 0, 1), DUR = 420, STEPS = 30;
     const inner = v => { let n = v.querySelector(":scope > .vbIn"); if(!n){ n = document.createElement("div"); n.className = "vbIn"; while(v.firstChild) n.appendChild(v.firstChild); v.appendChild(n); } return n; };
     // box sits at rect B (its real place); animate it so it looks like rect A at p=0 and B at p=1 (or the reverse)
-    function morph(box, A, B, reverse){
+    function morph(box, A, B, reverse, zoom, rA, rB){
       const kin = inner(box), kb = [], kc = [];
+      if(rB == null) rB = parseFloat(getComputedStyle(box).borderTopLeftRadius) || 28; if(rA == null) rA = rB;
       for(let n = 0; n <= STEPS; n++){
         let p = EASE(n / STEPS); if(reverse) p = 1 - EASE(n / STEPS);
         const w = A.width + (B.width - A.width) * p, h = A.height + (B.height - A.height) * p;
         const x = A.left + (B.left - A.left) * p, y = A.top + (B.top - A.top) * p;
         const sx = w / B.width, sy = h / B.height;
-        kb.push({transform: `translate(${x - B.left}px,${y - B.top}px) scale(${sx},${sy})`, offset: n / STEPS});
-        kc.push({transform: `scale(${1 / sx},${1 / sy})`, offset: n / STEPS});
+        const r = rA + (rB - rA) * p; // corners stay round and match the card (Beshr 2026-11-22: no sharp edges)
+        kb.push({transform: `translate(${x - B.left}px,${y - B.top}px) scale(${sx},${sy})`, borderRadius: `${r / sx}px / ${r / sy}px`, offset: n / STEPS});
+        const u = zoom ? sx : 1; // zoom: content shrinks evenly with the box instead of being cropped (Beshr 2026-11-22 "scale of reclosing is odd")
+        kc.push({transform: `scale(${u / sx},${u / sy})`, offset: n / STEPS});
       }
       box.style.transformOrigin = "0 0"; kin.style.transformOrigin = "0 0"; box.style.willChange = kin.style.willChange = "transform";
       const o = {duration: DUR, easing: "linear", fill: "both"};
@@ -518,22 +521,25 @@
     function expandOpen(card, go){
       if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); sizeBal(); return; }
       window._vtBusy = true;
-      const A = card.getBoundingClientRect(), snap = stillHome();
+      const A = card.getBoundingClientRect(), rA = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 20, snap = stillHome();
       showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
       const page = balView(); sizeBal(); page.scrollTop = 0; inner(page);
       page.classList.add("growing");
-      morph(page, A, page.getBoundingClientRect(), false).finally(() => { page.classList.remove("growing"); snap.remove(); window._vtBusy = false; });
+      morph(page, A, page.getBoundingClientRect(), false, true, rA).finally(() => { page.classList.remove("growing"); snap.remove(); window._vtBusy = false; });
     }
     window._balShrink = function(name){ // the page shrinks back into its card, no fades
       const page = balView(); if(!page || reduced() || !document.body.animate){ window._vtBusy = true; window.showTab(name); window._vtBusy = false; return; }
       window._vtBusy = true;
       const B = page.getBoundingClientRect(), st = page.scrollTop;
       const ghost = page.cloneNode(true); ghost.classList.add("ghost");
-      ghost.style.cssText = `position:fixed;left:${B.left}px;top:${B.top}px;width:${B.width}px;height:${B.height}px;margin:0;z-index:5;pointer-events:none`;
+      ghost.style.cssText = `position:fixed;max-height:none;left:${B.left}px;top:${B.top}px;width:${B.width}px;height:${B.height}px;margin:0;z-index:5;pointer-events:none`;
       document.body.appendChild(ghost); ghost.scrollTop = st;
-      window.showTab(name); document.body.classList.add("framed"); // keep the same look while it shrinks
-      const c = balCard(), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
-      morph(ghost, A, B, true).finally(() => { ghost.remove(); document.body.classList.remove("framed"); window._vtBusy = false; });
+      window.showTab(name); // Home in its real layout, so the box lands exactly on the card (no late jump)
+      Promise.resolve().then(() => { // measure after the riyal symbols settle, or the card is one line taller for a moment
+        const c = balCard(), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
+        const rA = c ? parseFloat(getComputedStyle(c).borderTopLeftRadius) || 20 : 28;
+        return morph(ghost, A, B, true, true, rA, 28);
+      }).finally(() => { ghost.remove(); window._vtBusy = false; });
     };
     function expandLayer(card, go){
       if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
