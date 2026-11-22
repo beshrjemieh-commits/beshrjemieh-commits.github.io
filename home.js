@@ -285,6 +285,9 @@
   @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand .bot path{fill:var(--bg)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
+  /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
+  body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
+  body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
   /* Balance + Budget line up row by row: title, big number, sub text (Beshr 2026-11-22) */
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{padding:14.5px 16px!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big .pd{font-size:16px;font-weight:500}
