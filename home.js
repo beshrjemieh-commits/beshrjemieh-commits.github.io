@@ -963,86 +963,120 @@
     }
     /* Pattern B (Beshr 2026-11-22): the page stays still and full size; a clip window grows from the card to the page and
        shrinks back the exact same way (no layout each frame, so no dropped frames). Only the anchors (icon, title, number) travel. */
+    /* ===== One motion engine for every page (Beshr 2026-11-22, Pattern B + G) =====
+       Every frame is computed from ONE value (e: 0 = the card, 1 = the open page) plus the finger's drag.
+       It runs on requestAnimationFrame from the first frame after the tap, so frame 0 is always the card at rest
+       (no jump), the background fades with e (never in one frame), a drag scrubs the same values, and on release
+       a spring carries on from exactly where the finger left it, with its speed, and lands on the card's slot measured then. */
     const clipOf = (r, T, rad) => `inset(${r.top - T.top}px ${T.left + T.width - (r.left + r.width)}px ${T.top + T.height - (r.top + r.height)}px ${r.left - T.left}px round ${rad}px)`;
     const fsOf = el => parseFloat(getComputedStyle(el).fontSize) || 16;
-    function anchors(card){ // translate + scale that puts each page anchor exactly on the card's own icon, title and number
-      const v = viewOf(pg && pg.go); if(!v || !card || !card.closest("#viewHome")) return []; const rtl = getComputedStyle(v).direction === "rtl", out = [];
-      ANCH.forEach(([ps, cs]) => { const pe = v.querySelector(".tabHero " + ps), ce = card.querySelector(cs); if(!pe || !ce || !ce.getClientRects().length) return;
-        const pr = pe.getBoundingClientRect(), cr = ce.getBoundingClientRect(), s = ps === ".thI" ? (cr.height / (pr.height || 1)) : fsOf(ce) / fsOf(pe);
-        const dx = rtl ? cr.right - pr.right : cr.left - pr.left, dy = cr.top - pr.top;
-        pe.style.transformOrigin = rtl ? "right top" : "left top"; out.push({el: pe, t: `translate(${dx}px,${dy}px) scale(${s})`}); });
-      return out; }
+    const lerp = (a, b, t) => a + (b - a) * t, clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+    const lerpR = (a, b, t) => ({left: lerp(a.left, b.left, t), top: lerp(a.top, b.top, t), width: lerp(a.width, b.width, t), height: lerp(a.height, b.height, t)});
+    const rgb = c => { const m = /rgba?\(([^)]+)\)/.exec(c || ""); if(!m) return [255, 255, 255, 1]; const p = m[1].split(",").map(parseFloat); return [p[0], p[1], p[2], p[3] == null ? 1 : p[3]]; };
+    const mix = (a, b, t) => `rgba(${a.map((x, i) => i < 3 ? Math.round(lerp(x, b[i], t)) : +lerp(x, b[i], t).toFixed(3)).join(",")})`;
     const pageOnly = v => { const k = v.querySelector(":scope > .vbIn") || v, h = k.querySelector(":scope > .tabHero");
       return [...k.children].filter(c => c !== h && c.getClientRects().length).concat(h ? [...h.querySelectorAll(":scope > .thS,:scope > .thH,:scope > .thList")] : []); };
-    let lockY = 0; // the page under the clock never scrolls while a page is open (Beshr: title went under the clock)
-    const lockBody = on => { const b = document.body.style; if(on){ lockY = scrollY; Object.assign(b, {position: "fixed", top: -lockY + "px", left: "0", right: "0"}); }
-      else if(b.position === "fixed"){ Object.assign(b, {position: "", top: "", left: "", right: ""}); scrollTo(0, lockY); } };
-    // k = how much of Home shows (0 = page fully open, 1 = Home at rest). Neighbours fade + drop 16px; the plain backdrop does the opposite.
-    const notCard = e => !e.classList.contains("pg-src") && !e.classList.contains("pg-land");
-    const sideK = k => ({opacity: k, transform: k >= 1 ? "none" : `translateY(${(16 * (1 - k)).toFixed(2)}px)`});
-    const sidesTo = (k0, k1, dur, ease) => { const d = scrim(); d.getAnimations().forEach(a => a.cancel()); d.style.display = "block"; d.style.opacity = "";
-      const a = d.animate([{opacity: 1 - k0}, {opacity: 1 - k1}], {duration: dur, easing: ease || EZ, fill: "both"}); if(k1 >= 1) a.finished.then(() => { if(!pg) d.style.display = "none"; }, () => {});
-      pgSides().filter(notCard).forEach(e => { e.getAnimations().forEach(x => x.cancel()); e.style.opacity = ""; e.style.transform = ""; e.animate([sideK(k0), sideK(k1)], {duration: dur, easing: ease || EZ, fill: "both"}); }); };
-    const sidesAt = k => { const d = scrim(); d.getAnimations().forEach(a => a.cancel()); d.style.display = "block"; d.style.opacity = String(1 - k);
-      pgSides().filter(notCard).forEach(e => { e.getAnimations().forEach(x => x.cancel()); const st = sideK(k); e.style.opacity = String(st.opacity); e.style.transform = st.transform; }); };
+    // the page never lets Home scroll behind it (no body re-layout, so Home never shifts and the title never goes under the clock)
+    const lockBody = () => {};
+    document.addEventListener("touchmove", e => { const b = document.body.classList; if(!b.contains("pgopen") && !b.contains("shopen")) return;
+      if(!e.target.closest || !e.target.closest(".view.fv,#sheet,#pgMenu")) { if(e.cancelable) e.preventDefault(); } }, {passive: false});
     const scrim = () => { let d = document.getElementById("pgBack"); if(!d){ d = document.createElement("div"); d.id = "pgBack"; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); } return d; };
-    const sidesClear = () => pgSides().forEach(e => e.getAnimations().forEach(a => a.cancel()));
+    const notCard = e => !e.classList.contains("pg-src") && !e.classList.contains("pg-land");
+    const homeAt = k => { const d = scrim(); d.style.display = k >= 1 ? "none" : "block"; d.style.opacity = (1 - k).toFixed(3);
+      pgSides().filter(notCard).forEach(e => { e.style.opacity = k >= 1 ? "" : k.toFixed(3); e.style.transform = k >= 1 ? "" : `translateY(${(16 * (1 - k)).toFixed(2)}px)`; }); };
+    // M = the live motion: geometry measured once per gesture, then apply(state) each frame
+    let M = null, raf = 0;
+    function measure(card, closing){
+      const v = viewOf(pg.go); v.style.transform = ""; const T = v.getBoundingClientRect(), B = card ? card.getBoundingClientRect() : {left: T.left + T.width / 2 - 40, top: T.top + 40, width: 80, height: 80};
+      const cs = card ? getComputedStyle(card) : null, rB = cs ? parseFloat(cs.borderTopLeftRadius) || 18 : 18;
+      const cardBg = rgb(cs && solid(cs.backgroundColor) ? cs.backgroundColor : pg.bg), pageBg = rgb(getComputedStyle(v).backgroundColor);
+      const an = []; ANCH.forEach(([ps, csel]) => { const pe = v.querySelector(".tabHero " + ps), ce = card && card.querySelector(csel); if(!pe || !ce || !ce.getClientRects().length) return;
+        pe.style.transform = ""; const pr = pe.getBoundingClientRect(), cr = ce.getBoundingClientRect();
+        if(getComputedStyle(pe).display === "inline") pe.style.display = "inline-block";
+        pe.style.transformOrigin = "0 0"; pe.style.willChange = "transform";
+        an.push({el: pe, pl: {x: pr.left - T.left, y: pr.top - T.top}, card: {x: cr.left, y: cr.top}, cs: ps === ".thI" ? cr.height / (pr.height || 1) : fsOf(ce) / fsOf(pe)}); });
+      return {v, T, B, rB, cardBg, pageBg, an, po: pageOnly(v), card, closing};
+    }
+    // s = {W (window rect on screen), X, Y, sc (page transform), a (0 = anchors on the card, 1 = in the page), from (anchor start screen pos/scale when closing), bg, po (page-only opacity), k (Home visible)}
+    function apply(s){ if(!M) return; const {v, T} = M;
+      v.style.transformOrigin = "0 0"; v.style.transform = (s.X || s.Y || s.sc !== 1) ? `translate(${s.X.toFixed(2)}px,${s.Y.toFixed(2)}px) scale(${s.sc.toFixed(4)})` : "";
+      const loc = {left: (s.W.left - T.left - s.X) / s.sc + T.left, top: (s.W.top - T.top - s.Y) / s.sc + T.top, width: s.W.width / s.sc, height: s.W.height / s.sc};
+      v.style.clipPath = clipOf(loc, T, (s.r || 22) / s.sc); v.style.backgroundColor = s.bg;
+      M.an.forEach((a, i) => { const f = s.from ? s.from[i] : {x: T.left + s.X + s.sc * a.pl.x, y: T.top + s.Y + s.sc * a.pl.y, s: s.sc}; // no "from" = the anchor rides with the page
+        const x = lerp(a.card.x, f.x, s.a), y = lerp(a.card.y, f.y, s.a), sz = lerp(a.cs, f.s, s.a);
+        const tx = (x - T.left - s.X) / s.sc - a.pl.x, ty = (y - T.top - s.Y) / s.sc - a.pl.y, ts = sz / s.sc;
+        a.el.style.transform = Math.abs(tx) + Math.abs(ty) < .05 && Math.abs(ts - 1) < .001 ? "" : `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${ts.toFixed(4)})`; });
+      M.po.forEach(el => { el.style.opacity = s.po >= 1 ? "" : s.po.toFixed(3); });
+      homeAt(s.k);
+    }
+    const restState = () => ({W: M.T, X: 0, Y: 0, sc: 1, r: 22, a: 1, bg: "", po: 1, k: 0});
+    // critically damped spring: x(t) from x0 with velocity v0 (units/s) to 1
+    function spring(x0, v0, w, step, done){ cancelAnimationFrame(raf); let t0 = 0; const c1 = x0 - 1, c2 = v0 + w * c1;
+      const tick = now => { if(!t0) t0 = now; const t = (now - t0) / 1000, ex = Math.exp(-w * t), x = 1 + (c1 + c2 * t) * ex;
+        if(t > 0.12 && Math.abs(1 - x) < .0015 && Math.abs((c2 - w * (c1 + c2 * t)) * ex) < .05){ step(1); done(); return; }
+        step(x); raf = requestAnimationFrame(tick); };
+      raf = requestAnimationFrame(tick); }
+    const W_OPEN = 13, W_CLOSE = 15;
     function pgOpen(src, go){
       const v = viewOf(go); if(!v || window._pgBusy) return;
-      const fromHome = !!src.closest("#viewHome"), A = src.getBoundingClientRect(), cs = getComputedStyle(src);
+      const fromHome = !!src.closest("#viewHome"), cs = getComputedStyle(src);
       const bg = solid(cs.backgroundColor) ? cs.backgroundColor : getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#fff";
-      const rA = parseFloat(cs.borderTopLeftRadius) || 18;
-      pg = {go, src: fromHome ? src : homeCard(go), bg, rA}; window._pg = go;
-      if(reduced()){ pgShow(go); lockBody(true); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen", "pgready"); return; }
+      pg = {go, src: fromHome ? src : homeCard(go), bg, rA: parseFloat(cs.borderTopLeftRadius) || 18}; window._pg = go;
+      src.getAnimations().forEach(a => a.cancel()); // the press (0.97) hands over to the grow
+      if(reduced()){ pgShow(go); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen", "pgready"); homeAt(0); return; }
       window._pgBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
-      lockBody(true);
-      const T = pgTarget(), A2 = src.getBoundingClientRect(); // same spot after the lock
-      if(pg.src) pg.src.classList.add("pg-src");
-      pgShow(go);
-      v.classList.add("fv", "pg-anim"); setR(v, T); v.scrollTop = 0;
-      const an = anchors(pg.src), pv = getComputedStyle(v).backgroundColor;
-      // the card's own lines fade away in place while the window grows
+      const T = pgTarget();
+      pgShow(go); v.classList.add("fv", "pg-anim"); setR(v, T); v.scrollTop = 0;
+      M = measure(pg.src, false); const {B, rB, cardBg, pageBg} = M;
+      // the card's own extra lines fade away in place
       const peeks = fromHome ? [...src.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), s2 = getComputedStyle(e);
         c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width + 2}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font-family:${s2.fontFamily};font-size:${s2.fontSize};font-weight:${s2.fontWeight};line-height:${s2.lineHeight};letter-spacing:${s2.letterSpacing};overflow:hidden;`;
-        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 90, easing: "ease-out", fill: "forwards"}); return c; }) : [];
-      v.animate([{clipPath: clipOf(A2, T, rA), backgroundColor: bg}, {clipPath: clipOf(T, T, 22), backgroundColor: pv}], {duration: 420, easing: EZ});
-      an.forEach(a => a.el.animate([{transform: a.t}, {transform: "none"}], {duration: 420, easing: EZ}));
-      pageOnly(v).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: EZ, fill: "backwards"}));
-      sidesTo(1, 0, 320); document.body.classList.add("pgopen");
-      setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); document.body.classList.add("pgready"); window._pgBusy = false; }, 430);
+        document.body.appendChild(c); return c; }) : [];
+      if(pg.src) pg.src.classList.add("pg-src");
+      document.body.classList.add("pgopen");
+      const at = e => ({W: lerpR(B, M.T, e), X: 0, Y: 0, sc: 1, r: lerp(rB, 22, e), a: e, bg: mix(cardBg, pageBg, clamp01(e * 1.6)), po: clamp01((e - .5) / .4), k: 1 - clamp01(e * 1.15)});
+      apply(at(0)); peeks.forEach(c => c.style.opacity = "1");
+      M.state = at(0); M.mode = "opening";
+      spring(0, 0, W_OPEN, e => { M.state = at(e); M.e = e; apply(M.state); const o = clamp01(1 - e * 5); peeks.forEach(c => c.style.opacity = o.toFixed(3)); },
+        () => { peeks.forEach(c => c.remove()); if(!M) return; apply(restState()); v.style.clipPath = ""; v.style.backgroundColor = ""; v.classList.remove("pg-anim"); M.mode = "open"; M.state = restState(); document.body.classList.add("pgready"); window._pgBusy = false; });
     }
-    function pgDone(){ const p = pg; if(!p) return; const v = viewOf(p.go);
+    function pgDone(){ const p = pg; if(!p) return; const v = viewOf(p.go); cancelAnimationFrame(raf);
+      const an = M ? M.an : []; M = null;
       pg = null; window._pg = null; window._pgBusy = false;
-      document.body.classList.remove("pgopen", "pgready"); lockBody(false);
-      window.showTab("home");
-      if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition","opacity"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); [...v.querySelectorAll("*")].forEach(e => { if(e.style.transform) e.style.transform = ""; }); }
-      sidesClear(); pgSides().forEach(e => { e.classList.remove("wm-side-out"); e.style.opacity = ""; e.style.transform = ""; }); const sb2 = document.getElementById("pgBack"); if(sb2){ sb2.getAnimations().forEach(a => a.cancel()); sb2.style.display = "none"; }
-      document.querySelectorAll("#viewHome .pg-src,#viewHome .pg-land").forEach(e => { e.classList.remove("pg-src", "pg-land"); e.getAnimations({subtree: true}).forEach(a => a.cancel()); });
+      document.body.classList.remove("pgopen", "pgready");
+      if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","backgroundColor","borderRadius","transform","transformOrigin","transition","opacity","clipPath"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel());
+        [...v.querySelectorAll("*")].forEach(e => { if(e.style.transform) e.style.transform = ""; if(e.style.opacity) e.style.opacity = ""; }); }
+      an.forEach(a => { a.el.style.willChange = ""; });
+      // swap to the real Home in the same frame: the landing card shows its own icon/title/number exactly where the page's were
+      window._pgQuiet = true; try { window.showTab("home"); } finally { window._pgQuiet = false; }
+      const d = document.getElementById("pgBack"); if(d){ d.style.display = "none"; d.style.opacity = ""; }
+      pgSides().forEach(e => { e.classList.remove("wm-side-out"); e.style.opacity = ""; e.style.transform = ""; e.getAnimations().forEach(a => a.cancel()); });
+      document.querySelectorAll("#viewHome .pg-src,#viewHome .pg-land").forEach(e => { e.classList.remove("pg-src", "pg-land"); });
     }
-    function pgClose(from){ // from = {k, vel} when a drag let go: the close carries on from the finger, with its speed
-      if(!pg || window._pgBusy) return; const p = pg, v = viewOf(p.go);
-      if(reduced() || !v){ pgDone(); return; }
-      window._pgBusy = true; document.body.classList.remove("pgready");
-      const curT = v.style.transform ? getComputedStyle(v).transform : "none", k0 = from ? from.k : 0;
-      v.style.transform = ""; v.style.transition = ""; v.style.borderRadius = "";
-      // 1) scroll goes back to the top invisibly: the content is shifted by the same amount, so nothing moves on screen
-      const k = v.querySelector(":scope > .vbIn") || v, s = v.scrollTop;
-      if(s > 0){ v.scrollTop = 0; [...k.children].forEach(c => c.style.transform = `translateY(${-s}px)`); }
-      // 2) Home is rebuilt now (same picks, nothing reshuffles) so we measure the REAL card
+    function pgClose(from){ // from = {vel} when a drag let go: the close carries on from the finger, with its speed
+      if(!pg || !M) { if(pg) pgDone(); return; } if(window._pgBusy && !from && M.mode !== "opening") return;
+      const p = pg, v = viewOf(p.go); if(reduced() || !v){ pgDone(); return; }
+      cancelAnimationFrame(raf); window._pgBusy = true; document.body.classList.remove("pgready");
+      const S0 = M.state || restState();
+      // where each anchor is on screen right now (rest, mid-open, or under the finger)
+      const from0 = M.an.map(a => { const r = a.el.getBoundingClientRect(); return {x: r.left, y: r.top, s: (a.el.style.transform.match(/scale\(([\d.]+)\)/) ? +RegExp.$1 : 1) * S0.sc}; });
+      // scroll goes to the top invisibly (content shifted by the same amount)
+      const kk = v.querySelector(":scope > .vbIn") || v, s = v.scrollTop;
+      if(s > 0){ v.scrollTop = 0; [...kk.children].forEach(c => { if(!c.classList.contains("tabHero")) c.style.transform = `translateY(${-s}px)`; }); }
+      // Home is rebuilt now (same picks), and the card's slot is measured NOW, so it lands exactly on it
       window._pg = null; try { render(); } finally { window._pg = p.go; }
-      const card = homeCard(p.go); if(card) card.classList.add("pg-land");
-      const T = v.getBoundingClientRect(), B = card ? card.getBoundingClientRect() : {left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80};
-      const ccs = card ? getComputedStyle(card) : null, bg = ccs && solid(ccs.backgroundColor) ? ccs.backgroundColor : p.bg, rB = ccs ? parseFloat(ccs.borderTopLeftRadius) || p.rA : p.rA;
-      const an = anchors(card), pv = getComputedStyle(v).backgroundColor;
-      const dur = from ? Math.max(240, Math.min(340, 340 - (from.vel || 0) * 0.06)) : 340, ease = from && from.vel > 400 ? "cubic-bezier(.2,.75,.25,1)" : EZ;
-      // 3) page-only content fades in 90ms; the window shrinks onto the card; the anchors travel home
-      pageOnly(v).forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 90, easing: "ease-out", fill: "forwards"}));
-      v.animate([{clipPath: clipOf(T, T, 22), transform: curT, backgroundColor: pv, offset: 0}, {backgroundColor: bg, offset: .72}, {clipPath: clipOf(B, T, rB), transform: "none", backgroundColor: "rgba(0,0,0,0)", offset: 1}], {duration: dur, easing: ease, fill: "forwards"});
-      an.forEach(a => a.el.animate([{transform: "none"}, {transform: a.t}], {duration: dur, easing: ease, fill: "forwards"}));
-      // the real card is already in place under the window: its own lines show as the window clears, so nothing swaps at the end
-      if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 140, delay: dur - 140, easing: "linear", fill: "both"}));
-      sidesTo(k0, 1, dur, ease);
-      setTimeout(pgDone, dur + 20);
+      const card = homeCard(p.go); if(card){ card.classList.add("pg-land"); card.getAnimations().forEach(a => a.cancel()); }
+      const keep = M.state; const G = measure(card, true); G.state = keep; M = G; M.mode = "closing";
+      const {B, rB, cardBg, pageBg} = M; const bg0 = rgb(S0.bg || `rgb(${pageBg.slice(0, 3).join(",")})`), clear = [cardBg[0], cardBg[1], cardBg[2], 0];
+      const po0 = S0.po == null ? 1 : S0.po;
+      const at = e => { const q = clamp01(e); return {W: lerpR(S0.W, B, q), X: lerp(S0.X, 0, q), Y: lerp(S0.Y, 0, q), sc: lerp(S0.sc, 1, q), r: lerp(S0.r || 22, rB, q), a: 1 - q, from: from0,
+        bg: q < .85 ? mix(bg0, cardBg, q / .85) : mix(cardBg, clear, (q - .85) / .15), po: po0 * clamp01(1 - q / .18), k: lerp(S0.k || 0, 1, clamp01(q * 1.1))}; };
+      // the release speed (pt/s) as progress per second along the path to the card
+      const dist = Math.max(80, Math.hypot(B.top - S0.W.top, B.left - S0.W.left) + Math.abs(B.height - S0.W.height) * .5), v0 = from && from.vel > 0 ? Math.min(8, from.vel / dist) : 0;
+      apply(at(0)); M.state = at(0);
+      if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.style.opacity = "0");
+      spring(0, v0, W_CLOSE, e => { const st = at(e); M.state = st; apply(st); if(card){ const o = clamp01((e - .82) / .18).toFixed(3); card.querySelectorAll(".sub,.hint").forEach(x => x.style.opacity = o); } },
+        () => { if(card) card.querySelectorAll(".sub,.hint").forEach(x => x.style.opacity = ""); pgDone(); });
     }
     function pgSwap(name){ // pages next to each other slide sideways (300ms)
       const v = viewOf(name), old = viewOf(pg.go); if(!v || window._pgBusy) return;
@@ -1054,6 +1088,7 @@
       goingBack = true; try { pgShow(name); } finally { goingBack = false; }
       if(old){ old.classList.remove("fv", "pg-anim"); ["top","left","width","height","background","borderRadius"].forEach(k => old.style[k] = ""); }
       v.classList.add("fv"); setR(v, pgTarget()); v.scrollTop = 0;
+      if(M){ M.v.style.clipPath = ""; M.v.style.transform = ""; } M = measure(s2, false); M.an.forEach(x => x.el.style.transform = ""); M.mode = "open"; M.state = restState();
       if(reduced()) return; window._pgBusy = true;
       const dx = (rtl ? -1 : 1) * dir * Math.min(120, innerWidth * .3);
       v.animate([{transform: `translateX(${dx}px)`, opacity: 0}, {transform: "none", opacity: 1}], {duration: 300, easing: EZ}).finished.then(() => { window._pgBusy = false; }, () => { window._pgBusy = false; });
@@ -1062,23 +1097,29 @@
     (function(){
       const fc = document.createElement("button"); fc.type = "button"; fc.id = "pgClose"; fc.setAttribute("aria-label", L("Back to Home","رجوع للرئيسية"));
       fc.addEventListener("click", () => pgClose()); document.body.appendChild(fc);
-      /* Pattern G: the WHOLE page follows the finger 1:1, shrinks to 0.9 at 250pt, corners round, Home shows through.
-         Let go past 120pt or flick faster than 800pt/s = close from right there; otherwise it springs back. Only from the top of the page. */
-      let y0 = null, x0 = 0, dy = 0, v = null, drag = false, hist = [];
-      const geo = d => { const k = Math.max(0, Math.min(1, d / 250)); return {k, ty: d >= 0 ? d : -60 * (1 - 1 / (1 + -d / 180)), s: 1 - .1 * k, r: 22 + 12 * k}; };
-      document.addEventListener("touchstart", e => { y0 = null; drag = false; if(!pg || e.touches.length > 1) return; const vv = viewOf(pg.go); if(!vv || !vv.contains(e.target) || e.target.closest("input,textarea,select")) return;
-        if(window._pgBusy){ if(vv.classList.contains("pg-anim")){ vv.getAnimations({subtree: true}).forEach(a => { try { a.finish(); } catch(x){} }); pgSides().concat([scrim()]).forEach(el => el.getAnimations().forEach(a => { try { a.finish(); } catch(x){} })); } else return; } // grab a page that is still opening
-        if(vv.scrollTop > 0) return; v = vv; y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; hist = [[performance.now(), y0]]; }, {passive: true});
-      document.addEventListener("touchmove", e => { if(y0 == null || !v) return; const y = e.touches[0].clientY; dy = y - y0;
-        if(!drag){ if(Math.abs(e.touches[0].clientX - x0) > Math.abs(dy) && Math.abs(dy) < 10){ return; } if(dy > 8 && v.scrollTop <= 0){ drag = true; y0 += 8; dy -= 8; sidesAt(0); } else { if(dy < -8) y0 = null; return; } }
-        e.preventDefault(); hist.push([performance.now(), y]); if(hist.length > 5) hist.shift();
-        const g = geo(dy); v.style.transformOrigin = "50% 0"; v.style.transform = `translateY(${g.ty}px) scale(${g.s})`; v.style.borderRadius = g.r + "px"; sidesAt(g.k * .85); }, {passive: false});
-      const end = () => { if(y0 == null || !v || !drag){ y0 = null; return; } y0 = null; drag = false;
-        const a = hist[0], b = hist[hist.length - 1], vel = b && a && b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) * 1000 : 0, g = geo(dy);
-        if(dy > 120 || vel > 800){ pgClose({k: g.k * .85, vel: Math.max(0, vel)}); return; }
-        const t = v, cur = getComputedStyle(t).transform; t.style.transform = ""; t.style.borderRadius = "";
-        t.animate([{transform: cur, borderRadius: g.r + "px"}, {transform: "none", borderRadius: "22px"}], {duration: 380, easing: "cubic-bezier(.3,1.25,.5,1)"});
-        sidesTo(g.k * .85, 0, 300); };
+      /* Pattern G drag: the WHOLE page follows the finger 1:1 and shrinks toward its own card (0.9 at 250pt), Home shows through.
+         Updates are batched to one per frame. Let go past 120pt or flick faster than 800pt/s = the close carries on from there; otherwise it springs back. */
+      let y0 = null, x0 = 0, dy = 0, drag = false, hist = [], base = null, pend = 0;
+      const dragState = d => { const T = M.T, B = M.B, k = clamp01(d / 250), sc = 1 - .1 * k, ty = d >= 0 ? d : -60 * (1 - 1 / (1 + -d / 180));
+        const X = T.width * (1 - sc) / 2 + ((B.left + B.width / 2) - (T.left + T.width / 2)) * .22 * k, Y = ty;
+        const W = {left: T.left + X + sc * (base.W.left - T.left), top: T.top + Y + sc * (base.W.top - T.top), width: base.W.width * sc, height: base.W.height * sc};
+        return {W, X, Y, sc, r: 22 + 12 * k, a: base.a, bg: base.bg, po: base.po, k: Math.max(base.k, k * .85)}; };
+      document.addEventListener("touchstart", e => { y0 = null; drag = false; if(!pg || !M || e.touches.length > 1) return; const vv = M.v;
+        if(!vv.contains(e.target) || e.target.closest("input,textarea,select") || !(M.mode === "open" || M.mode === "opening")) return;
+        if(vv.scrollTop > 0) return; y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; hist = [[performance.now(), y0]]; }, {passive: true});
+      document.addEventListener("touchmove", e => { if(y0 == null || !M) return; const y = e.touches[0].clientY; dy = y - y0;
+        if(!drag){ if(Math.abs(e.touches[0].clientX - x0) > Math.abs(dy) && Math.abs(dy) < 10) return;
+          if(dy > 8 && M.v.scrollTop <= 0){ drag = true; y0 += 8; dy -= 8; cancelAnimationFrame(raf); base = M.state || restState(); M.mode = "drag"; window._pgBusy = true; document.body.classList.remove("pgready"); M.v.style.willChange = "transform"; }
+          else { if(dy < -8) y0 = null; return; } }
+        if(e.cancelable) e.preventDefault(); hist.push([performance.now(), y]); if(hist.length > 5) hist.shift();
+        if(!pend) pend = requestAnimationFrame(() => { pend = 0; if(!M || M.mode !== "drag") return; M.state = dragState(dy); apply(M.state); }); }, {passive: false});
+      const end = () => { if(y0 == null || !drag || !M){ y0 = null; return; } y0 = null; drag = false; cancelAnimationFrame(pend); pend = 0;
+        M.state = dragState(dy); apply(M.state); M.v.style.willChange = "";
+        const a = hist[0], b = hist[hist.length - 1], vel = b && a && b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) * 1000 : 0;
+        if(dy > 120 || vel > 800){ window._pgBusy = false; M.mode = "open"; pgClose({vel: Math.max(0, vel)}); return; }
+        const D = M.state, R = restState(), v = M.v; M.mode = "settling";
+        spring(0, Math.max(0, -vel) / 300, 16, q => { const st = {W: lerpR(D.W, R.W, q), X: lerp(D.X, 0, q), Y: lerp(D.Y, 0, q), sc: lerp(D.sc, 1, q), r: lerp(D.r, 22, q), a: lerp(D.a, 1, q), bg: q >= 1 ? "" : D.bg, po: lerp(D.po, 1, q), k: lerp(D.k, 0, q)}; M.state = st; apply(st); },
+          () => { apply(restState()); v.style.clipPath = ""; v.style.backgroundColor = ""; v.classList.remove("pg-anim"); M.mode = "open"; M.state = restState(); document.body.classList.add("pgready"); window._pgBusy = false; }); };
       document.addEventListener("touchend", end, {passive: true}); document.addEventListener("touchcancel", end, {passive: true});
       document.addEventListener("keydown", e => { if(e.key === "Escape" && pg && !document.body.classList.contains("shopen")) pgClose(); });
       addEventListener("popstate", () => { if(pg) pgClose(); });
@@ -1172,7 +1213,7 @@
       const ACT = {
         exp:   {t: L("Add a cost","أضف مصروف"), els: ["addForm"], focus: "fAmount", tab: "plan", saved: () => !document.getElementById("fAmount").value},
         hunt:  {t: L("New hunt","بحث جديد"), els: [() => { const f = document.getElementById("fSearch"); return f && f.parentElement; }, "fLinks", "fMsg", "fTerms"], focus: "fSearch", tab: "forsa"},
-        bill:  {t: L("Add bill","أضف فاتورة"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }, "billList"], tab: "prices"},
+        bill:  {t: L("Add bill","أضف فاتورة"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }], tab: "prices"}, // Beshr: keep only Upload bill in the sheet
         in:    {t: L("Money in","مبلغ داخل"), els: ["inBox"], focus: "inAmt", tab: "bal", saved: () => !document.getElementById("inAmt").value},
         start: {t: L("Starting point","نقطة البداية"), els: ["stBox"], focus: "stCash", tab: "bal"}
       };
@@ -1207,7 +1248,7 @@
       if(window._pgBusy) return; // one moving thing at a time
       if(name === "bal" && window._wmOpen) name = "budget";
       if(window._wmOpen && window._wmReset){ window._wmReset(); render(); }
-      if(pg){ if(name === "home"){ pgClose(); return; } if(VIEW[name]){ if(name !== pg.go) pgSwap(name); return; } const p = pg; pg = null; window._pg = null; const v = viewOf(p.go); if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform"].forEach(k => v.style[k] = ""); } sidesClear(); pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen", "pgready"); lockBody(false); document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src")); }
+      if(pg){ if(name === "home"){ pgClose(); return; } if(VIEW[name]){ if(name !== pg.go) pgSwap(name); return; } const p = pg; pg = null; window._pg = null; const v = viewOf(p.go); if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform"].forEach(k => v.style[k] = ""); } cancelAnimationFrame(raf); M = null; homeAt(1); pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen", "pgready"); document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src")); }
       if(VIEW[name] && cur === "home" && !window._vtBusy){
         if(name === "bal" && !window._fromEl){ const w = document.getElementById("wmCard"); if(w){ w.click(); return; } }
         const src = window._fromEl || homeCard(name); window._fromEl = null; if(src){ pgOpen(src, name); return; } }
