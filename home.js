@@ -264,17 +264,17 @@
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh{flex-wrap:wrap}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
   /* Home: violet band behind title, search, Balance + Budget; organic wave edge; white below (Beshr 2026-11-22) */
-  #homeBand{display:none;position:absolute;left:0;right:0;top:0;height:var(--band,320px);z-index:-1;pointer-events:none;background:#FFFFFF}
+  #homeBand{display:none;position:absolute;left:0;right:0;top:0;height:var(--band,320px);z-index:-1;pointer-events:none;background:#F8FAFC}
   #homeBand svg{position:absolute;left:0;bottom:-39px;width:100%;height:40px;display:block}
   body.onhome #homeBand{display:block}
   #viewHome>.hcard[data-go=budget]+*,#viewHome>.hcard[data-go=bal]:not(:has(+ .hcard[data-go=budget]))+*{margin-top:40px!important}
   body.onhome::before{display:none!important}
-  body.onhome{background:linear-gradient(180deg,#B9A3FD 0%,#A78BFA 60%,#9B7BF7 100%)!important}
-  @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand svg path{fill:var(--bg)!important}body.onhome{background:linear-gradient(180deg,#4C3A8F 0%,#3F2F7D 100%)!important}}
+  body.onhome{background:linear-gradient(180deg,#16365E 0%,#0F2A4A 100%)!important}
+  @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand svg path{fill:var(--bg)!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{font-size:clamp(16px,5vw,19px)!important}
-  #viewHome .hcard:not([data-go=bal]) .hh .ic{box-shadow:0 4px 10px -3px rgba(91,33,182,.45),inset 0 1px 0 rgba(255,255,255,.9)!important}
+  #viewHome .hcard:not([data-go=bal]) .hh .ic{box-shadow:0 4px 10px -3px rgba(15,42,74,.35),inset 0 1px 0 rgba(255,255,255,.9)!important}
   #viewHome .hcard[data-go=forsa] .hh .ic{box-shadow:0 4px 10px -3px rgba(180,83,9,.55),inset 0 1px 0 rgba(255,255,255,.5)!important}
   #viewHome .hcard:not([data-go=bal]) .hh .tt{font-weight:700!important;color:var(--fg)!important}
   #viewHome .hcard[data-go=forsa] .hh .tt{color:var(--deal-ink)!important}
@@ -356,7 +356,7 @@
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
-    band.innerHTML = '<svg viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0,0 L400,0 L400,14 C340,40 290,4 220,18 C150,32 110,40 60,22 C35,13 15,16 0,24 Z" fill="#FFFFFF"/></svg>';
+    band.innerHTML = '<svg viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0,0 L400,0 L400,14 C340,40 290,4 220,18 C150,32 110,40 60,22 C35,13 15,16 0,24 Z" fill="#F8FAFC"/></svg>';
     document.body.appendChild(band);
     const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
       const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
