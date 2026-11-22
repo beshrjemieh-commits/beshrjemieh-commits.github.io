@@ -879,7 +879,8 @@
         if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
         card.getAnimations().forEach(a => a.cancel()); card.style.transform = ""; // drop the 0.97 press first so we measure the real card
         const r = card.getBoundingClientRect();
-        ph = document.createElement("div"); ph.className = "wm-ph"; ph.style.height = card.offsetHeight + "px"; ph.style.minHeight = card.offsetHeight + "px"; card.after(ph);
+        ph = document.createElement("div"); ph.className = "wm-ph"; const cs0 = getComputedStyle(card), hh = cs0.boxSizing === "border-box" ? parseFloat(cs0.height) : card.offsetHeight; // layout size (ignores the press scale), sub-pixel exact
+        ph.style.height = hh + "px"; ph.style.minHeight = hh + "px"; card.after(ph);
         sides().forEach(e => e.classList.add("wm-side-out"));
         card.style.position = "fixed"; card.style.margin = "0"; set(card, r); card.getBoundingClientRect();
         card.classList.add("open"); document.body.classList.add("wm-open"); set(card, target());
@@ -993,10 +994,11 @@
       const cs = card ? getComputedStyle(card) : null, rB = cs ? parseFloat(cs.borderTopLeftRadius) || 18 : 18;
       const cardBg = rgb(cs && solid(cs.backgroundColor) ? cs.backgroundColor : pg.bg), pageBg = rgb(getComputedStyle(v).backgroundColor);
       const an = []; ANCH.forEach(([ps, csel]) => { const pe = v.querySelector(".tabHero " + ps), ce = card && card.querySelector(csel); if(!pe || !ce || !ce.getClientRects().length) return;
-        pe.style.transform = ""; const pr = pe.getBoundingClientRect(), cr = ce.getBoundingClientRect();
+        pe.style.transform = ""; const pr = pe.getBoundingClientRect(); let cr = ce.getBoundingClientRect();
+        if(ps === ".thN"){ try { const rg = document.createRange(); rg.selectNodeContents(ce); const tr = rg.getBoundingClientRect(); if(tr.width) cr = tr; } catch(e){} } // land on the number's TEXT (it is right-aligned in the card), not its box
         if(getComputedStyle(pe).display === "inline") pe.style.display = "inline-block";
         pe.style.transformOrigin = "0 0"; pe.style.willChange = "transform";
-        an.push({el: pe, pl: {x: pr.left - T.left, y: pr.top - T.top}, card: {x: cr.left, y: cr.top}, cs: ps === ".thI" ? cr.height / (pr.height || 1) : fsOf(ce) / fsOf(pe)}); });
+        an.push({isN: ps === ".thN", el: pe, pl: {x: pr.left - T.left, y: pr.top - T.top}, card: {x: cr.left, y: cr.top}, cs: ps === ".thI" ? cr.height / (pr.height || 1) : fsOf(ce) / fsOf(pe)}); });
       return {v, T, B, rB, cardBg, pageBg, an, po: pageOnly(v), card, closing};
     }
     // s = {W (window rect on screen), X, Y, sc (page transform), a (0 = anchors on the card, 1 = in the page), from (anchor start screen pos/scale when closing), bg, po (page-only opacity), k (Home visible)}
@@ -1005,7 +1007,8 @@
       const loc = {left: (s.W.left - T.left - s.X) / s.sc + T.left, top: (s.W.top - T.top - s.Y) / s.sc + T.top, width: s.W.width / s.sc, height: s.W.height / s.sc};
       v.style.clipPath = clipOf(loc, T, (s.r || 22) / s.sc); v.style.backgroundColor = s.bg;
       M.an.forEach((a, i) => { const f = s.from ? s.from[i] : {x: T.left + s.X + s.sc * a.pl.x, y: T.top + s.Y + s.sc * a.pl.y, s: s.sc}; // no "from" = the anchor rides with the page
-        const x = lerp(a.card.x, f.x, s.a), y = lerp(a.card.y, f.y, s.a), sz = lerp(a.cs, f.s, s.a);
+        // the number shrinks to the card's size early in a close (and grows late in an open), and moves to its side early, so it never runs over the title (Beshr 2026-11-23)
+        const aN = a.isN ? s.a * s.a : s.a, x = lerp(a.card.x, f.x, aN), y = lerp(a.card.y, f.y, s.a), sz = lerp(a.cs, f.s, aN); // number: to its side and size first, then up
         const tx = (x - T.left - s.X) / s.sc - a.pl.x, ty = (y - T.top - s.Y) / s.sc - a.pl.y, ts = sz / s.sc;
         a.el.style.transform = Math.abs(tx) + Math.abs(ty) < .05 && Math.abs(ts - 1) < .001 ? "" : `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${ts.toFixed(4)})`; });
       M.po.forEach(el => { el.style.opacity = s.po >= 1 ? "" : s.po.toFixed(3); });
