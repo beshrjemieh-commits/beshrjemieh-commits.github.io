@@ -291,6 +291,13 @@
   body.framed::before{display:none!important}
   body.framed .wrap{margin:12px!important;max-width:none!important;border-radius:28px;background:var(--bg);min-height:calc(100dvh - 24px);box-sizing:border-box;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);overflow:clip}
   @media (prefers-color-scheme: dark){body.framed{background:#000!important}}
+  /* card <-> page morph (View Transitions) */
+  ::view-transition-group(balcard){animation-duration:.38s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+  ::view-transition-old(balcard),::view-transition-new(balcard){height:100%;width:100%;object-fit:cover;object-position:top left;border-radius:28px}
+  ::view-transition-old(balcard){animation-duration:.18s}
+  ::view-transition-new(balcard){animation-duration:.3s;animation-delay:.08s}
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.3s}
+  @media (prefers-reduced-motion: reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
   body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
@@ -399,7 +406,39 @@
     TABS.home = ["tabHome", "viewHome"];
     hb.addEventListener("click", () => showTab("home"));
     /* Balance card grows to fill the screen, then the Balance page shows (Beshr 2026-11-22). Short and GPU-only; skipped under Reduce Motion. */
+    /* Balance card morphs into the Balance page (Beshr 2026-11-22: "why consider it a different page?").
+       Uses the browser's own View Transition (iPhone iOS 18+): the real card grows into the framed page on the GPU.
+       Older phones fall back to a simple grow layer. */
+    const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const wrapEl = () => document.querySelector(".wrap");
+    const balCard = () => document.querySelector('#viewHome .hcard[data-go=bal]');
+    window._vtBusy = false;
     function expandOpen(card, go){
+      if(reduced()){ showTab(go); document.body.classList.add("framed"); return; }
+      if(document.startViewTransition){
+        window._vtBusy = true;
+        card.style.viewTransitionName = "balcard";
+        const t = document.startViewTransition(() => {
+          card.style.viewTransitionName = "";
+          showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
+          const w = wrapEl(); if(w) w.style.viewTransitionName = "balcard";
+        });
+        t.finished.finally(() => { window._vtBusy = false; const w = wrapEl(); if(w) w.style.viewTransitionName = ""; });
+        return;
+      }
+      return expandLayer(card, go);
+    }
+    window._balShrink = function(name){ // Balance page shrinks back into its card on the way Home
+      window._vtBusy = true;
+      const w = wrapEl(); if(w) w.style.viewTransitionName = "balcard";
+      const t = document.startViewTransition(() => {
+        if(w) w.style.viewTransitionName = "";
+        window.showTab(name);
+        const c = balCard(); if(c) c.style.viewTransitionName = "balcard";
+      });
+      t.finished.finally(() => { window._vtBusy = false; const c = balCard(); if(c) c.style.viewTransitionName = ""; });
+    };
+    function expandLayer(card, go){
       if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
       const r = card.getBoundingClientRect(), W = innerWidth, H = innerHeight, cs = getComputedStyle(card);
       const rad = parseFloat(cs.borderTopLeftRadius) || 20;
@@ -421,7 +460,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && document.startViewTransition && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
