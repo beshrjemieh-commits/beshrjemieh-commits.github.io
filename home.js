@@ -258,13 +258,13 @@
   /* Balance + Budget side by side (Beshr 2026-11-22, from his video) */
   #viewHome{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px}
   #viewHome>*{grid-column:1 / -1}
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]),#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{grid-column:span 1;justify-content:flex-start}
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hint{display:none!important}
-  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .sub,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .sub{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:13px!important}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]),#viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget]{grid-column:span 1;justify-content:flex-start}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint,#viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget] .hint{display:none!important}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .sub,#viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget] .sub{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:13px!important}
   /* Balance card keeps its month line (Beshr 2026-11-22: show the data as before) */
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hh .big{font-size:clamp(22px,7.5vw,28px)!important}
-  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh{flex-wrap:wrap}
-  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
+  #viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget] .hh{flex-wrap:wrap}
+  #viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
   /* Home: violet band behind title, search, Balance + Budget; organic wave edge; white below (Beshr 2026-11-22) */
   #homeBand{display:none;position:absolute;left:0;right:0;top:0;height:var(--band,320px);z-index:-1;pointer-events:none;background:#FFFFFF}
   /* sine curve separates the two colours and drifts sideways; a faint inverted one at the top (Beshr 2026-11-22) */
@@ -336,6 +336,67 @@
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
+
+  /* ===== Wallet card (Beshr's wallet-card-morph.html): same tokens, timings and behaviour ===== */
+  #viewHome{--wm-navy:#0F2A4A;--wm-deep:#0B2240;--wm-soft:#1C3A5E;--wm-line:#24456B;--wm-stitch:#2E557F;--wm-ice:#E6F1FB;--wm-blue-200:#B5D4F4;--wm-blue-400:#85B7EB;--wm-amber:#FAC775;--wm-red-bg:#4A1B1B;--wm-red-text:#F7C1C1;--wm-red-bar:#F09595;--wm-red:#A32D2D;--wm-green-bar:#97C459;--wm-green-text:#C0DD97;--wm-green:#3B6D11;--wm-ease:cubic-bezier(.2,.9,.3,1.05);--wm-ease-flap:cubic-bezier(.3,1.3,.5,1);--wm-dur:.42s}
+  #viewHome>.wm-card,#viewHome>.wm-ph,#viewHome>.wm-card+.hcard[data-go=budget],#viewHome>.wm-ph+.hcard[data-go=budget]{grid-column:span 1!important}
+  .wm-card{position:relative;height:156px;background:var(--wm-navy);border-radius:18px;cursor:pointer;overflow:hidden;color:#fff;-webkit-tap-highlight-color:transparent;box-shadow:0 10px 24px -14px rgba(15,42,74,.55);
+    transition:all var(--wm-dur) var(--wm-ease),transform .12s}
+  .wm-card:active{transform:scale(.97)}
+  .wm-card.open{overflow-y:auto;overscroll-behavior:contain;cursor:auto;z-index:20}
+  .wm-card.open:active{transform:none}
+  .wm-card p{margin:0}
+  .wm-flap{position:absolute;inset-inline-start:0;top:0;width:36px;height:36px;z-index:3;transform-origin:top center;transform-style:preserve-3d;transform:perspective(400px) rotateX(0);transition:transform .45s var(--wm-ease-flap)}
+  .wm-card.open .wm-flap{transform:perspective(400px) rotateX(180deg)}
+  .wm-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .wm-face svg{width:18px;height:18px}
+  .wm-front{background:var(--wm-ice);border-start-start-radius:18px;border-end-end-radius:12px;color:var(--wm-navy)}
+  .wm-back{background:var(--wm-line);border-end-end-radius:12px;border-end-start-radius:18px;transform:rotateX(180deg);color:var(--wm-blue-400)}
+  .wm-label{position:absolute;inset-inline-start:46px;top:11px;font-size:12px;color:var(--wm-blue-400);transition:all .4s}
+  .wm-card.open .wm-label{inset-inline-start:16px;top:18px;font-size:13px}
+  .wm-num{position:absolute;inset-inline-start:14px;top:44px;font-size:34px;font-weight:500;color:#fff;letter-spacing:-.5px;font-variant-numeric:tabular-nums;white-space:nowrap;transition:all var(--wm-dur) var(--wm-ease)}
+  .wm-num.bad{color:var(--wm-red-text)}
+  .wm-card.open .wm-num{top:36px;inset-inline-start:16px;font-size:50px}
+  .wm-dec{font-size:0;color:var(--wm-blue-400);transition:font-size var(--wm-dur)}
+  .wm-card.open .wm-dec{font-size:24px}
+  .wm-pill{position:absolute;inset-inline-end:10px;top:9px;background:var(--wm-red-bg);color:var(--wm-red-text);font-size:11px;font-weight:500;padding:3px 8px;border-radius:999px;transition:all .4s;white-space:nowrap}
+  .wm-pill.up{background:#1E3A14;color:var(--wm-green-text)}
+  .wm-card.open .wm-pill{inset-inline-end:14px;top:18px;font-size:12px}
+  .wm-mini{position:absolute;left:6px;right:6px;bottom:6px;height:40px;padding:0 10px;display:flex;align-items:center;gap:6px;background:var(--wm-deep);border:1px dashed var(--wm-stitch);border-radius:14px;font-size:12px;color:var(--wm-blue-200);transition:opacity .15s;overflow:hidden;white-space:nowrap}
+  .wm-mini svg{width:15px;height:15px;flex:none;color:var(--wm-amber)}
+  .wm-mini span{overflow:hidden;text-overflow:ellipsis}
+  .wm-card.open .wm-mini{opacity:0;pointer-events:none}
+  .wm-ex{opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .15s,transform .15s}
+  .wm-card.open .wm-ex{opacity:1;transform:none;pointer-events:auto;transition:opacity .3s var(--d,.2s),transform .3s var(--d,.2s)}
+  .wm-start{position:absolute;inset-inline-start:16px;inset-inline-end:16px;top:106px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--wm-blue-400);cursor:pointer}
+  .wm-start svg{width:14px;height:14px;flex:none}
+  .wm-body{position:absolute;left:14px;right:14px;top:138px;padding-bottom:14px}
+  .wm-chip{display:flex;align-items:center;gap:8px;background:var(--wm-soft);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--wm-ice)}
+  .wm-chip svg{width:18px;height:18px;flex:none;color:var(--wm-amber)}
+  .wm-chip.warn{background:var(--wm-red-bg);color:var(--wm-red-text)}
+  .wm-chip.warn svg{color:var(--wm-red-text)}
+  .wm-flow-title{margin:14px 0 0!important;font-size:12px;color:var(--wm-blue-400)}
+  .wm-fr{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:11px}
+  .wm-fr .k{width:40px;color:var(--wm-blue-400)}
+  .wm-fr .t{flex:1;position:relative;height:8px}
+  .wm-fr .v{width:70px;text-align:end;font-variant-numeric:tabular-nums}
+  .wm-bar{position:absolute;top:0;height:8px;border-radius:4px}
+  .wm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+  .wm-mc{background:#fff;border-radius:16px;padding:12px;color:#0F172A}
+  .wm-mc .h{font-size:12px;font-weight:500;color:#5F5E5A}
+  .wm-mc .n{margin-top:4px!important;font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+  .wm-mc .s{margin-top:8px!important;font-size:12px;color:#5F5E5A}
+  .wm-btn{display:inline-block;margin-top:10px;border:.5px solid var(--wm-blue-200);color:#185FA5;font-size:12px;padding:5px 10px;border-radius:999px;background:none;cursor:pointer;min-height:0;height:auto}
+  .wm-pocket{margin-top:16px;background:var(--wm-deep);border:1px dashed var(--wm-stitch);border-radius:14px;padding:10px 0 6px}
+  .wm-pocket .h{margin:0 12px 8px!important;font-size:12px;color:var(--wm-blue-400)}
+  .wm-rc{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:6px;padding:9px 12px;margin:0 12px 6px;font-size:12px;color:#0F172A;font-family:ui-monospace,monospace}
+  .wm-rc span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wm-rc span:last-child{color:var(--wm-red);flex:none}
+  .wm-all{display:block;margin:12px auto 0;background:none;border:none;color:var(--wm-blue-200);font-size:13px;cursor:pointer;min-height:44px}
+  .wm-side-out{transition:opacity .2s,transform .3s}
+  body.wm-open #viewHome>*:not(.wm-card):not(.wm-ph),body.wm-open #gsBox{opacity:0;transform:translateY(16px);pointer-events:none}
+  body.wm-open{overflow:hidden}
+  @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
   /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
   body.framed #viewBal{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important}
   body.framed .wrap>header,body.framed #gsBox{visibility:hidden}
@@ -354,9 +415,9 @@
   body.onhome #gSearch,
   body.framed #gSearch{font-size:14px!important}body.onhome #gAsk,body.framed #gAsk{font-size:12px!important}
   /* Balance + Budget line up row by row: title, big number, sub text (Beshr 2026-11-22) */
-  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{padding:14.5px 16px!important}
-  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big .pd{font-size:16px;font-weight:500}
-  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{font-size:clamp(22px,7.5vw,28px)!important;line-height:1.15!important;margin-top:0!important}
+  #viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget]{padding:14.5px 16px!important}
+  #viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget] .hh .big .pd{font-size:16px;font-weight:500}
+  #viewHome>:is(.hcard[data-go=bal],.wm-card,.wm-ph)+.hcard[data-go=budget] .hh .big{font-size:clamp(22px,7.5vw,28px)!important;line-height:1.15!important;margin-top:0!important}
   #viewHome .hcard:not([data-go=bal]) .hh .ic{box-shadow:0 4px 10px -3px rgba(15,42,74,.35),inset 0 1px 0 rgba(255,255,255,.9)!important}
   #viewHome .hcard[data-go=forsa] .hh .ic{box-shadow:0 4px 10px -3px rgba(180,83,9,.55),inset 0 1px 0 rgba(255,255,255,.5)!important}
   #viewHome .hcard:not([data-go=bal]) .hh .tt{font-weight:700!important;color:var(--fg)!important}
@@ -423,6 +484,7 @@
     const flex = ITEMS.filter(i => i.daily && state[i.k] && +state[i.k].plan > 0), plan = flex.reduce((a,i) => a + +state[i.k].plan, 0), used = flex.reduce((a,i) => a + (sums[i.k] || 0), 0);
     if(!plan) return ""; const pace = now.getDate() / new Date(now.getFullYear(), now.getMonth()+1, 0).getDate(); return used / plan <= pace ? "good" : "over"; } catch(e){ return ""; } }
   function render(){
+    if(window._wmOpen) return; // the wallet card is open: leave Home as it is until it closes
     setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
     const v = document.getElementById("viewHome"); if(!v) return;
     const hr = new Date().getHours(), greet = hr < 12 ? L("Good morning","صباح الخير") : hr < 18 ? L("Good afternoon","مساء الخير") : L("Good evening","مساء الخير");
@@ -432,11 +494,62 @@
         // only our own short, bilingual hints on Home (no app offers like pizza, nothing cut off)
         const keep = shown[c.tab] && shown[c.tab].seed === seed && hintsFor(c.tab).includes(shown[c.tab].h) ? shown[c.tab].h : null;
         const h = keep || pick(mine.length ? mine : all.filter(x => /^💡/.test(x)).slice(-1), 11 + i); if(!keep){ lastHint[c.tab] = h; shown[c.tab] = {seed, h}; }
+        if(c.tab === "bal" && window.lastBalance != null) return wmCard();
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
           ${h ? `<span class="hint">${window.PH ? PH("sparkle") : ""}<span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
     requestAnimationFrame(() => window._sizeBand && window._sizeBand());
+  }
+  /* ---------- Wallet card (Beshr's wallet-card-morph.html, 2026-11-22): the card itself grows; same timings + behaviour ---------- */
+  function wmCard(){
+    const b = window.lastBalance, st = g("balStart"), inc = g("income") || [], ent = g("entries") || [], BY = g("BY") || {};
+    const after = x => { const f = g("afterStart"); return f ? f(x) : true; };
+    const start = st ? st.cash + st.bank : 0, inn = inc.filter(after).reduce((a,x) => a + x.amount, 0), out = ent.filter(after).reduce((a,x) => a + x.amount, 0);
+    const now = new Date(), mk = (g("ymd") || (d => d.toISOString().slice(0,10)))(now).slice(0,7);
+    const inM = inc.filter(x => x.date.slice(0,7) === mk).reduce((a,x) => a + x.amount, 0), outM = ent.filter(x => x.date.slice(0,7) === mk).reduce((a,x) => a + x.amount, 0), net = inM - outM;
+    const nsd = g("nextSalaryDate"), toPay = nsd ? Math.max(1, Math.ceil((nsd() - now) / 864e5)) : 30, perDay = b / toPay;
+    const pace = outM / Math.max(1, now.getDate()), lasts = pace > 0 ? Math.max(0, Math.floor(b / pace)) : null;
+    const cut = Date.now() - 864e5, t = x => x.createdAt || Date.parse(x.date + "T12:00:00"), r24 = x => t(x) >= cut;
+    const in24 = inc.filter(r24).reduce((a,x) => a + x.amount, 0), o24 = ent.filter(r24).sort((a,b) => b.amount - a.amount), out24 = o24.reduce((a,x) => a + x.amount, 0);
+    const last = ent.slice().sort((a,b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt)[0];
+    const two = n => (n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const whole = Math.trunc(Math.abs(b)), dec = (Math.abs(b) % 1).toFixed(2).slice(1);
+    const R = "⃁", cat = x => esc((BY[x.cat] || {}).s || x.cat || L("Other","أخرى"));
+    const max = Math.max(1, start + inn, start), pct = v => Math.max(0, Math.min(100, v / max * 100)).toFixed(1);
+    const day = st ? new Date(st.asOf + "T12:00:00").toLocaleDateString(AR ? "ar-SA-u-ca-gregory-nu-latn" : "en-US", {month: "short", day: "numeric"}) : "";
+    const pill = net < 0 ? `<span class="wm-pill">▼ ${fmt(-net)}</span>` : `<span class="wm-pill up">▲ ${fmt(net)}</span>`;
+    const mini = lasts != null ? L(`Lasts ~${lasts} days`, `يكفي ~${lasts} يوم`) : L(`${R}${fmt(perDay)}/day for ${toPay} days`, `${R}${fmt(perDay)}/يوم لمدة ${toPay} يوم`);
+    const chip = lasts != null ? L(`Lasts about ${lasts} days at your pace`, `يكفيك تقريباً ${lasts} يوم بنفس صرفك`) : L(`${R}${fmt(perDay)}/day until payday`, `${R}${fmt(perDay)}/يوم حتى الراتب`);
+    const warn = perDay > 0 && out24 > perDay * 1.5 ? `<div class="wm-chip warn wm-ex" style="--d:.48s;margin-top:12px">${window.PH ? PH("sparkle") : ""}<span>${L(`24h spend is ${Math.round(out24 / perDay)}× your ${fmt(perDay)}/day pace`, `صرف ٢٤ ساعة ${Math.round(out24 / perDay)}× معدلك ${fmt(perDay)}/يوم`)}</span></div>` : "";
+    const rows = o24.length ? [o24[0]].map(x => `<div class="wm-rc"><span>${cat(x)}${x.note ? " · " + esc(x.note) : ""}</span><span>−${two(x.amount)}</span></div>`).join("") +
+      (o24.length > 1 ? `<div class="wm-rc"><span>${L(`Other · ${o24.length - 1} item${o24.length > 2 ? "s" : ""}`, `أخرى · ${o24.length - 1}`)}</span><span>−${two(out24 - o24[0].amount)}</span></div>` : "")
+      : `<div class="wm-rc"><span>${L("Nothing out in the last 24h","ما صرفت شي آخر ٢٤ ساعة")}</span><span></span></div>`;
+    const ic = window.PH ? PH(PHN.bal) : "";
+    return `<div class="wm-card" id="wmCard" role="button" tabindex="0" aria-expanded="false" aria-label="${L("Open wallet","افتح المحفظة")}" data-noswipe data-noi18n>
+      <div class="wm-flap"><div class="wm-face wm-front">${ic}</div><div class="wm-face wm-back">${ic}</div></div>
+      <p class="wm-label">${CARDS[0].title}</p>${pill}
+      <p class="wm-num${b < 0 ? " bad" : ""}"><bdi dir="ltr">${b < 0 ? "−" : ""}${R}${whole.toLocaleString("en-US")}<span class="wm-dec">${dec}</span></bdi></p>
+      <p class="wm-mini">${window.PH ? PH("sparkle") : ""}<span>${mini}</span></p>
+      <div class="wm-start wm-ex" style="--d:.2s">${window.PH ? PH("flag") : ""}<span>${st ? L(`From ${two(start)} · ${day} · bank ${fmt(st.bank)} · cash ${fmt(st.cash)}`, `من ${two(start)} · ${day} · بنك ${fmt(st.bank)} · كاش ${fmt(st.cash)}`) : L("Set your starting point","حدد نقطة البداية")}</span>${window.PH ? PH("pencil-simple") : ""}</div>
+      <div class="wm-body">
+        <div class="wm-chip wm-ex" style="--d:.27s">${window.PH ? PH("sparkle") : ""}<span>${chip}</span></div>
+        <div class="wm-ex" style="--d:.34s">
+          <p class="wm-flow-title">${L("How you got here","كيف وصلت هنا")}</p>
+          <div class="wm-fr"><span class="k">${L("Start","البداية")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:0;width:${pct(start)}%;background:var(--wm-blue-400)"></span></span><span class="v" style="color:var(--wm-ice)">${two(start)}</span></div>
+          <div class="wm-fr"><span class="k">${L("In","داخل")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:${pct(start)}%;width:${pct(inn)}%;background:var(--wm-green-bar)"></span></span><span class="v" style="color:var(--wm-green-text)">+${two(inn)}</span></div>
+          <div class="wm-fr"><span class="k">${L("Out","خارج")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:${pct(Math.max(0, b))}%;width:${pct(out)}%;background:var(--wm-red-bar)"></span></span><span class="v" style="color:var(--wm-red-text)">−${two(out)}</span></div>
+          <div class="wm-fr"><span class="k">${L("Now","الآن")}</span><span class="t"><span class="wm-bar" style="inset-inline-start:0;width:${pct(Math.max(0, b))}%;background:#fff"></span></span><span class="v" style="color:#fff;font-weight:500">${two(b)}</span></div>
+        </div>
+        <div class="wm-grid wm-ex" style="--d:.41s">
+          <div class="wm-mc"><p class="h">${L("Money in · 24h","الداخل · ٢٤ ساعة")}</p><p class="n" style="color:var(--wm-green)">${two(in24)}</p><button class="wm-btn" type="button" data-wm="in">${L("+ Add money in","+ أضف مبلغ داخل")}</button></div>
+          <div class="wm-mc"><p class="h">${L("Money out · 24h","الخارج · ٢٤ ساعة")}</p><p class="n" style="color:var(--wm-red)">${two(out24)}</p><p class="s">${last ? L(`Latest: ${two(last.amount)} · ${cat(last)}${last.note ? " · " + esc(last.note) : ""}`, `آخر مصروف: ${two(last.amount)} · ${cat(last)}${last.note ? " · " + esc(last.note) : ""}`) : ""}</p></div>
+        </div>
+        ${warn}
+        <div class="wm-pocket wm-ex" style="--d:.55s"><p class="h">${L("Out of your pocket · 24h","طلع من جيبك · ٢٤ ساعة")}</p>${rows}</div>
+        <button class="wm-all wm-ex" type="button" data-wm="all" style="--d:.62s">${L("All balance details ›","كل تفاصيل الرصيد ›")}</button>
+      </div>
+    </div>`;
   }
   /* ---------- one big number + one important tip at the top of each tab (Beshr 2026-11-22) ---------- */
   const VIEW = {bal:"viewBal", budget:"viewBudget", plan:"viewPlan", prices:"viewPrices", forsa:"viewForsa"};
@@ -619,6 +732,56 @@
         return morph(ghost, A, B, true, false, rA, 22, pairsFor(ghost, cardSpots(c)), {dur: MK.close, ease: MK.ease});
       }).finally(() => { ghost.remove(); window._vtBusy = false; });
     };
+
+    /* Wallet card behaviour (wallet-card-morph.html): tap grows the card itself from its spot; tap again (not on a tile/button) closes */
+    (function(){
+      const INNER = ".wm-mc, .wm-rc, .wm-start, button";
+      let ph = null, busy = false;
+      const dur = () => reduced() ? 0 : 420;
+      const set = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
+      const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph),#gsBox")];
+      const target = () => { const gs = document.getElementById("gsBox"), top = Math.max(12, gs ? gs.getBoundingClientRect().top : 12), bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+        return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
+      function open(card){
+        if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
+        const r = card.getBoundingClientRect();
+        ph = document.createElement("div"); ph.className = "wm-ph"; ph.style.height = r.height + "px"; card.after(ph);
+        sides().forEach(e => e.classList.add("wm-side-out"));
+        card.style.position = "fixed"; card.style.margin = "0"; set(card, r); card.getBoundingClientRect();
+        card.classList.add("open"); document.body.classList.add("wm-open"); set(card, target());
+        card.setAttribute("aria-expanded", "true"); card.setAttribute("aria-label", L("Close wallet","أغلق المحفظة"));
+        try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+        setTimeout(() => { busy = false; }, dur());
+      }
+      function reset(card){ ["position","margin","top","left","width","height"].forEach(p => card.style[p] = ""); card.classList.remove("open"); if(ph){ ph.remove(); ph = null; }
+        sides().forEach(e => e.classList.remove("wm-side-out")); card.setAttribute("aria-expanded", "false"); card.setAttribute("aria-label", L("Open wallet","افتح المحفظة")); window._wmOpen = false; busy = false; }
+      function close(card, then){
+        if(!window._wmOpen || busy) return; busy = true; card.scrollTop = 0;
+        card.classList.remove("open"); document.body.classList.remove("wm-open"); set(card, ph.getBoundingClientRect());
+        try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+        setTimeout(() => { reset(card); render(); then && then(); }, dur() + 30);
+      }
+      window._wmReset = () => { const c = document.getElementById("wmCard"); document.body.classList.remove("wm-open"); if(c) reset(c); else { window._wmOpen = false; busy = false; } };
+      const go = (fn) => { window._wmReset(); render(); window.showTab("bal"); setTimeout(fn, 60); };
+      document.addEventListener("click", e => {
+        const card = e.target.closest("#wmCard"); if(!card) return;
+        if(card.classList.contains("open")){
+          const k = e.target.closest(INNER);
+          if(k){ const w = k.dataset && k.dataset.wm;
+            if(w === "in") go(() => { const b = document.getElementById("inToggle"); if(b && b.getAttribute("aria-expanded") !== "true") b.click(); });
+            else if(w === "all") go(() => {});
+            else if(k.classList.contains("wm-start")) go(() => { const b = document.getElementById("stToggle"); if(b && b.getAttribute("aria-expanded") !== "true") b.click(); });
+            return; }
+          close(card); return; }
+        open(card);
+      });
+      document.addEventListener("keydown", e => { const c = document.getElementById("wmCard"); if(!c) return;
+        if(e.key === "Escape" && window._wmOpen) close(c);
+        if((e.key === "Enter" || e.key === " ") && e.target === c){ e.preventDefault(); window._wmOpen ? close(c) : open(c); } });
+      let y0 = null; document.addEventListener("touchstart", e => { const c = e.target.closest && e.target.closest("#wmCard.open"); y0 = c && c.scrollTop <= 0 ? e.touches[0].clientY : null; }, {passive: true});
+      document.addEventListener("touchend", e => { if(y0 == null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null; const c = document.getElementById("wmCard"); if(dy > 90 && c) close(c); }, {passive: true});
+      addEventListener("resize", () => { const c = document.getElementById("wmCard"); if(c && window._wmOpen && !busy) set(c, target()); });
+    })();
     // close: tap the open card (not a button, link, field or anything tappable), swipe down at the top, Back or Esc
     (function(){ const isTap = el => { for(let n = el; n && n.id !== "viewBal"; n = n.parentElement){ if(n.matches("button,a,input,select,textarea,label,summary,[contenteditable],[role=button]") || getComputedStyle(n).cursor === "pointer") return true; } return false; };
       const open = () => document.body.classList.contains("framed") && !window._vtBusy;
@@ -650,7 +813,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(window._wmOpen && window._wmReset){ window._wmReset(); } if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
