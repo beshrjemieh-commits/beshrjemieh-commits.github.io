@@ -2192,8 +2192,9 @@ function renderDeals(){
 }
 document.getElementById("fList").addEventListener("click", async e=>{
   const row=e.target.closest("[data-d]"); if(!row||!db) return; const d=deals.find(x=>x.id===row.dataset.d); if(!d) return;
-  try{ if(e.target.closest("[data-fsave]")) await db.doc("deals/"+d.id).update({status:d.status==="saved"?"":"saved"});
-       if(e.target.closest("[data-fhide]")) await db.doc("deals/"+d.id).update({status:"hidden"}); }catch(err){}
+  const put=st=>d.shared?db.doc("deals/"+d.id).set(Object.assign({},d.raw,{status:st})):db.doc("deals/"+d.id).update({status:st});
+  try{ if(e.target.closest("[data-fsave]")) await put(d.status==="saved"?"":"saved");
+       if(e.target.closest("[data-fhide]")) await put("hidden"); }catch(err){}
 });
 let hunt={terms:[],requestedAt:0};
 function renderHunt(){ const t=document.getElementById("fTerms");
@@ -2207,9 +2208,17 @@ document.getElementById("fSearch").addEventListener("input",()=>{ renderDeals();
 document.getElementById("fWant").addEventListener("click",()=>{ const v=document.getElementById("fSearch").value.trim(); if(!v||hunt.terms.includes(v)) return; hunt.terms=hunt.terms.concat(v).slice(-20); hunt.requestedAt=Date.now(); saveHunt(); });
 document.getElementById("fTerms").addEventListener("click",e=>{ const b=e.target.closest("[data-term]"); if(!b) return; hunt.terms=hunt.terms.filter(x=>x!==b.dataset.term); saveHunt(); });
 document.getElementById("fUpd").addEventListener("click",()=>{ hunt.requestedAt=Date.now(); saveHunt(); });
+/* Deals are shared: everyone sees the hunt's deals (RPC shared_deals). Your own Save/Hide stays in your account. */
+let ownDeals=[], sharedDeals=[];
+const dealOf=(x,v)=>({id:String(x.id),title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||""),image:/^https:\/\//.test(v.image||"")?String(v.image):"",paid:Number(v.paid)||0,paidStore:String(v.paidStore||""),similar:!!v.similar,found:String(v.found||""),foundPrice:Number(v.foundPrice)||0});
+function mergeDeals(){ const have=new Set(ownDeals.map(d=>d.id)); deals=ownDeals.concat(sharedDeals.filter(d=>!have.has(d.id))); renderDeals(); if(typeof buildHints==="function") buildHints(); }
+async function loadShared(){ try{ const sb=window.__sb; if(!sb||!sb.rpc) return; const {data,error}=await sb.rpc("shared_deals"); if(error||!Array.isArray(data)) return;
+  sharedDeals=data.map(r=>{ const v=r.data||{}; const d=dealOf({id:r.id},v); d.status=""; d.shared=true; d.raw=v; return d; }); mergeDeals(); }catch(e){} }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&db) loadShared(); });
 function connectDeals(){
   db.doc("settings/hunt").onSnapshot(d=>{ const x=d&&d.exists?(d.data()||{}):{}; hunt={terms:Array.isArray(x.terms)?x.terms.map(String):[],requestedAt:Number(x.requestedAt)||0,lastRunAt:Number(x.lastRunAt)||0,lastRunSummary:String(x.lastRunSummary||"")}; renderHunt(); },()=>{});
-  db.collection("deals").onSnapshot(snap=>{ deals=snap.docs.map(x=>{ const v=x.data()||{}; return {id:x.id,title:String(v.title||"Listing"),source:String(v.source||""),url:/^https:\/\//.test(v.url||"")?String(v.url):"",price:Number(v.price)||0,market:Number(v.market)||0,profit:Number(v.profit)||0,pct:Math.round(Number(v.pct)||0),confidence:String(v.confidence||"low"),city:String(v.city||""),postedAt:String(v.postedAt||""),comps:Number(v.comps)||0,foundAt:Number(v.foundAt)||0,status:String(v.status||""),category:String(v.category||""),offer:String(v.offer||""),code:String(v.code||""),ends:String(v.ends||""),match:String(v.match||""),image:/^https:\/\//.test(v.image||"")?String(v.image):"",paid:Number(v.paid)||0,paidStore:String(v.paidStore||""),similar:!!v.similar,found:String(v.found||""),foundPrice:Number(v.foundPrice)||0}; }); renderDeals(); if(typeof buildHints==="function") buildHints(); },()=>{});
+  db.collection("deals").onSnapshot(snap=>{ ownDeals=snap.docs.map(x=>dealOf(x,x.data()||{})); mergeDeals(); },()=>{});
+  loadShared();
 }
 function connectPrices(){
   db.collection("prices").onSnapshot(snap=>{
