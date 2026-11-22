@@ -340,10 +340,12 @@
   /* ===== Wallet card (Beshr's wallet-card-morph.html): same tokens, timings and behaviour ===== */
   #viewHome{--wm-navy:#0F2A4A;--wm-deep:#0B2240;--wm-soft:#1C3A5E;--wm-line:#24456B;--wm-stitch:#2E557F;--wm-ice:#E6F1FB;--wm-blue-200:#B5D4F4;--wm-blue-400:#85B7EB;--wm-amber:#FAC775;--wm-red-bg:#4A1B1B;--wm-red-text:#F7C1C1;--wm-red-bar:#F09595;--wm-red:#A32D2D;--wm-green-bar:#97C459;--wm-green-text:#C0DD97;--wm-green:#3B6D11;--wm-ease:cubic-bezier(.2,.9,.3,1.05);--wm-ease-flap:cubic-bezier(.3,1.3,.5,1);--wm-dur:.42s}
   #viewHome>.wm-card,#viewHome>.wm-ph,#viewHome>.wm-card+.hcard[data-go=budget],#viewHome>.wm-ph+.hcard[data-go=budget]{grid-column:span 1!important}
-  .wm-card{position:relative;height:156px;background:var(--wm-navy);border-radius:18px;cursor:pointer;overflow:hidden;color:#fff;-webkit-tap-highlight-color:transparent;box-shadow:0 10px 24px -14px rgba(15,42,74,.55);
+  .wm-card{position:relative;height:156px;background:var(--wm-navy);border-radius:18px;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;box-shadow:0 10px 24px -14px rgba(15,42,74,.55);
     transition:all var(--wm-dur) var(--wm-ease),transform .12s}
   .wm-card:active{transform:scale(.97)}
-  .wm-card.open{overflow-y:auto;overscroll-behavior:contain;cursor:auto;z-index:20}
+  .wm-card.open,.wm-card.wm-closing{cursor:auto;z-index:20}
+  .wm-in{position:absolute;inset:0;overflow:hidden;border-radius:inherit}
+  .wm-card.open .wm-in{overflow-y:auto;overscroll-behavior:contain}
   .wm-card.open:active{transform:none}
   .wm-card p{margin:0}
   .wm-flap{position:absolute;inset-inline-start:0;top:0;width:36px;height:36px;z-index:3;transform-origin:top center;transform-style:preserve-3d;transform:perspective(400px) rotateX(0);transition:transform .45s var(--wm-ease-flap)}
@@ -536,6 +538,7 @@
     const ic = window.PH ? PH(PHN.bal) : "";
     return `<div class="wm-card" id="wmCard" role="button" tabindex="0" aria-expanded="false" aria-label="${L("Open wallet","افتح المحفظة")}" data-noswipe data-noi18n>
       <div class="wm-flap"><div class="wm-face wm-front">${ic}</div><div class="wm-face wm-back">${ic}</div></div>
+      <div class="wm-in">
       <p class="wm-label">${CARDS[0].title}</p>${pill}
       <p class="wm-num${b < 0 ? " bad" : ""}"><bdi dir="ltr">${b < 0 ? "−" : ""}${R}${whole.toLocaleString("en-US")}<span class="wm-dec">${dec}</span></bdi></p>
       <p class="wm-mini">${window.PH ? PH("sparkle") : ""}<span>${mini}</span></p>
@@ -556,6 +559,7 @@
         ${warn}
         <div class="wm-pocket wm-ex" style="--d:.55s"><p class="h">${L("Out of your pocket · 24h","طلع من جيبك · ٢٤ ساعة")}</p>${rows}</div>
         <button class="wm-all wm-ex" type="button" data-wm="all" style="--d:.62s">${L("All balance details ›","كل تفاصيل الرصيد ›")}</button>
+      </div>
       </div>
     </div>`;
   }
@@ -764,7 +768,7 @@
       const dur = () => reduced() ? 0 : 420;
       const set = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
       const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph),#gsBox")];
-      const target = () => { const gs = document.getElementById("gsBox"), top = Math.max(12, gs ? gs.getBoundingClientRect().top : 12), bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
+      const target = () => { const gs = document.getElementById("gsBox"), top = Math.max(48, gs ? gs.getBoundingClientRect().top + 30 : 48) /* room for the flipped icon tab above the card */, bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
         return {top, left: 12, width: innerWidth - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
       function open(card){
         if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
@@ -777,11 +781,11 @@
         try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
         setTimeout(() => { busy = false; }, dur());
       }
-      function reset(card){ ["position","margin","top","left","width","height"].forEach(p => card.style[p] = ""); card.classList.remove("open"); if(ph){ ph.remove(); ph = null; }
+      function reset(card){ ["position","margin","top","left","width","height"].forEach(p => card.style[p] = ""); card.classList.remove("open", "wm-closing"); if(ph){ ph.remove(); ph = null; }
         sides().forEach(e => e.classList.remove("wm-side-out")); card.setAttribute("aria-expanded", "false"); card.setAttribute("aria-label", L("Open wallet","افتح المحفظة")); window._wmOpen = false; busy = false; }
       function close(card, then){
-        if(!window._wmOpen || busy) return; busy = true; card.scrollTop = 0;
-        card.classList.remove("open"); document.body.classList.remove("wm-open"); set(card, ph.getBoundingClientRect());
+        if(!window._wmOpen || busy) return; busy = true; const sc = card.querySelector(".wm-in"); if(sc) sc.scrollTop = 0;
+        card.classList.add("wm-closing"); card.classList.remove("open"); document.body.classList.remove("wm-open"); set(card, ph.getBoundingClientRect());
         try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
         setTimeout(() => { reset(card); render(); then && then(); }, dur() + 30);
       }
@@ -802,7 +806,7 @@
       document.addEventListener("keydown", e => { const c = document.getElementById("wmCard"); if(!c) return;
         if(e.key === "Escape" && window._wmOpen) close(c);
         if((e.key === "Enter" || e.key === " ") && e.target === c){ e.preventDefault(); window._wmOpen ? close(c) : open(c); } });
-      let y0 = null; document.addEventListener("touchstart", e => { const c = e.target.closest && e.target.closest("#wmCard.open"); y0 = c && c.scrollTop <= 0 ? e.touches[0].clientY : null; }, {passive: true});
+      let y0 = null; document.addEventListener("touchstart", e => { const c = e.target.closest && e.target.closest("#wmCard.open"), sc = c && c.querySelector(".wm-in"); y0 = c && (!sc || sc.scrollTop <= 0) ? e.touches[0].clientY : null; }, {passive: true});
       document.addEventListener("touchend", e => { if(y0 == null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null; const c = document.getElementById("wmCard"); if(dy > 90 && c) close(c); }, {passive: true});
       addEventListener("resize", () => { const c = document.getElementById("wmCard"); if(c && window._wmOpen && !busy) set(c, target()); });
     })();
