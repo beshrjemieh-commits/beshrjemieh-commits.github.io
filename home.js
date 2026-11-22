@@ -193,7 +193,7 @@
   const css = `#viewHome{display:flex;flex-direction:column;gap:8px!important}
   #viewHome[hidden]{display:none!important}
   .hcard{position:relative;margin:0!important;display:flex;flex-direction:column;gap:2px;width:100%;text-align:start;border:1px solid var(--line);border-radius:14px;padding:8px 12px 9px;
-    background:var(--surface);color:var(--fg);font:inherit;cursor:pointer;overflow:hidden;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--hc) 15%,var(--surface)),var(--surface) 70%);color:var(--fg);font:inherit;cursor:pointer;overflow:hidden;
     -webkit-tap-highlight-color:transparent;transition:transform .12s ease}
   .hcard:active{transform:scale(.985)}
   .hcard::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--hc)}
@@ -212,7 +212,7 @@
   .hcard .sub{color:var(--muted);font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hcard .sub br{display:none}
   .hcard .sub b{color:var(--fg)}
-  .hcard .hint{display:block;margin-top:3px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.045);font-size:11.5px;line-height:1.35;color:var(--fg)}
+  .hcard .hint{display:block;margin-top:3px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.045);font-size:11.5px;line-height:1.35;color:var(--fg)}
   .hcard .hint>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.onhome .hintbar,
   body.framed .hintbar{display:none!important}
@@ -223,7 +223,7 @@
   .hcard::before{display:none!important}
   .hcard .hh .go{display:none}
 #viewHome{gap:12px!important}
-.hcard{--hc:var(--navy);border:1px solid var(--card-line)!important;border-radius:14px!important;padding:12px 16px!important;gap:4px!important;background:var(--card)!important;color:var(--fg)!important;box-shadow:var(--shadow)!important}
+.hcard{--hc:var(--navy);border:1px solid var(--card-line)!important;border-radius:16px!important;padding:12px 16px!important;gap:4px!important;background:var(--card)!important;color:var(--fg)!important;box-shadow:var(--shadow)!important}
 .hcard .hh{color:var(--tabink)!important;font-weight:600!important}
 .hcard .hh .big{color:var(--fg)!important}
 .hcard .hh .big.bad{color:var(--loss)!important}
@@ -289,7 +289,7 @@
   body.onhome::before,
   body.framed::before{display:none!important}
   body.onhome,
-  body.framed{background:#0F2A4A!important}
+  body.framed{background:linear-gradient(180deg,#16365E 0%,#0F2A4A 100%)!important}
   @media (prefers-color-scheme: dark){#homeBand{background:#000}#homeBand .bot path{fill:#000!important}#viewHome>.hcard[data-go=budget],body.onhome #gSearch,body.onhome #gAsk,body.framed #gSearch,body.framed #gAsk{background:var(--card)!important;border-color:var(--card-line,#3F5F99)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome,body.framed{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
@@ -297,7 +297,7 @@
   /* Balance opened from Home: the page is a big card that starts at the Balance card's top edge; title + search stay above (Beshr 2026-11-22) */
   body.framed{overflow:hidden;height:100dvh}
   body.framed::before{display:none!important}
-  body.framed #viewBal,#viewBal.ghost{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:22px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
+  body.framed #viewBal,#viewBal.ghost{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:28px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   body.framed #hintBar{display:none!important}
   /* the opened page keeps the Balance card's navy, so no colour changes while it grows (Beshr 2026-11-22) */
   body.framed #viewBal,#viewBal.ghost{background:#0F2A4A!important;border:none!important}
@@ -326,15 +326,15 @@
   .tabHero .thL:has(.thI){display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;overflow:visible;position:relative;padding-inline-start:40px;min-height:30px}
   /* icon = a piece of the rectangle's own corner: outer corner follows the box, inner corner is round (Beshr 2026-11-22) */
   .tabHero .thL:has(.thI){padding-inline-start:44px}
-  .tabHero .thL:has(.thI) .thI{position:absolute;top:-20px;inset-inline-start:-16px;width:52px;height:52px;border-radius:0;border-start-start-radius:22px;border-end-end-radius:22px;background:rgba(255,255,255,.12)}
+  .tabHero .thL:has(.thI) .thI{position:absolute;top:-20px;inset-inline-start:-16px;width:52px;height:52px;border-radius:0;border-start-start-radius:28px;border-end-end-radius:26px;background:rgba(255,255,255,.12)}
   .tabHero .thL:has(.thI) .thI svg{width:24px;height:24px}
   body.framed #viewBal .tabHero .thL:has(.thI),#viewBal.ghost .tabHero .thL:has(.thI){color:#FFFFFF;font-weight:700} /* same title look as the card */
   /* Balance card icon sits in the top-left corner (Beshr 2026-11-22) */
   #viewHome .hcard[data-go=bal] .hh .tt{margin-inline-start:28px}
-  .tabHero .thI{width:36px;height:36px;border-radius:14px;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.12)}
+  .tabHero .thI{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.12)}
   .tabHero .thI svg{width:20px;height:20px}
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
-  .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
+  .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
 
   /* ===== Wallet card (Beshr's wallet-card-morph.html): same tokens, timings and behaviour ===== */
@@ -353,8 +353,8 @@
   .wm-card.open .wm-flap{transform:perspective(400px) rotateX(180deg)}
   .wm-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
   .wm-face svg{width:18px;height:18px}
-  .wm-front{background:var(--wm-ice);border-start-start-radius:18px;border-end-end-radius:14px;color:var(--wm-navy)}
-  .wm-back{background:var(--wm-line);border-end-end-radius:14px;border-end-start-radius:18px;transform:rotateX(180deg);color:var(--wm-blue-400)}
+  .wm-front{background:var(--wm-ice);border-start-start-radius:18px;border-end-end-radius:12px;color:var(--wm-navy)}
+  .wm-back{background:var(--wm-line);border-end-end-radius:12px;border-end-start-radius:18px;transform:rotateX(180deg);color:var(--wm-blue-400)}
   .wm-label{position:absolute;inset-inline-start:46px;top:11px;font-size:12px;color:var(--wm-blue-400);transition:all .4s}
   .wm-card.open .wm-label{inset-inline-start:16px;top:18px;font-size:13px}
   .wm-num{position:absolute;inset-inline-start:14px;top:44px;font-size:34px;font-weight:500;color:#fff;letter-spacing:-.5px;font-variant-numeric:tabular-nums;white-space:nowrap;transition:all var(--wm-dur) var(--wm-ease)}
@@ -374,7 +374,7 @@
   .wm-start{position:absolute;inset-inline-start:16px;inset-inline-end:16px;top:106px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--wm-blue-400);cursor:pointer}
   .wm-start svg{width:14px;height:14px;flex:none}
   .wm-body{position:absolute;left:14px;right:14px;top:138px;padding-bottom:14px}
-  .wm-chip{display:flex;align-items:center;gap:8px;background:var(--wm-soft);border-radius:14px;padding:10px 12px;font-size:13px;color:var(--wm-ice)}
+  .wm-chip{display:flex;align-items:center;gap:8px;background:var(--wm-soft);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--wm-ice)}
   .wm-chip svg{width:18px;height:18px;flex:none;color:var(--wm-amber)}
   .wm-chip.warn{background:var(--wm-red-bg);color:var(--wm-red-text)}
   .wm-chip.warn svg{color:var(--wm-red-text)}
@@ -385,10 +385,10 @@
   .wm-fr .v{width:70px;text-align:end;font-variant-numeric:tabular-nums}
   .wm-bar{position:absolute;top:0;height:8px;border-radius:4px}
   .wm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
-  .wm-mc{background:#fff;border-radius:14px;padding:12px;color:#0F172A}
-  .wm-mc .h{font-size:12px;font-weight:500;color:#64748B}
+  .wm-mc{background:#fff;border-radius:16px;padding:12px;color:#0F172A}
+  .wm-mc .h{font-size:12px;font-weight:500;color:#5F5E5A}
   .wm-mc .n{margin-top:4px!important;font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
-  .wm-mc .s{margin-top:8px!important;font-size:12px;color:#64748B}
+  .wm-mc .s{margin-top:8px!important;font-size:12px;color:#5F5E5A}
   .wm-btn{display:inline-block;margin-top:10px;border:.5px solid var(--wm-blue-200);color:#185FA5;font-size:12px;padding:5px 10px;border-radius:999px;background:none;cursor:pointer;min-height:0;height:auto}
   .wm-pocket{margin-top:16px;background:var(--wm-deep);border:1px dashed var(--wm-stitch);border-radius:14px;padding:10px 0 6px}
   .wm-pocket .h{margin:0 12px 8px!important;font-size:12px;color:var(--wm-blue-400)}
@@ -451,10 +451,10 @@
   #sheet .shBody>.card{margin:0;box-shadow:none}
   body.shopen{overflow:hidden}
   html.homefit body.onhome .wrap{padding-bottom:0!important;height:100dvh;min-height:0!important;overflow:hidden}
-  #viewBal.ghost{display:block!important;border-radius:22px;padding:12px;box-sizing:border-box;overflow:hidden}
+  #viewBal.ghost{display:block!important;border-radius:28px;padding:12px;box-sizing:border-box;overflow:hidden}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk, zoom is locked by the viewport so no focus zoom */
-  body.framed #gSearch,body.framed #gAsk{height:34px!important;min-height:34px!important;border-radius:10px!important}
+  body.framed #gSearch,body.framed #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
   body.onhome #gSearch,
   body.framed #gSearch{font-size:14px!important}body.onhome #gAsk,body.framed #gAsk{font-size:12px!important}
   /* Balance + Budget line up row by row: title, big number, sub text (Beshr 2026-11-22) */
@@ -466,7 +466,7 @@
   #viewHome .hcard:not([data-go=bal]) .hh .tt{font-weight:700!important;color:var(--fg)!important}
   #viewHome .hcard[data-go=forsa] .hh .tt{color:var(--deal-ink)!important}
   #viewHome .hcard[data-go=bal] .hh .ic{display:grid!important;color:#fff!important}
-  #viewHome .hcard[data-go=bal] .hh .ic{position:absolute;top:-1px;inset-inline-start:-1px;margin:0;width:44px!important;height:44px!important;border-radius:0!important;border-start-start-radius:14px!important;border-end-end-radius:22px!important;background:rgba(255,255,255,.12)!important;box-shadow:none!important}
+  #viewHome .hcard[data-go=bal] .hh .ic{position:absolute;top:-1px;inset-inline-start:-1px;margin:0;width:44px!important;height:44px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:22px!important;background:rgba(255,255,255,.12)!important;box-shadow:none!important}
   #viewHome .hcard[data-go=bal] .hh .ic svg{width:22px!important;height:22px!important}
   #viewHome .hcard[data-go=bal] .hh .tt{font-size:16px!important;font-weight:700!important;color:#fff!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
@@ -479,7 +479,7 @@
   html body.onhome{padding-bottom:0!important}
   body.onhome .wrap{box-sizing:border-box!important;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
   /* Quick action bar on Home (Beshr 2026-11-22): Add expense, Add bill (photo), New hunt */
-  #qBar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:rgba(255,255,255,.97);border-radius:18px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
+  #qBar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
   body.onhome #qBar{display:grid} body.wm-open #qBar,body.framed #qBar{display:none!important}
   #qBar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:56px;border:none;border-radius:14px;background:transparent;color:#0F172A;font:500 12px/1.2 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #qBar button:active{background:#EEF2F7;transform:scale(.97)}
@@ -488,7 +488,7 @@
   @media (prefers-color-scheme: dark){#qBar{background:var(--card,#1C2A44);box-shadow:0 14px 30px -12px rgba(0,0,0,.7)}#qBar button{color:#E2E8F0}#qBar button:active{background:rgba(255,255,255,.08)}}
   html body .hintbar{bottom:max(12px,env(safe-area-inset-bottom,0px))!important}
   #pgDots{display:none!important}
-  #pgDots-unused{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);}
+  #pgDots-unused{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
   #pgDots button{width:24px;height:24px;border:none;background:none;padding:0;display:grid;place-items:center;cursor:pointer}
   #pgDots button::before{content:"";width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .2s,background .2s}
   #pgDots button[aria-current]::before{width:20px;background:var(--navy)}
@@ -882,7 +882,7 @@
       // transform + opacity only (runs on the GPU, stays smooth while the page builds underneath)
       const fx = document.createElement("div");
       const M = 12, FW = W - 2 * M, FH = H - 2 * M; // stops just short of the edges, leaving a frame around it (Beshr 2026-11-22)
-      fx.style.cssText = `position:fixed;left:${M}px;top:${M}px;width:${FW}px;height:${FH}px;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};transform-origin:0 0;will-change:transform,opacity;border-radius:22px;box-shadow:0 20px 50px -20px rgba(15,42,74,.6);`; // fixed radius: animating it would leave the GPU path
+      fx.style.cssText = `position:fixed;left:${M}px;top:${M}px;width:${FW}px;height:${FH}px;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};transform-origin:0 0;will-change:transform,opacity;border-radius:28px;box-shadow:0 20px 50px -20px rgba(15,42,74,.6);`; // fixed radius: animating it would leave the GPU path
       document.body.appendChild(fx);
       const sx = r.width / FW, sy = r.height / FH;
       const grow = fx.animate([
