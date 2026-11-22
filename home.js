@@ -298,6 +298,15 @@
   body.framed::before{display:none!important}
   body.framed #viewBal{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:28px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   body.framed #hintBar{display:none!important}
+  /* the opened page keeps the Balance card's navy, so no colour changes while it grows (Beshr 2026-11-22) */
+  body.framed #viewBal{background:#0F2A4A!important;border:none!important}
+  body.framed #viewBal .tabHero .thL{color:#A9C1E0}
+  body.framed #viewBal .tabHero .thN{color:#FFFFFF}
+  body.framed #viewBal .tabHero .thN.bad{color:#FCA5A5}
+  body.framed #viewBal .tabHero .thH{background:rgba(255,255,255,.1);color:#E2E8F0}
+  body.framed #viewBal .tabHero .thH svg{color:#A9C1E0}
+  body.framed #viewBal .balhero,body.framed #viewBal .balhero .tag,body.framed #viewBal .balhero .hrow{color:#A9C1E0!important}
+  body.framed #viewBal .balhero .v,body.framed #viewBal #balNow{color:#FFFFFF!important}
   @media (prefers-color-scheme: dark){body.framed #viewBal{background:var(--surface);border-color:var(--line)}}
   /* card <-> page morph (View Transitions). Kept light: no page cross-fade, viewport-sized snapshot, waves paused, iOS-style curve */
   ::view-transition-group(balcard){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
