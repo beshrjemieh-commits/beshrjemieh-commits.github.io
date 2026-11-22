@@ -1356,7 +1356,7 @@ document.getElementById("colAll").addEventListener("click",()=>setAll(false));
 let uiPending={}, uiTimer=null;
 window.saveUI=function(part){ Object.assign(uiPending,part); clearTimeout(uiTimer); uiTimer=setTimeout(()=>{ if(db && window.uiLoaded){ db.doc("settings/ui").set(Object.assign({},uiCache,uiPending)).catch(()=>{}); Object.assign(uiCache,uiPending); uiPending={}; } },700); };
 let uiCache={}; try{ uiCache={collapsed:JSON.parse(localStorage.getItem("w-collapsed2")||"{}"),tab:localStorage.getItem("w-tab")||"plan"}; }catch(e){}
-let scT=null; window.addEventListener("scroll",()=>{ clearTimeout(scT); scT=setTimeout(()=>{ if(window.uiLoaded) saveUI({scrollY:Math.round(window.scrollY)}); },1200); },{passive:true});
+/* Home never restores an old scroll position (it made Home jump 94pt under the clock) */
 /* ---------- edit mode: rename / hide / add cards ---------- */
 let cardPrefs={names:{},hidden:{},custom:{}};
 try{ const c=JSON.parse(localStorage.getItem("w-cardprefs")||"null"); if(c) cardPrefs=Object.assign(cardPrefs,c); }catch(e){}
@@ -2274,7 +2274,6 @@ document.getElementById("salV").addEventListener("click", async ()=>{
     if(x.collapsed&&typeof x.collapsed==="object"){ Object.entries(x.collapsed).forEach(([k,c])=>{ const f=window.__secSet&&window.__secSet[k]; if(f) f(c!==false); }); try{ localStorage.setItem("w-collapsed2",JSON.stringify(x.collapsed)); }catch(e){} }
     if(x.cardPrefs&&typeof x.cardPrefs==='object'){ cardPrefs=Object.assign({names:{},hidden:{},custom:{}},x.cardPrefs); try{ localStorage.setItem('w-cardprefs',JSON.stringify(cardPrefs)); }catch(e){} uiCache.cardPrefs=cardPrefs; applyCards(); if(window.applySecs) applySecs(); }
     window.uiLoaded=true; if(typeof buildHints==="function") buildHints();
-    if(x.scrollY>0) setTimeout(()=>window.scrollTo(0,x.scrollY),600);
   }).catch(()=>{ window.uiLoaded=true; });
   try{
     const pr = await db.doc("settings/profile").get();
