@@ -432,7 +432,13 @@
   @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
   /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
   body.framed #viewBal{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important}
-  body.framed .wrap>header,body.framed #gsBox{visibility:hidden}
+  .wrap>header.frz,#gsBox.frz{position:fixed!important;margin:0!important;z-index:27;box-sizing:border-box}
+  .frzSp{flex:none;pointer-events:none}
+  #topCap{position:fixed;left:0;right:0;top:0;z-index:26;pointer-events:none;background:#FFFFFF;overflow:hidden}
+  #topCap .wv{position:absolute;left:0;right:0;top:0;overflow:hidden}
+  #topCap .wv svg{display:block;width:200%!important;max-width:none!important;height:100%!important;animation:wvMove 20s linear infinite reverse}
+  #topCap .wv.top{height:calc(env(safe-area-inset-top,0px) + 90px);-webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 75%);mask-image:linear-gradient(180deg,transparent 0%,#000 75%)}
+  @media (prefers-color-scheme: dark){#topCap{background:#000}}
   #viewBal.ghost{border-radius:22px!important}
   .tabHero .thL:has(.thI) .thI{background:none!important;perspective:400px}
   .thI .thR{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(180deg);border-radius:inherit}
@@ -591,7 +597,7 @@
   function render(){
     if(window._wmOpen || window._pg){ window._homeDirty = true; return; } // the wallet card or a page is open: rebuild later
     window._homeDirty = false;
-    requestAnimationFrame(() => requestAnimationFrame(fitHome)); // the wallet card is open: leave Home as it is until it closes
+    requestAnimationFrame(() => requestAnimationFrame(() => { fitHome(); window._freezeAgain && window._freezeAgain(); })); // the wallet card is open: leave Home as it is until it closes
     setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
     const v = document.getElementById("viewHome"); if(!v) return;
     const hr = new Date().getHours(), greet = hr < 12 ? L("Good morning","صباح الخير") : hr < 18 ? L("Good afternoon","مساء الخير") : L("Good evening","مساء الخير");
@@ -706,6 +712,24 @@
 
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+    /* Beshr 2026-11-23 (red marks): every card header follows the Balance card: icon as a tab cut into the top corner, title beside it, same size.
+       Budget's bottom line is an AI hint chip lined up with Balance's "Lasts" chip. */
+    const st2 = document.createElement("style"); st2.textContent = `
+  #viewHome .hcard{padding-top:12px!important}
+  #viewHome .hcard .hh{padding-inline-start:36px;margin-top:-6px;min-height:24px}
+  #viewHome .hcard .hh .ic{position:absolute!important;top:-1px!important;inset-inline-start:-1px!important;margin:0!important;width:38px!important;height:38px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:12px!important;box-shadow:none!important;background:#E8EEF6!important;color:#0F2A4A!important}
+  #viewHome .hcard .hh .ic svg{width:18px!important;height:18px!important}
+  #viewHome .hcard[data-go=forsa] .hh .ic{background:#FCD98A!important;color:#92400E!important}
+  #viewHome .hcard .hh .tt{font-size:16px!important;font-weight:600!important;line-height:1.25!important}
+  .wm-label{font-size:16px!important;font-weight:500!important;top:8px!important;inset-inline-start:46px!important}
+  .wm-card.open .wm-label{font-size:16px!important}
+  #viewHome>:is(.wm-card,.wm-ph,.hcard[data-go=bal])+.hcard[data-go=budget]{padding-bottom:52px!important}
+  #viewHome>:is(.wm-card,.wm-ph,.hcard[data-go=bal])+.hcard[data-go=budget] .sub.rows .rw:nth-child(n+2){display:none!important}
+  #viewHome>:is(.wm-card,.wm-ph,.hcard[data-go=bal])+.hcard[data-go=budget] .hint{display:flex!important;align-items:center;position:absolute;left:6px;right:6px;bottom:6px;min-height:40px;margin:0!important;padding:4px 10px!important;box-sizing:border-box;border-radius:14px!important;border:1px dashed #CBD5E1;background:#F1F5F9!important;color:#334155!important;font-size:11.5px!important;line-height:1.3!important;overflow:hidden;white-space:normal}
+  #viewHome>:is(.wm-card,.wm-ph,.hcard[data-go=bal])+.hcard[data-go=budget] .hint>span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  #viewHome>:is(.wm-card,.wm-ph,.hcard[data-go=bal])+.hcard[data-go=budget] .hh .big{margin-inline-start:-36px!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
+  #viewHome>:is(.wm-card,.wm-ph,.hcard[data-go=bal])+.hcard[data-go=budget] .hint>svg{flex:none;color:#F59E0B}`;
+    document.head.appendChild(st2);
     const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
     /* one calm sine curve, still (Beshr 2026-11-22: "make it a curve or sin or cos function") */
     const P1 = "M0,0 L0,30.0 L4,31.0 L8,32.0 L12,33.0 L16,34.0 L20,34.9 L24,35.9 L28,36.8 L32,37.7 L36,38.6 L40,39.4 L44,40.2 L48,41.0 L52,41.7 L56,42.3 L60,42.9 L64,43.5 L68,44.0 L72,44.5 L76,44.9 L80,45.2 L84,45.5 L88,45.7 L92,45.9 L96,46.0 L100,46.0 L104,46.0 L108,45.9 L112,45.7 L116,45.5 L120,45.2 L124,44.9 L128,44.5 L132,44.0 L136,43.5 L140,42.9 L144,42.3 L148,41.7 L152,41.0 L156,40.2 L160,39.4 L164,38.6 L168,37.7 L172,36.8 L176,35.9 L180,34.9 L184,34.0 L188,33.0 L192,32.0 L196,31.0 L200,30.0 L204,29.0 L208,28.0 L212,27.0 L216,26.0 L220,25.1 L224,24.1 L228,23.2 L232,22.3 L236,21.4 L240,20.6 L244,19.8 L248,19.0 L252,18.3 L256,17.7 L260,17.1 L264,16.5 L268,16.0 L272,15.5 L276,15.1 L280,14.8 L284,14.5 L288,14.3 L292,14.1 L296,14.0 L300,14.0 L304,14.0 L308,14.1 L312,14.3 L316,14.5 L320,14.8 L324,15.1 L328,15.5 L332,16.0 L336,16.5 L340,17.1 L344,17.7 L348,18.3 L352,19.0 L356,19.8 L360,20.6 L364,21.4 L368,22.3 L372,23.2 L376,24.1 L380,25.1 L384,26.0 L388,27.0 L392,28.0 L396,29.0 L400,30.0 L404,31.0 L408,32.0 L412,33.0 L416,34.0 L420,34.9 L424,35.9 L428,36.8 L432,37.7 L436,38.6 L440,39.4 L444,40.2 L448,41.0 L452,41.7 L456,42.3 L460,42.9 L464,43.5 L468,44.0 L472,44.5 L476,44.9 L480,45.2 L484,45.5 L488,45.7 L492,45.9 L496,46.0 L500,46.0 L504,46.0 L508,45.9 L512,45.7 L516,45.5 L520,45.2 L524,44.9 L528,44.5 L532,44.0 L536,43.5 L540,42.9 L544,42.3 L548,41.7 L552,41.0 L556,40.2 L560,39.4 L564,38.6 L568,37.7 L572,36.8 L576,35.9 L580,34.9 L584,34.0 L588,33.0 L592,32.0 L596,31.0 L600,30.0 L604,29.0 L608,28.0 L612,27.0 L616,26.0 L620,25.1 L624,24.1 L628,23.2 L632,22.3 L636,21.4 L640,20.6 L644,19.8 L648,19.0 L652,18.3 L656,17.7 L660,17.1 L664,16.5 L668,16.0 L672,15.5 L676,15.1 L680,14.8 L684,14.5 L688,14.3 L692,14.1 L696,14.0 L700,14.0 L704,14.0 L708,14.1 L712,14.3 L716,14.5 L720,14.8 L724,15.1 L728,15.5 L732,16.0 L736,16.5 L740,17.1 L744,17.7 L748,18.3 L752,19.0 L756,19.8 L760,20.6 L764,21.4 L768,22.3 L772,23.2 L776,24.1 L780,25.1 L784,26.0 L788,27.0 L792,28.0 L796,29.0 L800,30.0 L800,0 Z", P2 = "M0,0 L0,30.0 L4,29.0 L8,28.0 L12,27.0 L16,26.0 L20,25.1 L24,24.1 L28,23.2 L32,22.3 L36,21.4 L40,20.6 L44,19.8 L48,19.0 L52,18.3 L56,17.7 L60,17.1 L64,16.5 L68,16.0 L72,15.5 L76,15.1 L80,14.8 L84,14.5 L88,14.3 L92,14.1 L96,14.0 L100,14.0 L104,14.0 L108,14.1 L112,14.3 L116,14.5 L120,14.8 L124,15.1 L128,15.5 L132,16.0 L136,16.5 L140,17.1 L144,17.7 L148,18.3 L152,19.0 L156,19.8 L160,20.6 L164,21.4 L168,22.3 L172,23.2 L176,24.1 L180,25.1 L184,26.0 L188,27.0 L192,28.0 L196,29.0 L200,30.0 L204,31.0 L208,32.0 L212,33.0 L216,34.0 L220,34.9 L224,35.9 L228,36.8 L232,37.7 L236,38.6 L240,39.4 L244,40.2 L248,41.0 L252,41.7 L256,42.3 L260,42.9 L264,43.5 L268,44.0 L272,44.5 L276,44.9 L280,45.2 L284,45.5 L288,45.7 L292,45.9 L296,46.0 L300,46.0 L304,46.0 L308,45.9 L312,45.7 L316,45.5 L320,45.2 L324,44.9 L328,44.5 L332,44.0 L336,43.5 L340,42.9 L344,42.3 L348,41.7 L352,41.0 L356,40.2 L360,39.4 L364,38.6 L368,37.7 L372,36.8 L376,35.9 L380,34.9 L384,34.0 L388,33.0 L392,32.0 L396,31.0 L400,30.0 L404,29.0 L408,28.0 L412,27.0 L416,26.0 L420,25.1 L424,24.1 L428,23.2 L432,22.3 L436,21.4 L440,20.6 L444,19.8 L448,19.0 L452,18.3 L456,17.7 L460,17.1 L464,16.5 L468,16.0 L472,15.5 L476,15.1 L480,14.8 L484,14.5 L488,14.3 L492,14.1 L496,14.0 L500,14.0 L504,14.0 L508,14.1 L512,14.3 L516,14.5 L520,14.8 L524,15.1 L528,15.5 L532,16.0 L536,16.5 L540,17.1 L544,17.7 L548,18.3 L552,19.0 L556,19.8 L560,20.6 L564,21.4 L568,22.3 L572,23.2 L576,24.1 L580,25.1 L584,26.0 L588,27.0 L592,28.0 L596,29.0 L600,30.0 L604,31.0 L608,32.0 L612,33.0 L616,34.0 L620,34.9 L624,35.9 L628,36.8 L632,37.7 L636,38.6 L640,39.4 L644,40.2 L648,41.0 L652,41.7 L656,42.3 L660,42.9 L664,43.5 L668,44.0 L672,44.5 L676,44.9 L680,45.2 L684,45.5 L688,45.7 L692,45.9 L696,46.0 L700,46.0 L704,46.0 L708,45.9 L712,45.7 L716,45.5 L720,45.2 L724,44.9 L728,44.5 L732,44.0 L736,43.5 L740,42.9 L744,42.3 L748,41.7 L752,41.0 L756,40.2 L760,39.4 L764,38.6 L768,37.7 L772,36.8 L776,35.9 L780,34.9 L784,34.0 L788,33.0 L792,32.0 L796,31.0 L800,30.0 L800,0 Z";
@@ -713,6 +737,29 @@
     band.innerHTML = sine("top rev", -1, "#0F2A4A", .07) + sine("bot", 1, "#FFFFFF", 1);
     document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("wv-paused", document.hidden));
     document.body.appendChild(band);
+    /* Beshr 2026-11-23 (red marks): the title row and search bar are frozen — they never scroll, move or fade, whatever opens.
+       They sit fixed on a cap that matches the white band; Home scrolls underneath. Spacers keep the layout the same. */
+    (function freezeTop(){
+      const hd = document.querySelector(".wrap>header"), gs = document.getElementById("gsBox"); if(!hd || !gs) return;
+      const cap = document.createElement("div"); cap.id = "topCap"; cap.setAttribute("aria-hidden", "true");
+      const tw = band.querySelector(".wv.top"); if(tw) cap.appendChild(tw.cloneNode(true));
+      document.body.appendChild(cap);
+      const sp = el => { const d = document.createElement("div"); d.className = "frzSp"; el.before(d); return d; };
+      const s1 = sp(hd), s2 = sp(gs);
+      const place = () => { [[hd, s1], [gs, s2]].forEach(([el, d]) => { el.classList.remove("frz"); el.style.top = el.style.left = el.style.width = ""; d.style.display = "none"; }); // measure the real layout, without the spacers
+        const y = scrollY, r1 = hd.getBoundingClientRect(), r2 = gs.getBoundingClientRect(), cs1 = getComputedStyle(hd), cs2 = getComputedStyle(gs);
+        const put = (el, d, r, cs) => { d.style.display = ""; d.style.height = r.height + "px"; d.style.marginTop = cs.marginTop; d.style.marginBottom = cs.marginBottom;
+          el.style.top = (r.top + y) + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.classList.add("frz"); };
+        if(!r1.height && !r2.height) return; // not laid out yet: stay in the flow
+        put(hd, s1, r1, cs1); put(gs, s2, r2, cs2);
+        cap.style.height = Math.round(r2.bottom + y + 8) + "px"; };
+      place(); window._freezeTop = place;
+      let t = 0; const again = () => { cancelAnimationFrame(t); t = requestAnimationFrame(() => { if(!document.body.classList.contains("pgopen") && !window._wmOpen && !window._pgBusy){ const y = scrollY; place(); if(scrollY !== y) scrollTo(0, y); } }); };
+      addEventListener("resize", again); addEventListener("orientationchange", again);
+      try { new ResizeObserver(again).observe(hd); new ResizeObserver(again).observe(gs); } catch(e){}
+      document.fonts && document.fonts.ready.then(again);
+      window._freezeAgain = again; [0, 300, 1000, 2500].forEach(ms => setTimeout(again, ms)); // re-measure once Home has its final layout
+    })();
     const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
       const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
       const r = c.getBoundingClientRect(); band.style.setProperty("--band", Math.round(r.bottom + window.scrollY + 8) + "px"); };
