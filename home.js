@@ -685,7 +685,8 @@
       label = L("Spent today","صرفت اليوم"); num = td ? neg(td) : sar(0); bad = td > 0;
       const BY = g("BY") || {}, es = (g("entries") || []).filter(e => e.date === t).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
       list = es.length ? `<div class="thList">${es.slice(0, 12).map(e => `<div><span>${esc((BY[e.cat] || {}).s || e.cat || L("Other","أخرى"))}${e.note ? " · " + esc(e.note) : ""}</span><b>${neg(e.amount)}</b></div>`).join("")}${es.length > 12 ? `<div><span>${L(`+${es.length - 12} more`, `+${es.length - 12} أخرى`)}</span><b></b></div>` : ""}</div>`
-        : `<div class="thList"><div><span>${L("Nothing spent today yet","ما صرفت شي اليوم")}</span><b></b></div></div>`;
+        : ""; // Beshr 2026-11-23: nothing spent today = no "Spent today" block at all
+      if(!es.length) label = "";
     }
     if(tab === "prices"){
       let best = null;
@@ -703,7 +704,7 @@
     if(!num) return "";
     const hs = hintsFor(tab), h = (shown[tab] && hs.includes(shown[tab].h) && shown[tab].h) || hs.find(x => /^💡|^⚠|^💎|^🆕/.test(x)) || hs[0];
     const cardT = (CARDS.find(c => c.tab === tab) || {}).title || "", ic = window.PH ? PH(PHN[tab]) : "";
-    const top = tab === "bal" ? `<div class="thL">${label}</div>` : `<div class="thL"><span class="thI"><span class="thR"><span class="thF">${ic}</span><span class="thB">${ic}</span></span></span><span class="thT">${cardT}</span></div><div class="thS">${label}</div>`;
+    const top = tab === "bal" ? `<div class="thL">${label}</div>` : `<div class="thL"><span class="thI"><span class="thR"><span class="thF">${ic}</span><span class="thB">${ic}</span></span></span><span class="thT">${cardT}</span></div>${label ? `<div class="thS">${label}</div>` : ""}`;
     return `<div class="tabHero" data-noi18n>${top}<div class="thN${bad ? " bad" : ""}">${num}</div>${h ? `<div class="thH">${window.PH ? PH("sparkle") : ""}<span>${esc(clean(h))}</span></div>` : ""}${list}</div>`;
   }
   function renderHero(tab){
@@ -726,7 +727,7 @@
       new MutationObserver(unc).observe(lg, {attributes: true, attributeFilter: ["class"]}); unc(); } catch(e){}
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
-  #viewPlan #log>div:first-child,#viewPlan #log>#addForm{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
+  #viewPlan #log>div:first-child,#viewPlan #log>#addForm,#viewPlan #log>#month{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
   /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */
   #rotMsg{display:none}
   @media (orientation: landscape) and (max-height: 540px){#rotMsg{display:flex;position:fixed;inset:0;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#0F2A4A;color:#E6F1FB;font-size:17px;font-weight:500;text-align:center}#rotMsg svg{width:40px;height:40px;color:#B5D4F4}}
@@ -735,7 +736,8 @@
   #viewHome>.hcard.hx-on{border-end-start-radius:0!important;border-end-end-radius:0!important;border-bottom-color:transparent!important;box-shadow:none!important;position:relative;z-index:2;margin-bottom:-12px!important} /* the grid gap under the card is taken back, so the opening box starts right at its bottom edge */
   #viewHome>.hx{grid-column:1 / -1;position:relative;z-index:1;margin-top:0!important;overflow:hidden;box-sizing:border-box;padding:4px 12px 16px;--hxpb:16px;background:var(--hxbg,#fff);border:1px solid var(--hxbd,#E2E8F0);border-top:0;border-end-start-radius:16px;border-end-end-radius:16px;box-shadow:0 12px 28px -14px rgba(15,42,74,.28)}
   #viewHome>.hx>.view.hx-view{display:flex;position:static!important;margin:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
-  #viewHome>.hx .tabHero{padding-top:0}
+  #viewHome>.hx .tabHero{padding-top:0;padding-bottom:0!important}
+  #viewHome>.hx>.view.hx-view{gap:12px!important}
   #viewHome>.hx .tabHero>.thL,#viewHome>.hx .tabHero>.thN{display:none!important}
   #viewHome>.hcard.hx-min>.sub,#viewHome>.hcard.hx-min>.hint{display:none!important}
   #viewHome>.hcard.hx-anim{overflow:hidden!important}
