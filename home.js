@@ -322,7 +322,11 @@
   .tabHero .thL{font-size:14px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tabHero .thN{font-size:clamp(56px,17vw,76px);font-weight:600;line-height:1.05;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;color:var(--fg);margin:4px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tabHero .thN.bad{color:var(--loss)}
-  .tabHero .thL:has(.thI){display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;overflow:visible}
+  .tabHero .thL:has(.thI){display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;overflow:visible;position:relative;padding-inline-start:40px;min-height:30px}
+  .tabHero .thL:has(.thI) .thI{position:absolute;top:-10px;inset-inline-start:-12px}
+  /* Balance card icon sits in the top-left corner (Beshr 2026-11-22) */
+  #viewHome .hcard[data-go=bal] .hh .ic{position:absolute;top:8px;inset-inline-start:8px;margin:0}
+  #viewHome .hcard[data-go=bal] .hh .tt{margin-inline-start:24px}
   .tabHero .thI{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.12)}
   .tabHero .thI svg{width:20px;height:20px}
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
@@ -543,7 +547,7 @@
       const wrap = wrapEl(), bs = getComputedStyle(document.body), snap = document.createElement("div");
       snap.style.cssText = `position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:${bs.backgroundColor};background-image:${bs.backgroundImage};`;
       const band = document.getElementById("homeBand"), wr = wrap.getBoundingClientRect();
-      if(band){ const b2 = band.cloneNode(true); b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; b2.querySelectorAll("svg").forEach(x => x.style.animation = "none"); snap.appendChild(b2); }
+      if(band){ const b2 = band.cloneNode(true); b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; const lv = band.querySelectorAll("svg"); b2.querySelectorAll("svg").forEach((x, i) => { const a = lv[i] && lv[i].getAnimations()[0]; if(a) x.style.animationDelay = `${-(a.currentTime % 1e9)}ms`; }); /* waves keep moving, in step (Beshr 2026-11-22: nothing behind freezes) */ snap.appendChild(b2); }
       const w2 = wrap.cloneNode(true); w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
       snap.appendChild(w2); document.body.appendChild(snap); return snap;
     }
