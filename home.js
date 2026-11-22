@@ -271,6 +271,13 @@
   body.onhome::before{display:none!important}
   body.onhome{background:#FFFFFF!important}
   @media (prefers-color-scheme: dark){#homeBand{background:linear-gradient(165deg,#4C3A8F 0%,#3F2F7D 100%)}#homeBand svg path{fill:#3F2F7D!important}body.onhome{background:var(--bg)!important}}
+  /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
+  #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
+  #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{font-size:clamp(16px,5vw,19px)!important}
+  #viewHome .hcard:not([data-go=bal]) .hh .ic{box-shadow:0 4px 10px -3px rgba(91,33,182,.45),inset 0 1px 0 rgba(255,255,255,.9)!important}
+  #viewHome .hcard[data-go=forsa] .hh .ic{box-shadow:0 4px 10px -3px rgba(180,83,9,.55),inset 0 1px 0 rgba(255,255,255,.5)!important}
+  #viewHome .hcard:not([data-go=bal]) .hh .tt{font-weight:700!important;color:var(--fg)!important}
+  #viewHome .hcard[data-go=forsa] .hh .tt{color:var(--deal-ink)!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px}
   .hcard .hint>span{flex:1;min-width:0}
