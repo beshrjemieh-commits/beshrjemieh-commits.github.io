@@ -444,7 +444,9 @@ body.editing .tedit{display:flex}
 body.editing .tile > span:first-child,body.editing .tile.custom .v{outline:1px dashed var(--line);border-radius:4px;padding-right:44px}
 .tile.addtile{display:none;align-items:center;justify-content:center;border-style:dashed;cursor:pointer;color:var(--muted);min-height:60px}
 body.editing .tile.addtile{display:flex}
-#gsRes.ai{position:fixed!important;top:calc(env(safe-area-inset-top) + 10px)!important;left:12px!important;right:12px!important;max-width:560px;margin:0 auto;z-index:60!important;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#aiOut.thinking{color:var(--muted);font-size:13px!important}
+#gsBox:has(#gsRes.ai:not([hidden])){z-index:200!important} /* Beshr 2026-11-23: the AI answer is always the top layer */
+#gsRes.ai{padding:0!important;position:fixed!important;top:calc(env(safe-area-inset-top) + 10px)!important;left:12px!important;right:12px!important;max-width:560px;margin:0 auto;z-index:200!important;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #editMode[aria-pressed="true"]{background:var(--accent)!important;color:var(--accent-fg)!important}
 #salSec .tiles{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:6px!important;overflow:visible}
 #salSec .tiles > .tile{max-width:none!important;min-width:0;padding:8px!important}
@@ -1438,7 +1440,7 @@ applyCards();
     res.hidden=false; res._out=[]; res.classList.add("ai");
     if(!aiNS){ res.innerHTML='<div class="sub" style="padding:10px">The AI assistant is coming soon. Search still works.</div>'; return; }
     if(aiCtl) aiCtl.abort(); aiCtl=new AbortController();
-    res.innerHTML='<div style="padding:10px"><small style="color:var(--muted);display:flex;justify-content:space-between">✨ Assistant<button type="button" id="aiX" aria-label="Close" style="background:none;border:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer">✕</button></small><div id="aiOut" style="font-size:14px;white-space:pre-wrap;margin-top:4px">Thinking…</div></div>';
+    res.innerHTML='<div style="padding:6px 8px 6px 12px;display:flex;align-items:flex-start;gap:8px"><span aria-hidden="true" style="line-height:20px">✨</span><div id="aiOut" class="thinking" style="flex:1;min-width:0;font-size:14px;line-height:20px;white-space:pre-wrap;max-height:50vh;overflow:auto">Thinking…</div><button type="button" id="aiX" aria-label="Close" style="background:none;border:none;color:var(--muted);font-size:15px;line-height:20px;padding:0 4px;cursor:pointer">✕</button></div>';
     const out=document.getElementById("aiOut");
     document.getElementById("aiX").onclick=()=>{ res.hidden=true; };
     chat.push({role:"user",content:q}); chat=chat.slice(-8);
@@ -1446,8 +1448,8 @@ applyCards();
     const sys="You are the assistant inside the user's personal wallet app (Jeddah, Saudi Arabia, money in SAR). Today is "+today+". Current tab: "+TABNAME[(Object.entries(TABS).find(([,[,v]])=>!document.getElementById(v).hidden)||["plan"])[0]]+". Use the tools to read the app's real numbers before answering money questions, never guess figures. When the user asks to see, show, open, hide, enlarge or change something in the interface, do it with the tools. Answer in 1-3 short plain sentences (no markdown, no lists unless asked). Reply in the user's language (Arabic or English)."+(window.walletLang==="ar"?" The app is set to Arabic, so reply in Arabic unless the user writes in English.":"")+"\n\n";
     const msgs=chat.map((m,i)=>i===chat.length-1?{role:"user",content:sys+m.content}:m);
     if(msgs[0].role!=="user") msgs.shift();
-    try{ const r=await aiNS(msgs,{tools,cache:false,signal:aiCtl.signal,onText:({text})=>{ out.textContent=text||"Thinking…"; }});
-      out.textContent=r.text; chat.push({role:"assistant",content:r.text});
+    try{ const r=await aiNS(msgs,{tools,cache:false,signal:aiCtl.signal,onText:({text})=>{ out.textContent=text||"Thinking…"; out.classList.toggle("thinking",!text); }});
+      out.textContent=r.text; out.classList.remove("thinking"); chat.push({role:"assistant",content:r.text});
     }catch(e){ if(e&&e.name==="AbortError") return; chat.pop(); out.textContent = e&&e.code==="rate_limited"?"Too many questions right now, try again in a minute.": e&&e.code==="not_granted"?"The assistant needs your permission. Allow it and try again.":"Couldn't answer that ("+((e&&(e.message||e.code))||"error")+")."; }
   }
   document.getElementById("gAsk").addEventListener("click",ask);
