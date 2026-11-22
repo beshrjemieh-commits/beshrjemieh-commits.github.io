@@ -214,7 +214,8 @@
   .hcard .sub b{color:var(--fg)}
   .hcard .hint{display:block;margin-top:3px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.045);font-size:11.5px;line-height:1.35;color:var(--fg)}
   .hcard .hint>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  body.onhome .hintbar{display:none!important}
+  body.onhome .hintbar,
+  body.framed .hintbar{display:none!important}
   #tabHome{flex:0 0 auto!important;width:48px;display:inline-flex;align-items:center;justify-content:center}
   .hgreet{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:12.5px;padding:0 2px}
   /* Beshr's palette: navy balance card, white cards, amber only for deals, green/red only for money in/out */
@@ -276,23 +277,28 @@
   @media (prefers-reduced-motion: reduce){#homeBand .wv svg{animation:none}}
   #homeBand .wv.bot{bottom:-55px;height:56px}
   /* sharper contrast between the white boxes and the light band (Beshr 2026-11-22) */
-  body.onhome #gSearch,body.onhome #gAsk{border:1.5px solid #94A3B8!important;background:#FFFFFF!important;box-shadow:0 6px 14px -8px rgba(15,42,74,.45)!important}
+  body.onhome #gSearch,body.onhome #gAsk,
+  /* sharper contrast between the white boxes and the light band (Beshr 2026-11-22) */
+  body.framed #gSearch,body.framed #gAsk{border:1.5px solid #94A3B8!important;background:#FFFFFF!important;box-shadow:0 6px 14px -8px rgba(15,42,74,.45)!important}
   #viewHome>.hcard[data-go=budget]{border:1.5px solid #94A3B8!important;background:#FFFFFF!important}
   #viewHome>.hcard[data-go=bal],#viewHome>.hcard[data-go=budget]{box-shadow:0 14px 26px -12px rgba(15,42,74,.55),0 2px 4px rgba(15,42,74,.12)!important}
-  body.onhome #homeBand{display:block}
+  body.onhome #homeBand,
+  body.framed #homeBand{display:block}
   #viewHome>.hcard[data-go=budget]+*,#viewHome>.hcard[data-go=bal]:not(:has(+ .hcard[data-go=budget]))+*{margin-top:40px!important}
-  body.onhome::before{display:none!important}
-  body.onhome{background:linear-gradient(180deg,#16365E 0%,#0F2A4A 100%)!important}
-  @media (prefers-color-scheme: dark){#homeBand{background:#000}#homeBand .bot path{fill:#000!important}#viewHome>.hcard[data-go=budget],body.onhome #gSearch,body.onhome #gAsk{background:var(--card)!important;border-color:var(--card-line,#3F5F99)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
+  body.onhome::before,
+  body.framed::before{display:none!important}
+  body.onhome,
+  body.framed{background:linear-gradient(180deg,#16365E 0%,#0F2A4A 100%)!important}
+  @media (prefers-color-scheme: dark){#homeBand{background:#000}#homeBand .bot path{fill:#000!important}#viewHome>.hcard[data-go=budget],body.onhome #gSearch,body.onhome #gAsk,body.framed #gSearch,body.framed #gAsk{background:var(--card)!important;border-color:var(--card-line,#3F5F99)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome,body.framed{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
   /* Balance opened from Home stays as a big framed card: page inside a rounded card, navy frame around (Beshr 2026-11-22) */
   /* Balance opened from Home: the page is a big card that starts at the Balance card's top edge; title + search stay above (Beshr 2026-11-22) */
-  body.framed{background:#FFFFFF!important;overflow:hidden;height:100dvh}
+  body.framed{overflow:hidden;height:100dvh}
   body.framed::before{display:none!important}
   body.framed #viewBal{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:28px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   body.framed #hintBar{display:none!important}
-  @media (prefers-color-scheme: dark){body.framed{background:#000!important}body.framed #viewBal{background:var(--surface);border-color:var(--line)}}
+  @media (prefers-color-scheme: dark){body.framed #viewBal{background:var(--surface);border-color:var(--line)}}
   /* card <-> page morph (View Transitions). Kept light: no page cross-fade, viewport-sized snapshot, waves paused, iOS-style curve */
   ::view-transition-group(balcard){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
   ::view-transition-old(balcard),::view-transition-new(balcard){height:100%;width:100%;object-fit:cover;object-position:top left;mix-blend-mode:normal}
@@ -312,8 +318,10 @@
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
   body.framed #viewBal.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
-  body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
-  body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
+  body.onhome #gSearch,body.onhome #gAsk, zoom is locked by the viewport so no focus zoom */
+  body.framed #gSearch,body.framed #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
+  body.onhome #gSearch,
+  body.framed #gSearch{font-size:14px!important}body.onhome #gAsk,body.framed #gAsk{font-size:12px!important}
   /* Balance + Budget line up row by row: title, big number, sub text (Beshr 2026-11-22) */
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{padding:14.5px 16px!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big .pd{font-size:16px;font-weight:500}
@@ -330,7 +338,7 @@
   .hcard .hint>span{flex:1;min-width:0}
   /* no tab bar: swipe between screens; page dots */
   .tabs{display:none!important}
-  body,body.onhome{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+  body,body.onhome,body.framed{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
   html body .hintbar{bottom:max(12px,env(safe-area-inset-bottom,0px))!important}
   #pgDots{display:none!important}
   #pgDots-unused{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
@@ -477,8 +485,8 @@
       const snap = document.createElement("div");
       snap.style.cssText = `position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:${bs.backgroundColor};background-image:${bs.backgroundImage};`;
       const band = document.getElementById("homeBand"), wr = wrap.getBoundingClientRect();
-      if(band){ const b2 = band.cloneNode(true); b2.removeAttribute("id"); b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; b2.querySelectorAll("svg").forEach(x => x.style.animation = "none"); snap.appendChild(b2); }
-      const w2 = wrap.cloneNode(true); w2.removeAttribute("id"); w2.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
+      if(band){ const b2 = band.cloneNode(true); /* keep ids so the copy looks identical (it lives < 0.5 s, after the real elements) */ b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; b2.querySelectorAll("svg").forEach(x => x.style.animation = "none"); snap.appendChild(b2); }
+      const w2 = wrap.cloneNode(true);
       w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
       snap.appendChild(w2); document.body.appendChild(snap);
       // 2) switch to the framed Balance page underneath (cheap, invisible for one frame)
@@ -493,7 +501,6 @@
       const opt = {duration: 420, easing: "cubic-bezier(.32,.72,0,1)", fill: "both"};
       const a1 = page.animate([{transform: from}, {transform: "none"}], opt);
       cover.animate([{transform: from, opacity: 1}, {opacity: 1, offset: .35}, {transform: "none", opacity: 0}], opt);
-      snap.animate([{opacity: 1}, {opacity: 0}], {duration: 300, easing: "ease-out", fill: "both"});
       a1.onfinish = () => { a1.cancel(); page.classList.remove("growing"); cover.remove(); snap.remove(); };
     }
     window._balShrink = function(name){ // Balance page shrinks back into its card on the way Home
