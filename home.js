@@ -733,7 +733,9 @@
   #viewHome>.hx{grid-column:1 / -1;position:relative;z-index:1;margin-top:0!important;overflow:hidden;box-sizing:border-box;padding:4px 12px 16px;--hxpb:16px;background:var(--hxbg,#fff);border:1px solid var(--hxbd,#E2E8F0);border-top:0;border-end-start-radius:16px;border-end-end-radius:16px;box-shadow:0 12px 28px -14px rgba(15,42,74,.28)}
   #viewHome>.hx>.view.hx-view{display:flex;position:static!important;margin:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
   #viewHome>.hx .tabHero{padding-top:0}
-  #viewHome>.hx .tabHero>.thL,#viewHome>.hx .tabHero>.thN,#viewHome>.hx .tabHero>.thH{display:none!important}
+  #viewHome>.hx .tabHero>.thL,#viewHome>.hx .tabHero>.thN{display:none!important}
+  #viewHome>.hcard.hx-min>.sub,#viewHome>.hcard.hx-min>.hint{display:none!important}
+  #viewHome>.hcard.hx-anim{overflow:hidden!important}
   #viewHome .hcard .hh{padding-inline-start:36px;margin-top:-6px;min-height:24px}
   #viewHome>.hcard:not([data-go=budget]):not([data-go=bal]) .sub.rows>.rw{padding-inline-start:36px!important;box-sizing:border-box} /* Beshr 2026-11-23: text lines start under the title, not under the icon */
   #viewHome .hcard .hh .ic{position:absolute!important;top:-1px!important;inset-inline-start:-1px!important;margin:0!important;width:38px!important;height:38px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:12px!important;box-shadow:none!important;background:#E8EEF6!important;color:#0F2A4A!important}
@@ -1331,35 +1333,84 @@
        where it is and the cards below simply move down to make room (no morph, no overlay). Closing folds it back the same way. */
     const HX = {plan: 1, prices: 1, forsa: 1}, HX_EZ = "cubic-bezier(.3,.6,.2,1)"; let hx = null; window._hx = null;
     const hxMs = h => reduced() ? 0 : Math.round(Math.min(460, Math.max(280, 240 + h * .25)));
+    // the card's own summary lines (Beshr 2026-11-23: they dissolve as it opens, so the open card shows the full content instead)
+    const hxParts = card => [...card.querySelectorAll(":scope>.sub,:scope>.hint")];
+    const hxH = el => { const cs = getComputedStyle(el); return cs.boxSizing === "border-box" ? parseFloat(cs.height) : el.getBoundingClientRect().height; };
     function hxClose(cb, instant){
       if(!hx){ cb && cb(); return; } const h = hx; hx = null; window._hx = null;
       const fin = () => { h.v.hidden = true; h.v.classList.remove("hx-view"); h.par.insertBefore(h.v, h.next && h.next.parentNode === h.par ? h.next : null);
-        h.box.remove(); if(h.yt != null) window.scrollTo(0, h.yt); h.card.classList.remove("hx-on"); h.card.setAttribute("aria-expanded", "false");
+        h.box.remove(); if(h.yt != null) window.scrollTo(0, h.yt); h.card.getAnimations().forEach(a => a.cancel()); (h.gs || []).forEach(g => g.remove()); (h.parts || []).forEach(p => p.style.opacity = ""); h.v.getAnimations().forEach(a => a.cancel()); h.v.querySelectorAll("*").forEach(e => e.getAnimations().forEach(a => a.cancel()));
+        h.card.classList.remove("hx-on", "hx-min", "hx-anim"); h.card.setAttribute("aria-expanded", "false");
         if(window._homeDirty && !window._hx && !window._pg && !window._wmOpen) render(); else fitHome(); cb && cb(); };
       h.box.getAnimations().forEach(a => a.cancel()); const from = h.box.getBoundingClientRect().height, ms = hxMs(from) * .85;
       if(instant || !ms || !h.box.animate){ fin(); return; }
       Object.assign(h.box.style, {height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"});
       const a = h.box.animate([{height: from + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}, {height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}], {duration: ms, easing: HX_EZ});
       a.onfinish = fin; a.oncancel = fin;
+      // reverse: the full view fades, each fact travels back up into the card's summary as the card unfolds
+      h.card.getAnimations().forEach(x => x.cancel()); hxClear(); const c1 = hxH(h.card); h.card.classList.remove("hx-min"); const c0 = hxH(h.card);
+      const back = Math.max(0, window.scrollY - Math.min(window.scrollY, h.y0)); // how far the page will scroll back down
+      const gs = hxFly(h.card, h.v, 0, true, ms); gs.forEach(g => { g.style.top = (parseFloat(g.style.top) + back) + "px"; });
+      // the ghost starts on the target as seen now: undo the 'back' shift in its first keyframe
+      gs.forEach(g => g.getAnimations().forEach(an => { const kf = an.effect.getKeyframes(); kf.forEach((k, n) => { if(n < 2 && k.transform){ const m = /translate\(([-\d.]+)px,([-\d.]+)px\)/.exec(k.transform); if(m) k.transform = `translate(${m[1]}px,${(+m[2] - back).toFixed(1)}px)`; } }); an.effect.setKeyframes(kf); }));
+      h.gs = gs; const parts = hxParts(h.card); parts.forEach(p => p.style.opacity = "0"); h.parts = parts;
+      h.card.classList.add("hx-anim"); h.card.animate([{height: c1 + "px"}, {height: c0 + "px"}], {duration: ms, easing: HX_EZ});
+      h.v.animate([{opacity: 1}, {opacity: 1, offset: .2}, {opacity: 0, offset: .6}, {opacity: 0}], {duration: ms, easing: "linear", fill: "forwards"});
       // the page scrolls back to where Home was, in step with the fold (the exact reverse of the opening)
       const ys = window.scrollY, yt = Math.min(ys, h.y0); if(ys - yt > 2){ h.yt = yt;
         const step = () => { if(!h.box.isConnected) return; const p = 1 - Math.min(1, h.box.getBoundingClientRect().height / (from || 1)); window.scrollTo(0, ys + (yt - ys) * p); if(!hx) requestAnimationFrame(step); }; step(); }
       try { navigator.vibrate && navigator.vibrate(8); } catch(e){}
     }
+    /* Beshr 2026-11-23: the summary lines don't just vanish: each one partly dissolves while it travels to where the same fact
+       sits in the opened view (found by its text), and lands there as the full view fades in. Close runs it backwards. */
+    const hxPieces = card => hxParts(card).flatMap(p => p.classList.contains("rows") ? [...p.children].filter(k => k.getClientRects().length) : [p]).filter(p => p.getClientRects().length);
+    const hxKeyEl = p => p.classList.contains("hint") ? (p.querySelector(":scope>span") || p) : (p.querySelector("bdi") || p.querySelector("b") || p);
+    const hxNorm = t => (t || "").replace(/\s+/g, " ").trim();
+    function hxTarget(v, p){
+      if(p.classList.contains("hint")){ const t = v.querySelector(".tabHero>.thH"); return t && t.getClientRects().length ? (t.querySelector("span:not(:empty)") || t) : null; }
+      const key = hxNorm(hxKeyEl(p).textContent); if(key.length < 2) return null; let best = null, bl = 1e9;
+      v.querySelectorAll("*").forEach(e => { if(e.children.length > 4 || !e.getClientRects().length) return; const t = hxNorm(e.textContent); if(!t.includes(key) || t.length >= bl) return; const r = e.getBoundingClientRect(); if(r.height < 8 || r.height > 140) return; best = e; bl = t.length; });
+      return best; }
+    // a see-through copy of the card that shows only one summary line (same selectors, so the same look)
+    function hxGhost(card, p){ const r = card.getBoundingClientRect(), c = card.cloneNode(true), idx = [];
+      for(let e = p; e && e !== card; e = e.parentElement) idx.unshift([...e.parentElement.children].indexOf(e));
+      c.classList.remove("hx-on", "hx-min", "hx-anim", "pg-src", "pg-land"); c.classList.add("pg-peek", "hx-ghost"); c.removeAttribute("id"); c.setAttribute("aria-hidden", "true");
+      c.style.cssText = `position:fixed!important;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${hxH(card)}px;margin:0!important;z-index:3!important;pointer-events:none!important;visibility:hidden;transform:none;will-change:transform,opacity`;
+      let q = c; idx.forEach(n => { q = q && q.children[n]; }); if(q) q.style.visibility = "visible";
+      document.getElementById("viewHome").appendChild(c); return c; }
+    function hxFly(card, v, scrollBy, reverse, ms){ // reverse = close
+      const rtl = getComputedStyle(document.body).direction === "rtl", out = []; hxPieces(card).forEach(p => { const t = hxTarget(v, p), k = hxKeyEl(p), kr = k.getBoundingClientRect(), g = hxGhost(card, p);
+        let dx = 0, dy = 28; if(t){ const tr = t.getBoundingClientRect(); const pr = p.getBoundingClientRect(); dx = (rtl ? tr.right - pr.right : tr.left - pr.left); dy = tr.top - kr.top; }
+        dy -= scrollBy; const far = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+        const fr = reverse ? [{transform: far, opacity: 0}, {transform: far, opacity: 0, offset: .15}, {opacity: .55, offset: .55}, {transform: "none", opacity: 1}]
+                           : [{transform: "none", opacity: 1}, {opacity: .5, offset: .45}, {transform: far, opacity: 0}];
+        g.animate(fr, {duration: ms, easing: HX_EZ, fill: "forwards"});
+        if(t && !reverse) t.animate([{opacity: 0}, {opacity: 0, offset: .45}, {opacity: 1}], {duration: ms, easing: "linear"});
+        if(t && reverse) t.animate([{opacity: 1}, {opacity: 0, offset: .3}, {opacity: 0}], {duration: ms, easing: "linear", fill: "forwards"});
+        out.push(g); });
+      return out; }
+    const hxClear = () => document.querySelectorAll("#viewHome>.hx-ghost").forEach(e => e.remove());
     function hxOpen(card, go){
       const v = viewOf(go); if(!v || !card) return;
       if(hx){ if(hx.go === go) return; hxClose(); }
       const box = document.createElement("div"); box.className = "hx"; box.dataset.noswipe = ""; box.dataset.for = go; box.style.setProperty("--hxbg", getComputedStyle(card).backgroundColor); box.style.setProperty("--hxbd", getComputedStyle(card).borderTopColor);
       hx = {go, card, v, box, par: v.parentNode, next: v.nextSibling, y0: window.scrollY}; window._hx = go;
+      card.getAnimations().forEach(a => a.cancel()); hxClear(); const c0 = hxH(card), cr = card.getBoundingClientRect();
       card.after(box); v.classList.add("hx-view"); box.appendChild(v); v.hidden = false; try { renderHero(go); } catch(e){}
       document.documentElement.classList.remove("homefit");
-      card.classList.add("hx-on"); card.setAttribute("aria-expanded", "true");
+      card.classList.add("hx-on", "hx-min"); const c1 = hxH(card); card.setAttribute("aria-expanded", "true");
       const H = box.getBoundingClientRect().height, ms = hxMs(H);
+      // a card low on the screen: the page scrolls along with the opening, just enough to show what opened (the card's top stops at the search bar line)
+      const qb = document.getElementById("qBar"), lim = (qb && qb.getClientRects().length ? qb.getBoundingClientRect().top : innerHeight) - 8;
+      const dy = Math.max(0, Math.min(Math.min(H, (lim - window._hLine()) * .6) - (lim - cr.bottom), cr.top - Math.max(48, window._hLine())));
+      if(ms && card.animate){
+        // targets are measured now, in the final layout; then the card goes back to its summary for the first frame
+        card.classList.remove("hx-min"); const gs = hxFly(card, v, dy, false, ms); card.classList.add("hx-anim");
+        const parts = hxParts(card); parts.forEach(p => p.style.opacity = "0"); // the ghosts carry the lines from here
+        card.animate([{height: c0 + "px"}, {height: c1 + "px"}], {duration: ms, easing: HX_EZ}).onfinish = () => { gs.forEach(g => g.remove()); parts.forEach(p => p.style.opacity = ""); if(!hx || hx.card !== card) return; card.classList.add("hx-min"); card.classList.remove("hx-anim"); };
+        v.animate([{opacity: 0}, {opacity: 0, offset: .2}, {opacity: 1, offset: .7}, {opacity: 1}], {duration: ms, easing: "linear"}); }
       try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
       if(ms && box.animate) box.animate([{height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}, {height: H + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}], {duration: ms, easing: HX_EZ}).onfinish = () => fitHome();
-      // a card low on the screen: the page scrolls along with the opening, just enough to show what opened (the card's top stops at the search bar line)
-      const cr = card.getBoundingClientRect(), qb = document.getElementById("qBar"), lim = (qb && qb.getClientRects().length ? qb.getBoundingClientRect().top : innerHeight) - 8;
-      const dy = Math.max(0, Math.min(Math.min(H, (lim - window._hLine()) * .6) - (lim - cr.bottom), cr.top - Math.max(48, window._hLine())));
       if(dy > 2){ const y0 = window.scrollY; // in step with the box: the page moves by the same share the box has grown
         const step = () => { if(!hx || hx.box !== box) return; const p = Math.min(1, box.getBoundingClientRect().height / (H || 1)); window.scrollTo(0, y0 + dy * p); if(p < 1) requestAnimationFrame(step); };
         if(ms) requestAnimationFrame(step); else window.scrollTo(0, y0 + dy); }
