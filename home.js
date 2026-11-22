@@ -376,7 +376,7 @@
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
-    const wave = (cls, fill, op) => `<div class="wv ${cls}"><svg viewBox="0 0 800 40" preserveAspectRatio="none"><path d="M0,0 L0,20 C100,40 150,4 220,18 S340,36 400,20 C500,40 550,4 620,18 S740,36 800,20 L800,0 Z" fill="${fill}" fill-opacity="${op}"/></svg></div>`;
+    const wave = (cls, fill, op) => `<div class="wv ${cls}"><svg viewBox="0 0 800 40" preserveAspectRatio="none"><path d="M0,0 L0,20 C60,36 140,36 200,20 C260,4 340,4 400,20 C460,36 540,36 600,20 C660,4 740,4 800,20 L800,0 Z" fill="${fill}" fill-opacity="${op}"/></svg></div>`;
     band.innerHTML = wave("top", "#0F2A4A", .07) + wave("top t2 rev", "#0F2A4A", .06) + wave("bot", "#DCE4EE", 1);
     document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("wv-paused", document.hidden));
     document.body.appendChild(band);
