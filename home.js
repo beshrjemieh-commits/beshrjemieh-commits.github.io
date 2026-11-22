@@ -278,6 +278,9 @@
   #viewHome .hcard[data-go=forsa] .hh .ic{box-shadow:0 4px 10px -3px rgba(180,83,9,.55),inset 0 1px 0 rgba(255,255,255,.5)!important}
   #viewHome .hcard:not([data-go=bal]) .hh .tt{font-weight:700!important;color:var(--fg)!important}
   #viewHome .hcard[data-go=forsa] .hh .tt{color:var(--deal-ink)!important}
+  #viewHome .hcard[data-go=bal] .hh .ic{display:grid!important;width:32px!important;height:32px!important;border-radius:50%!important;background:rgba(255,255,255,.14)!important;color:#fff!important;box-shadow:0 4px 10px -3px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.25)!important}
+  #viewHome .hcard[data-go=bal] .hh .ic svg{width:20px!important;height:20px!important}
+  #viewHome .hcard[data-go=bal] .hh .tt{font-size:16px!important;font-weight:700!important;color:#fff!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px}
   .hcard .hint>span{flex:1;min-width:0}
