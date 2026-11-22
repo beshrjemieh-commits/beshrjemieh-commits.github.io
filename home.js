@@ -398,14 +398,19 @@
       if(matchMedia("(prefers-reduced-motion: reduce)").matches || !document.body.animate){ showTab(go); return; }
       const r = card.getBoundingClientRect(), W = innerWidth, H = innerHeight, cs = getComputedStyle(card);
       const rad = parseFloat(cs.borderTopLeftRadius) || 20;
+      // transform + opacity only (runs on the GPU, stays smooth while the page builds underneath)
       const fx = document.createElement("div");
-      fx.style.cssText = `position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};`;
+      fx.style.cssText = `position:fixed;left:0;top:0;width:${W}px;height:${H}px;z-index:2147483000;pointer-events:none;background:${cs.backgroundColor};transform-origin:0 0;will-change:transform,opacity;border-radius:44px;`; // fixed radius: animating it would leave the GPU path
       document.body.appendChild(fx);
-      const from = `inset(${r.top}px ${W - r.right}px ${H - r.bottom}px ${r.left}px round ${rad}px)`;
-      const grow = fx.animate([{clipPath: from}, {clipPath: "inset(0px 0px 0px 0px round 0px)"}], {duration: 280, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
-      grow.onfinish = () => { showTab(go); try { scrollTo(0, 0); } catch(e){}
-        const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 180, easing: "ease-out", fill: "forwards"});
-        fade.onfinish = () => fx.remove(); };
+      const sx = r.width / W, sy = r.height / H;
+      const grow = fx.animate([
+        {transform: `translate(${r.left}px,${r.top}px) scale(${sx},${sy})`},
+        {transform: "translate(0,0) scale(1,1)"}
+      ], {duration: 300, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
+      setTimeout(() => { showTab(go); try { scrollTo(0, 0); } catch(e){} }, 40); // build the page while the layer grows
+      grow.onfinish = () => requestAnimationFrame(() => {
+        const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "forwards"});
+        fade.onfinish = () => fx.remove(); });
     }
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
