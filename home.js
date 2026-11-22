@@ -206,7 +206,6 @@
   .hcard{position:relative;margin:0!important;display:flex;flex-direction:column;gap:2px;width:100%;text-align:start;border:1px solid var(--line);border-radius:14px;padding:8px 12px 9px;
     background:linear-gradient(135deg,color-mix(in srgb,var(--hc) 15%,var(--surface)),var(--surface) 70%);color:var(--fg);font:inherit;cursor:pointer;overflow:hidden;
     -webkit-tap-highlight-color:transparent;transition:transform .12s ease}
-  .hcard:active{transform:scale(.985)}
   .hcard::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--hc)}
   [dir=rtl] .hcard::before{inset:0 0 0 auto}
   .hcard .hh{display:flex;align-items:center;gap:7px;color:var(--hc);font-weight:700;font-size:12.5px}
@@ -224,7 +223,8 @@
   .hcard .sub br{display:none}
   .hcard .sub.rows{display:flex;flex-direction:column;gap:4px;white-space:normal;overflow:visible;font-size:13px}
   .hcard .rows .rw{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0}
-  .hcard .rows .rl{min-width:0;overflow-wrap:anywhere}
+  .hcard .rows .rl{min-width:0;overflow-wrap:anywhere;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  .hcard .rows .rw{flex-wrap:wrap}
   .hcard .rows .rl.strong{color:var(--fg)!important;font-weight:600;font-size:15px}
   .hcard .rows i{font-style:normal;color:var(--muted);font-size:12px;white-space:nowrap}
   .hcard .rows .rw>b{white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -456,6 +456,14 @@
   #pgBack{display:none;position:fixed;left:0;right:0;top:var(--hLine,0px);bottom:0;z-index:29;background:#FFFFFF;pointer-events:none}
   @media (prefers-color-scheme: dark){#pgBack{background:#0F2A4A}}
   #viewHome>.pg-src,body.pgopen #viewHome>.pg-src{opacity:0;transform:none}
+  #viewHome>.pg-land,body.pgopen #viewHome>.pg-land{opacity:1;transform:none;position:relative;z-index:30}
+  #viewHome>.pg-land .hh>.ic,#viewHome>.pg-land .hh>.tt,#viewHome>.pg-land .hh>.big{visibility:hidden}
+  #viewHome>.hcard,#viewHome>#wmCard{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+  #pgMenu{position:fixed;z-index:62;min-width:200px;background:var(--surface,#fff);color:var(--fg);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px -12px rgba(15,42,74,.45);overflow:hidden;transform-origin:50% 0}
+  #pgMenu button{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 14px;border:0;background:none;color:inherit;font:inherit;font-size:15px;text-align:start}
+  #pgMenu button+button{border-top:1px solid var(--line)}
+  #pgMenu button.on{background:color-mix(in srgb,var(--accent-blue,#2563EB) 12%,transparent)}
+  #pgMenu svg{width:20px;height:20px;color:var(--accent-blue,#2563EB)}
   /* status bar strip: nothing shows under the clock */
   body::after{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg,#F8FAFC);z-index:59;pointer-events:none}
   #qBar{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)}
@@ -852,7 +860,7 @@
       const to = (tab, el, b) => { window._fromEl = b || null; window.showTab(tab); window._fromEl = null; const e = document.getElementById(el); const sec = e && e.closest("section"); if(sec && sec.classList.contains("collapsed")){ const h = sec.querySelector(":scope > div:first-child h2"); if(h) h.click(); } if(e){ const v = e.closest(".view"), go = () => { if(window._vtBusy) return setTimeout(go, 60); if(v){ const vr = v.getBoundingClientRect(), er = e.getBoundingClientRect(); v.scrollTo({top: Math.max(0, v.scrollTop + er.top - vr.top - vr.height / 3), behavior: "smooth"}); } }; setTimeout(go, 60); } return e; }; // scroll once the page has finished growing
       q.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const k = b.dataset.q;
         if(k === "exp") window._sheet("exp");
-        if(k === "bill"){ const f = document.getElementById("billFile"); if(f) f.click(); window._sheet("bill"); } // opens the iPhone photo picker / camera
+        if(k === "bill"){ window._sheet("bill"); } // the sheet opens first; the photo picker opens only when you tap Upload bill (Beshr 2026-11-22)
         if(k === "hunt") window._sheet("hunt");
       });
     })();
@@ -968,10 +976,14 @@
     let lockY = 0; // the page under the clock never scrolls while a page is open (Beshr: title went under the clock)
     const lockBody = on => { const b = document.body.style; if(on){ lockY = scrollY; Object.assign(b, {position: "fixed", top: -lockY + "px", left: "0", right: "0"}); }
       else if(b.position === "fixed"){ Object.assign(b, {position: "", top: "", left: "", right: ""}); scrollTo(0, lockY); } };
-    const sidesAnim = (out, dur) => { const d = scrim(); d.getAnimations().forEach(a => a.cancel()); d.style.display = "block"; const a = d.animate(out ? [{opacity: 0}, {opacity: 1}] : [{opacity: 1}, {opacity: 0}], {duration: out ? 200 : dur, easing: "ease-out", fill: "both"}); if(!out) a.finished.then(() => { if(!pg) d.style.display = "none"; }, () => {}); sidesAnim2(out, dur); };
-    const sidesAnim2 = (out, dur) => pgSides().filter(e => !e.classList.contains("pg-src")).forEach(e => {
-      e.animate(out ? [{opacity: 1}, {opacity: 0}] : [{opacity: 0}, {opacity: 1}], {duration: out ? 200 : dur, easing: "ease-out", fill: "both"});
-      e.animate(out ? [{transform: "none"}, {transform: "translateY(16px)"}] : [{transform: "translateY(16px)"}, {transform: "none"}], {duration: dur, easing: EZ, fill: "both"}); });
+    // k = how much of Home shows (0 = page fully open, 1 = Home at rest). Neighbours fade + drop 16px; the plain backdrop does the opposite.
+    const notCard = e => !e.classList.contains("pg-src") && !e.classList.contains("pg-land");
+    const sideK = k => ({opacity: k, transform: k >= 1 ? "none" : `translateY(${(16 * (1 - k)).toFixed(2)}px)`});
+    const sidesTo = (k0, k1, dur, ease) => { const d = scrim(); d.getAnimations().forEach(a => a.cancel()); d.style.display = "block"; d.style.opacity = "";
+      const a = d.animate([{opacity: 1 - k0}, {opacity: 1 - k1}], {duration: dur, easing: ease || EZ, fill: "both"}); if(k1 >= 1) a.finished.then(() => { if(!pg) d.style.display = "none"; }, () => {});
+      pgSides().filter(notCard).forEach(e => { e.getAnimations().forEach(x => x.cancel()); e.style.opacity = ""; e.style.transform = ""; e.animate([sideK(k0), sideK(k1)], {duration: dur, easing: ease || EZ, fill: "both"}); }); };
+    const sidesAt = k => { const d = scrim(); d.getAnimations().forEach(a => a.cancel()); d.style.display = "block"; d.style.opacity = String(1 - k);
+      pgSides().filter(notCard).forEach(e => { e.getAnimations().forEach(x => x.cancel()); const st = sideK(k); e.style.opacity = String(st.opacity); e.style.transform = st.transform; }); };
     const scrim = () => { let d = document.getElementById("pgBack"); if(!d){ d = document.createElement("div"); d.id = "pgBack"; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); } return d; };
     const sidesClear = () => pgSides().forEach(e => e.getAnimations().forEach(a => a.cancel()));
     function pgOpen(src, go){
@@ -995,7 +1007,7 @@
       v.animate([{clipPath: clipOf(A2, T, rA), backgroundColor: bg}, {clipPath: clipOf(T, T, 22), backgroundColor: pv}], {duration: 420, easing: EZ});
       an.forEach(a => a.el.animate([{transform: a.t}, {transform: "none"}], {duration: 420, easing: EZ}));
       pageOnly(v).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: EZ, fill: "backwards"}));
-      sidesAnim(true, 360); document.body.classList.add("pgopen");
+      sidesTo(1, 0, 320); document.body.classList.add("pgopen");
       setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); document.body.classList.add("pgready"); window._pgBusy = false; }, 430);
     }
     function pgDone(){ const p = pg; if(!p) return; const v = viewOf(p.go);
@@ -1003,30 +1015,33 @@
       document.body.classList.remove("pgopen", "pgready"); lockBody(false);
       window.showTab("home");
       if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition","opacity"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); [...v.querySelectorAll("*")].forEach(e => { if(e.style.transform) e.style.transform = ""; }); }
-      sidesClear(); pgSides().forEach(e => e.classList.remove("wm-side-out")); const sb2 = document.getElementById("pgBack"); if(sb2){ sb2.getAnimations().forEach(a => a.cancel()); sb2.style.display = "none"; }
-      document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src"));
+      sidesClear(); pgSides().forEach(e => { e.classList.remove("wm-side-out"); e.style.opacity = ""; e.style.transform = ""; }); const sb2 = document.getElementById("pgBack"); if(sb2){ sb2.getAnimations().forEach(a => a.cancel()); sb2.style.display = "none"; }
+      document.querySelectorAll("#viewHome .pg-src,#viewHome .pg-land").forEach(e => { e.classList.remove("pg-src", "pg-land"); e.getAnimations({subtree: true}).forEach(a => a.cancel()); });
     }
-    function pgClose(){
+    function pgClose(from){ // from = {k, vel} when a drag let go: the close carries on from the finger, with its speed
       if(!pg || window._pgBusy) return; const p = pg, v = viewOf(p.go);
       if(reduced() || !v){ pgDone(); return; }
-      window._pgBusy = true; v.style.transform = ""; v.style.transition = ""; document.body.classList.remove("pgready");
+      window._pgBusy = true; document.body.classList.remove("pgready");
+      const curT = v.style.transform ? getComputedStyle(v).transform : "none", k0 = from ? from.k : 0;
+      v.style.transform = ""; v.style.transition = ""; v.style.borderRadius = "";
       // 1) scroll goes back to the top invisibly: the content is shifted by the same amount, so nothing moves on screen
       const k = v.querySelector(":scope > .vbIn") || v, s = v.scrollTop;
       if(s > 0){ v.scrollTop = 0; [...k.children].forEach(c => c.style.transform = `translateY(${-s}px)`); }
-      // 2) Home is rebuilt now (same picks, nothing reshuffles), still hidden, so we can measure the REAL card
+      // 2) Home is rebuilt now (same picks, nothing reshuffles) so we measure the REAL card
       window._pg = null; try { render(); } finally { window._pg = p.go; }
-      const card = homeCard(p.go); if(card) card.classList.add("pg-src");
+      const card = homeCard(p.go); if(card) card.classList.add("pg-land");
       const T = v.getBoundingClientRect(), B = card ? card.getBoundingClientRect() : {left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80};
       const ccs = card ? getComputedStyle(card) : null, bg = ccs && solid(ccs.backgroundColor) ? ccs.backgroundColor : p.bg, rB = ccs ? parseFloat(ccs.borderTopLeftRadius) || p.rA : p.rA;
-      const an = anchors(card);
-      // 3) the exact reverse of open: page-only content fades in 90ms, the window shrinks onto the card, anchors travel home
+      const an = anchors(card), pv = getComputedStyle(v).backgroundColor;
+      const dur = from ? Math.max(240, Math.min(340, 340 - (from.vel || 0) * 0.06)) : 340, ease = from && from.vel > 400 ? "cubic-bezier(.2,.75,.25,1)" : EZ;
+      // 3) page-only content fades in 90ms; the window shrinks onto the card; the anchors travel home
       pageOnly(v).forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 90, easing: "ease-out", fill: "forwards"}));
-      v.animate([{clipPath: clipOf(T, T, 22), backgroundColor: getComputedStyle(v).backgroundColor}, {clipPath: clipOf(B, T, rB), backgroundColor: bg}], {duration: 340, easing: EZ, fill: "forwards"});
-      an.forEach(a => a.el.animate([{transform: "none"}, {transform: a.t}], {duration: 340, easing: EZ, fill: "forwards"}));
-      v.animate([{opacity: 1}, {opacity: 0}], {duration: 90, delay: 260, easing: "linear", fill: "forwards"}); // hands over to the real card
-      if(card) card.animate([{opacity: 0}, {opacity: 1}], {duration: 120, delay: 200, easing: "linear", fill: "both"});
-      sidesAnim(false, 340);
-      setTimeout(pgDone, 360);
+      v.animate([{clipPath: clipOf(T, T, 22), transform: curT, backgroundColor: pv, offset: 0}, {backgroundColor: bg, offset: .72}, {clipPath: clipOf(B, T, rB), transform: "none", backgroundColor: "rgba(0,0,0,0)", offset: 1}], {duration: dur, easing: ease, fill: "forwards"});
+      an.forEach(a => a.el.animate([{transform: "none"}, {transform: a.t}], {duration: dur, easing: ease, fill: "forwards"}));
+      // the real card is already in place under the window: its own lines show as the window clears, so nothing swaps at the end
+      if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 140, delay: dur - 140, easing: "linear", fill: "both"}));
+      sidesTo(k0, 1, dur, ease);
+      setTimeout(pgDone, dur + 20);
     }
     function pgSwap(name){ // pages next to each other slide sideways (300ms)
       const v = viewOf(name), old = viewOf(pg.go); if(!v || window._pgBusy) return;
@@ -1046,14 +1061,69 @@
     (function(){
       const fc = document.createElement("button"); fc.type = "button"; fc.id = "pgClose"; fc.setAttribute("aria-label", L("Back to Home","رجوع للرئيسية"));
       fc.addEventListener("click", () => pgClose()); document.body.appendChild(fc);
-      let y0 = null, dy = 0, v = null;
-      document.addEventListener("touchstart", e => { v = pg && !window._pgBusy ? viewOf(pg.go) : null; y0 = v && v.contains(e.target) && v.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, {passive: true});
-      document.addEventListener("touchmove", e => { if(y0 == null || !v) return; dy = e.touches[0].clientY - y0; if(dy <= 0){ v.style.transform = ""; return; }
-        const k = Math.min(dy, 140) / 140; v.style.transition = "none"; v.style.transformOrigin = "50% 0"; v.style.transform = `translateY(${Math.min(dy * .5, 70)}px) scale(${1 - .04 * k})`; }, {passive: true});
-      document.addEventListener("touchend", () => { if(y0 == null || !v) return; y0 = null; const t = v; if(dy > 90){ t.style.transition = "transform .2s " + EZ; t.style.transform = ""; pgClose(); } else if(dy > 0){ t.style.transition = "transform .3s " + EZ; t.style.transform = ""; setTimeout(() => { t.style.transition = ""; }, 320); } }, {passive: true});
+      /* Pattern G: the WHOLE page follows the finger 1:1, shrinks to 0.9 at 250pt, corners round, Home shows through.
+         Let go past 120pt or flick faster than 800pt/s = close from right there; otherwise it springs back. Only from the top of the page. */
+      let y0 = null, x0 = 0, dy = 0, v = null, drag = false, hist = [];
+      const geo = d => { const k = Math.max(0, Math.min(1, d / 250)); return {k, ty: d >= 0 ? d : -60 * (1 - 1 / (1 + -d / 180)), s: 1 - .1 * k, r: 22 + 12 * k}; };
+      document.addEventListener("touchstart", e => { y0 = null; drag = false; if(!pg || e.touches.length > 1) return; const vv = viewOf(pg.go); if(!vv || !vv.contains(e.target) || e.target.closest("input,textarea,select")) return;
+        if(window._pgBusy){ if(vv.classList.contains("pg-anim")){ vv.getAnimations({subtree: true}).forEach(a => { try { a.finish(); } catch(x){} }); pgSides().concat([scrim()]).forEach(el => el.getAnimations().forEach(a => { try { a.finish(); } catch(x){} })); } else return; } // grab a page that is still opening
+        if(vv.scrollTop > 0) return; v = vv; y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; hist = [[performance.now(), y0]]; }, {passive: true});
+      document.addEventListener("touchmove", e => { if(y0 == null || !v) return; const y = e.touches[0].clientY; dy = y - y0;
+        if(!drag){ if(Math.abs(e.touches[0].clientX - x0) > Math.abs(dy) && Math.abs(dy) < 10){ return; } if(dy > 8 && v.scrollTop <= 0){ drag = true; y0 += 8; dy -= 8; sidesAt(0); } else { if(dy < -8) y0 = null; return; } }
+        e.preventDefault(); hist.push([performance.now(), y]); if(hist.length > 5) hist.shift();
+        const g = geo(dy); v.style.transformOrigin = "50% 0"; v.style.transform = `translateY(${g.ty}px) scale(${g.s})`; v.style.borderRadius = g.r + "px"; sidesAt(g.k * .85); }, {passive: false});
+      const end = () => { if(y0 == null || !v || !drag){ y0 = null; return; } y0 = null; drag = false;
+        const a = hist[0], b = hist[hist.length - 1], vel = b && a && b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) * 1000 : 0, g = geo(dy);
+        if(dy > 120 || vel > 800){ pgClose({k: g.k * .85, vel: Math.max(0, vel)}); return; }
+        const t = v, cur = getComputedStyle(t).transform; t.style.transform = ""; t.style.borderRadius = "";
+        t.animate([{transform: cur, borderRadius: g.r + "px"}, {transform: "none", borderRadius: "22px"}], {duration: 380, easing: "cubic-bezier(.3,1.25,.5,1)"});
+        sidesTo(g.k * .85, 0, 300); };
+      document.addEventListener("touchend", end, {passive: true}); document.addEventListener("touchcancel", end, {passive: true});
       document.addEventListener("keydown", e => { if(e.key === "Escape" && pg && !document.body.classList.contains("shopen")) pgClose(); });
       addEventListener("popstate", () => { if(pg) pgClose(); });
       addEventListener("resize", () => { if(pg && !window._pgBusy) setR(viewOf(pg.go), pgTarget()); });
+    })();
+
+    /* Pattern G on every Home card: touch-down only presses (0.97, 100ms); open on touch-up inside; move >10pt or leave = cancel.
+       Hold ~0.45s: light haptic, the card lifts (1.03) and quick actions appear; release on one runs it, anywhere else closes. */
+    (function(){
+      const home = document.getElementById("viewHome"); if(!home) return;
+      let card = null, x0 = 0, y0 = 0, timer = 0, menu = null, lp = false, press = null, hot = null;
+      const springBack = el => { if(!el) return; const cur = getComputedStyle(el).transform; el.getAnimations().filter(a => a.id === "press").forEach(a => a.cancel());
+        const a = el.animate([{transform: cur === "none" ? "scale(1)" : cur}, {transform: "scale(1)"}], {duration: 260, easing: "cubic-bezier(.3,1.4,.5,1)"}); a.id = "press"; };
+      const ACTS = {
+        bal: [["arrow-down-left", L("Add money in","أضف دخل"), () => window._sheet && window._sheet("in")], ["flag", L("Starting point","نقطة البداية"), () => window._sheet && window._sheet("start")]],
+        budget: [["chart-pie-slice", L("Open budget","افتح الميزانية"), () => window.showTab("budget")], ["plus-circle", L("Add expense","أضف مصروف"), () => window._sheet && window._sheet("exp")]],
+        plan: [["plus-circle", L("Add expense","أضف مصروف"), () => window._sheet && window._sheet("exp")], ["camera", L("Add bill","أضف فاتورة"), () => window._sheet && window._sheet("bill")]],
+        prices: [["camera", L("Add bill","أضف فاتورة"), () => window._sheet && window._sheet("bill")], ["tag", L("Open Prices log","افتح سجل الأسعار"), () => window.showTab("prices")]],
+        forsa: [["magnifying-glass", L("New hunt","بحث جديد"), () => window._sheet && window._sheet("hunt")], ["fire", L("Open Forsa","افتح فرصة"), () => window.showTab("forsa")]]
+      };
+      const keyOf = c => c.id === "wmCard" ? "bal" : c.dataset.go;
+      const closeMenu = () => { if(menu){ const m = menu; menu = null; m.animate([{opacity: 1, transform: "scale(1)"}, {opacity: 0, transform: "scale(.96)"}], {duration: 140, easing: "ease-out"}).finished.then(() => m.remove(), () => m.remove()); } hot = null; };
+      const openMenu = c => { const list = ACTS[keyOf(c)] || []; if(!list.length) return; menu = document.createElement("div"); menu.id = "pgMenu"; menu.setAttribute("role", "menu");
+        menu.innerHTML = list.map((x, i) => `<button type="button" role="menuitem" data-i="${i}">${window.PH ? PH(x[0]) : ""}<span>${x[1]}</span></button>`).join(""); document.body.appendChild(menu);
+        const r = c.getBoundingClientRect(), mh = menu.offsetHeight, mw = Math.max(200, Math.min(260, r.width)); menu.style.width = mw + "px";
+        const below = r.bottom + 8 + mh < innerHeight - 90; menu.style.top = (below ? r.bottom + 8 : Math.max(8, r.top - 8 - mh)) + "px";
+        const rtl = getComputedStyle(document.body).direction === "rtl"; menu.style.left = Math.max(12, Math.min(innerWidth - mw - 12, rtl ? r.right - mw : r.left)) + "px"; menu.style.transformOrigin = below ? "50% 0" : "50% 100%";
+        menu._run = i => { const f = list[i] && list[i][2]; if(f) setTimeout(f, 0); };
+        menu.animate([{opacity: 0, transform: "scale(.92)"}, {opacity: 1, transform: "scale(1)"}], {duration: 200, easing: EZ}); };
+      home.addEventListener("pointerdown", e => { if(e.button > 0 || window._pgBusy || window._wmOpen) return; const c = e.target.closest("#viewHome>.hcard,#viewHome>#wmCard"); if(!c) return;
+        card = c; x0 = e.clientX; y0 = e.clientY; lp = false; clearTimeout(timer);
+        press = c.animate([{transform: "scale(1)"}, {transform: "scale(.97)"}], {duration: 100, easing: "ease-out", fill: "forwards"}); press.id = "press";
+        timer = setTimeout(() => { if(!card) return; lp = true; try { navigator.vibrate && navigator.vibrate(12); } catch(x){}
+          const l = card.animate([{transform: "scale(.97)", boxShadow: "none"}, {transform: "scale(1.03)", boxShadow: "0 18px 36px -14px rgba(15,42,74,.5)"}], {duration: 220, easing: "cubic-bezier(.3,1.3,.5,1)", fill: "forwards"}); l.id = "press"; openMenu(card); }, 450); });
+      document.addEventListener("pointermove", e => { if(!card) return; const d = Math.hypot(e.clientX - x0, e.clientY - y0);
+        if(lp){ if(!menu) return; const b = document.elementFromPoint(e.clientX, e.clientY), btn = b && b.closest("#pgMenu button"); if(btn !== hot){ if(hot) hot.classList.remove("on"); hot = btn; if(hot){ hot.classList.add("on"); try { navigator.vibrate && navigator.vibrate(5); } catch(x){} } } return; }
+        if(d > 10){ clearTimeout(timer); springBack(card); card = null; } }, {passive: true});
+      const up = e => { clearTimeout(timer); if(!card) return; const c = card; card = null;
+        if(lp){ const b = e && e.type === "pointerup" ? document.elementFromPoint(e.clientX, e.clientY) : null, btn = b && b.closest("#pgMenu button"); const m = menu; if(btn && m) m._run(+btn.dataset.i); closeMenu(); springBack(c); return; }
+        springBack(c); };
+      document.addEventListener("touchmove", e => { if(lp && card) e.preventDefault(); }, {passive: false}); // while the menu is up, the finger slides over it instead of scrolling
+      document.addEventListener("pointerup", up); document.addEventListener("pointercancel", e => { if(lp && menu) return; up(e); });
+      document.addEventListener("touchend", e => { if(lp && card && menu){ const t = e.changedTouches[0]; up({type: "pointerup", clientX: t.clientX, clientY: t.clientY}); } }, true);
+      // after a long press, the click that follows must not open the card; a tap on the menu (mouse) still works
+      document.addEventListener("click", e => { if(lp && e.target.closest("#viewHome")){ e.stopPropagation(); e.preventDefault(); lp = false; } const btn = e.target.closest("#pgMenu button"); if(btn && menu){ menu._run(+btn.dataset.i); closeMenu(); } }, true);
+      home.addEventListener("contextmenu", e => { if(e.target.closest(".hcard,#wmCard")) e.preventDefault(); });
     })();
 
     /* Monthly budget groups (Must pay, Living, Personal, Saving) start minimized; tap a group to open it (Beshr 2026-11-22) */
@@ -1095,7 +1165,7 @@
       const pulse = tab => { const c = homeCard(tab); if(!c || reduced()) return; c.animate([{transform: "scale(1)", boxShadow: "0 0 0 0 rgba(37,99,235,0)"}, {transform: "scale(1.03)", boxShadow: "0 0 0 6px rgba(37,99,235,.22)", offset: .31}, {transform: "scale(1)", boxShadow: "0 0 0 0 rgba(37,99,235,0)"}], {duration: 580, easing: EZ}); };
       function close(after){
         if(!cur2 || busy) return; busy = true; const k = cur2;
-        sh.classList.add("closing"); document.body.classList.remove("shopen"); sh.style.transform = ""; try { document.activeElement && document.activeElement.blur(); } catch(e){}
+        sh.classList.add("closing"); document.body.classList.remove("shopen"); if(sh._sl){ sh._sl = false; lockBody(false); } sh.style.transform = ""; try { document.activeElement && document.activeElement.blur(); } catch(e){}
         setTimeout(() => { moved.forEach(m => { m.mark.replaceWith(m.el); m.el.hidden = m.hidden; }); moved = []; sh.classList.remove("closing"); cur2 = null; busy = false; if(after) after(k); }, reduced() ? 0 : 350);
       }
       const ACT = {
@@ -1109,9 +1179,9 @@
         const a = ACT[k]; if(!a || busy) return; if(cur2) close();
         cur2 = k; window._hLine(); sh.querySelector("#shTitle").textContent = a.t;
         a.els.map(x => typeof x === "function" ? x() : document.getElementById(x)).filter(Boolean).forEach(el => { const mark = document.createComment("sheet"); moved.push({el, mark, hidden: el.hidden}); el.replaceWith(mark); body.appendChild(el); el.hidden = false; if(el.id === "stBox" || el.id === "inBox") el.style.display = "flex"; });
-        sh.scrollTop = 0; document.body.classList.add("shopen");
+        sh.scrollTop = 0; document.body.classList.add("shopen"); if(!pg && document.body.style.position !== "fixed"){ lockBody(true); sh._sl = true; } // Home can't slide under the clock behind a sheet
         if(!reduced()) [...body.querySelectorAll(".field, .row, .pastebox, .upl, .tablebox, #fTerms, #fMsg, p")].slice(0, 12).forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 120 + 40 * i, easing: EZ, fill: "backwards"}));
-        const f = a.focus && document.getElementById(a.focus); if(f){ if(k === "exp" || k === "hunt") f.value = ""; try { f.focus({preventScroll: true}); } catch(e){} }
+        const f = a.focus && document.getElementById(a.focus); if(f && (k === "exp" || k === "hunt")) f.value = ""; // no auto-focus: the keyboard opens only when you tap a box (Beshr 2026-11-22)
       };
       // saved -> sheet slides down, the card it belongs to pulses
       document.addEventListener("submit", e => { if(!cur2 || !sh.contains(e.target)) return; const a = ACT[cur2];
@@ -1126,6 +1196,11 @@
       sh.addEventListener("touchmove", e => { if(y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transition = "none"; sh.style.transform = `translateY(${dy}px)`; }, {passive: true});
       sh.addEventListener("touchend", () => { if(y0 == null) return; y0 = null; sh.style.transition = ""; if(dy > 90) close(); else sh.style.transform = ""; }, {passive: true});
       window._sheetPulse = pulse;
+      // keyboard open: the sheet sits right above it, and the box you tapped scrolls into view
+      const vv = window.visualViewport; if(vv){ const fit = () => { const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop);
+        sh.style.bottom = kb > 40 ? kb + "px" : ""; sh.style.maxHeight = kb > 40 ? (vv.height - 8) + "px" : "";
+        const el = document.activeElement; if(kb > 40 && el && sh.contains(el)) setTimeout(() => { try { el.scrollIntoView({block: "center", behavior: "smooth"}); } catch(e){} }, 60); };
+        vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); sh.addEventListener("focusin", () => setTimeout(fit, 250)); }
     })();
     window.showTab = function(name){
       if(window._pgBusy) return; // one moving thing at a time
