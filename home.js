@@ -322,6 +322,9 @@
   .tabHero .thL{font-size:14px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tabHero .thN{font-size:clamp(56px,17vw,76px);font-weight:600;line-height:1.05;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;color:var(--fg);margin:4px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tabHero .thN.bad{color:var(--loss)}
+  .tabHero .thL:has(.thI){display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;overflow:visible}
+  .tabHero .thI{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.12)}
+  .tabHero .thI svg{width:20px;height:20px}
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
@@ -419,7 +422,7 @@
     const b = bodyFor(tab) || {};
     const clean = x => x ? x.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, "") : "";
     let label = "", num = "", bad = false;
-    if(tab === "bal"){ label = L("Your balance","رصيدك"); num = b.big; bad = b.bad; }
+    if(tab === "bal"){ label = `<span class="thI">${window.PH ? PH(PHN.bal) : ""}</span><span class="thT">${CARDS[0].title}</span>`; num = b.big; bad = b.bad; } // same icon + title as the card, so they fly into place (Beshr 2026-11-22)
     if(tab === "budget"){ label = L("You can spend per day","تقدر تصرف باليوم"); num = String(b.big || "").replace(/<span class="pd">.*<\/span>/, ""); bad = b.bad; }
     if(tab === "plan"){
       const ymd = g("ymd") || (d => d.toISOString().slice(0,10)), t = ymd(new Date());
@@ -492,8 +495,8 @@
     const EASE = bez(.32, .72, 0, 1), DUR = 420, STEPS = 30;
     const inner = v => { let n = v.querySelector(":scope > .vbIn"); if(!n){ n = document.createElement("div"); n.className = "vbIn"; while(v.firstChild) n.appendChild(v.firstChild); v.appendChild(n); } return n; };
     // box sits at rect B (its real place); animate it so it looks like rect A at p=0 and B at p=1 (or the reverse)
-    function morph(box, A, B, reverse, zoom, rA, rB){
-      const kin = inner(box), kb = [], kc = [];
+    function morph(box, A, B, reverse, zoom, rA, rB, pairs){
+      const kin = inner(box), kb = [], kc = [], ks = (pairs || []).map(() => []); const IB = kin.getBoundingClientRect();
       if(rB == null) rB = parseFloat(getComputedStyle(box).borderTopLeftRadius) || 28; if(rA == null) rA = rB;
       for(let n = 0; n <= STEPS; n++){
         let p = EASE(n / STEPS); if(reverse) p = 1 - EASE(n / STEPS);
@@ -504,11 +507,35 @@
         kb.push({transform: `translate(${x - B.left}px,${y - B.top}px) scale(${sx},${sy})`, borderRadius: `${r / sx}px / ${r / sy}px`, offset: n / STEPS});
         const u = zoom ? sx : 1; // zoom: content shrinks evenly with the box instead of being cropped (Beshr 2026-11-22 "scale of reclosing is odd")
         kc.push({transform: `scale(${u / sx},${u / sy})`, offset: n / STEPS});
+        (pairs || []).forEach((q, i) => { // where it would sit vs where it should sit at this moment
+          const natX = x + (IB.left - B.left) * sx + (q.b.left - IB.left), natY = y + (IB.top - B.top) * sy + (q.b.top - IB.top); // content box is scaled back from its own corner
+          const wantX = q.a.left + (q.b.left - q.a.left) * p, wantY = q.a.top + (q.b.top - q.a.top) * p, k = q.s + (1 - q.s) * p;
+          ks[i].push({transform: `translate(${wantX - natX}px,${wantY - natY}px) scale(${k})`, offset: n / STEPS}); });
       }
       box.style.transformOrigin = "0 0"; kin.style.transformOrigin = "0 0"; box.style.willChange = kin.style.willChange = "transform";
       const o = {duration: DUR, easing: "linear", fill: "both"};
-      const a = box.animate(kb, o); kin.animate(kc, o);
-      return a.finished.then(() => { box.getAnimations().concat(kin.getAnimations()).forEach(x => x.cancel()); box.style.willChange = kin.style.willChange = ""; });
+      const a = box.animate(kb, o); kin.animate(kc, o); (pairs || []).forEach((q, i) => { q.el.style.transformOrigin = "0 0"; q.el.animate(ks[i], o); });
+      return a.finished.then(() => { box.getAnimations({subtree: true}).forEach(x => x.cancel()); box.style.willChange = kin.style.willChange = ""; });
+    }
+    // pairs: page piece <-> card piece (icon, title, number, tip line). Each flies straight to its twin, scaled evenly.
+    const txt = e => { const r = document.createRange(); r.selectNodeContents(e); const x = r.getBoundingClientRect(); return x.width ? x : e.getBoundingClientRect(); };
+    function cardSpots(card){ // measured while the card is on screen
+      if(!card) return null; const c = x => card.querySelector(x), o = {}, fs = e => parseFloat(getComputedStyle(e).fontSize) || 16;
+      [["icon", c(".ic"), 0], ["title", c(".tt"), 1], ["num", c(".big"), 1], ["tip", [c(".hint > span"), c(".sub")].find(e => e && e.getClientRects().length), 1]].forEach(([k, e, t]) => { if(e) o[k] = {r: t ? txt(e) : e.getBoundingClientRect(), fs: fs(e)}; });
+      return o;
+    }
+    function pairsFor(box, cs){
+      if(!cs) return []; const rtl = getComputedStyle(box).direction === "rtl", out = [];
+      const fs = e => parseFloat(getComputedStyle(e).fontSize) || 16;
+      const add = (el, src, mode) => { if(!el || !src) return; const b = el.getBoundingClientRect(), r = src.r; if(!b.width || !r.width) return;
+        const t = mode === "tip" ? (el.querySelector("span") || el) : el, tb = mode === "icon" || mode === "tip" ? b : txt(t); // tip: the whole pill lines up with the card line, so it stays inside the card
+        // icon: even scale by size; same words (title, number): by text width; tip: by font size
+        const s = mode === "icon" ? r.width / b.width : mode === "same" ? r.width / tb.width : src.fs / fs(t);
+        const ox = (rtl ? tb.right : tb.left) - b.left, oy = tb.top - b.top + tb.height / 2; // anchor: start of the words, middle of the line
+        out.push({el, a: {left: (rtl ? r.right : r.left) - ox * s, top: r.top + r.height / 2 - oy * s}, b: {left: b.left, top: b.top}, s}); };
+      const q = x => box.querySelector(".tabHero " + x);
+      add(q(".thI"), cs.icon, "icon"); add(q(".thT"), cs.title, "same"); add(q(".thN"), cs.num, "same"); add(q(".thH"), cs.tip, "tip");
+      return out;
     }
     function stillHome(){ // a frozen copy of Home, exactly where it is (keeps ids so it looks identical; lives < 0.5 s)
       const wrap = wrapEl(), bs = getComputedStyle(document.body), snap = document.createElement("div");
@@ -521,11 +548,11 @@
     function expandOpen(card, go){
       if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); sizeBal(); return; }
       window._vtBusy = true;
-      const A = card.getBoundingClientRect(), rA = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 20, snap = stillHome();
+      const A = card.getBoundingClientRect(), rA = parseFloat(getComputedStyle(card).borderTopLeftRadius) || 20, spots = cardSpots(card), snap = stillHome();
       showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
       const page = balView(); sizeBal(); page.scrollTop = 0; inner(page);
       page.classList.add("growing");
-      morph(page, A, page.getBoundingClientRect(), false, true, rA).finally(() => { page.classList.remove("growing"); snap.remove(); window._vtBusy = false; });
+      morph(page, A, page.getBoundingClientRect(), false, false, rA, null, pairsFor(page, spots)).finally(() => { page.classList.remove("growing"); snap.remove(); window._vtBusy = false; });
     }
     window._balShrink = function(name){ // the page shrinks back into its card, no fades
       const page = balView(); if(!page || reduced() || !document.body.animate){ window._vtBusy = true; window.showTab(name); window._vtBusy = false; return; }
@@ -538,7 +565,7 @@
       Promise.resolve().then(() => { // measure after the riyal symbols settle, or the card is one line taller for a moment
         const c = balCard(), A = c ? c.getBoundingClientRect() : {left: B.left, top: B.top, width: B.width, height: 120};
         const rA = c ? parseFloat(getComputedStyle(c).borderTopLeftRadius) || 20 : 28;
-        return morph(ghost, A, B, true, true, rA, 28);
+        return morph(ghost, A, B, true, false, rA, 28, pairsFor(ghost, cardSpots(c)));
       }).finally(() => { ghost.remove(); window._vtBusy = false; });
     };
     function expandLayer(card, go){
