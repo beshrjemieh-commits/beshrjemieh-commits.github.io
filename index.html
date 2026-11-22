@@ -1187,7 +1187,7 @@ function renderDebts(){
   document.getElementById("dWhen").textContent = owed<=0 ? "Done" : (sched.end ? sched.end : "—");
   document.getElementById("dWhenTag").textContent = owed<=0 ? "all debts repaid" : (sched.end ? "repaying on each salary day" : "set a Debt repayment amount in the plan");
   renderSalary();
-  if(!debts.length){ box.innerHTML = `<p class="sub">${dbReady?"No debts recorded.":"Your debts will appear here once your saved data loads."}</p>`; return; }
+  if(!debts.length){ box.innerHTML = `<p class="sub">${dbReady?"No debts recorded.<br><small>Debts you owe or are owed appear here. Turn on edit mode to add one and see what is still owed.</small>":"Your debts will appear here once your saved data loads."}</p>`; return; }
   box.innerHTML = debts.slice().sort((a,b)=>(a.total-a.paid)-(b.total-b.paid)).map(d=>{
     const left=Math.max(0,d.total-d.paid), pct=d.total>0?Math.min(100,d.paid/d.total*100):0;
     return `<div class="catrow" style="gap:6px 12px">
