@@ -431,7 +431,7 @@
   body.wm-open{overflow:hidden}
   @media (prefers-reduced-motion: reduce){.wm-card,.wm-flap,.wm-label,.wm-num,.wm-dec,.wm-pill,.wm-mini,.wm-ex,.wm-card.open .wm-ex,.wm-side-out{transition:none!important}}
   /* Motion spec (Beshr 2026-11-22, MOTION_SPEC.md): the Balance card grows into a full-screen card, 12px inset, radius 22 */
-  body.framed #viewBal{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important}
+  body.framed #viewBal{position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important}
   body.framed .wrap>header,body.framed #gsBox{visibility:hidden}
   .wrap>header.frz,#gsBox.frz{position:fixed!important;margin:0!important;z-index:27;box-sizing:border-box}
   .frzSp{flex:none;pointer-events:none}
@@ -449,7 +449,7 @@
   #viewHome .hcard[data-go=bal] .hh .ic{background:rgba(255,255,255,.18)!important}
   body.framed #viewBal.growing{z-index:3;transform-origin:0 0;will-change:transform}
   /* every page opens as a card that grows from Home and shrinks back (Beshr 2026-11-22: "always a smooth transition, one single page") */
-  body.framed .view.fv:not(#viewBal),.view.ghost:not(#viewBal){position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important;background:#F8FAFC;padding:12px;padding-top:26px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
+  body.framed .view.fv:not(#viewBal),.view.ghost:not(#viewBal){position:fixed!important;top:calc(env(safe-area-inset-top,0px) + 12px);left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);height:auto!important;margin:0!important;z-index:3;border-radius:22px!important;background:#F8FAFC;padding:12px;padding-top:26px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
   .view.ghost:not(#viewBal){display:block!important;overflow:hidden}
   @media (prefers-color-scheme: dark){body.framed .view.fv:not(#viewBal),.view.ghost:not(#viewBal){background:var(--surface,#0B1220)}}
   body.framed .view.fv.growing{will-change:transform}
@@ -529,7 +529,7 @@
   html body.onhome{padding-bottom:0!important}
   body.onhome .wrap{box-sizing:border-box!important;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
   /* Quick action bar on Home (Beshr 2026-11-22): Add expense, Add bill (photo), New hunt */
-  #qBar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
+  #qBar{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
   body.onhome #qBar{display:grid} body.wm-open #qBar,body.framed #qBar{display:none!important}
   #qBar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:56px;border:none;border-radius:14px;background:transparent;color:#0F172A;font:500 12px/1.2 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #qBar button:active{background:#EEF2F7;transform:scale(.97)}
@@ -588,15 +588,20 @@
   function fitHome(){ const h = document.documentElement, v = document.getElementById("viewHome"), q = document.getElementById("qBar");
     if(!v || v.hidden || !q){ h.classList.remove("homefit"); return; }
     const kids = [...v.children].filter(e => e.getClientRects().length && !e.classList.contains("wm-ph")); if(!kids.length) return;
-    const bottom = Math.max(...kids.map(e => e.getBoundingClientRect().bottom)) + scrollY, barTop = q.getBoundingClientRect().top + scrollY;
+    const bottom = Math.max(...kids.map(e => e.getBoundingClientRect().bottom)) + scrollY, barTop = q.getBoundingClientRect().top; // the quick bar is fixed: its spot on the page doesn't scroll
     const fit = bottom <= barTop - 6; h.classList.toggle("homefit", fit); if(fit && scrollY) scrollTo(0, 0); }
   addEventListener("resize", () => requestAnimationFrame(fitHome));
   // Beshr 2026-11-22: nothing moves above the top of the Balance/Budget row (only the wallet icon tab may poke above it)
+  /* Beshr 2026-11-23: open cards keep exactly Home's side margins (same left and right), measured from Home's own column, never from the zoom/rotation-dependent visual viewport */
+  window._gut = () => { const v = document.getElementById("viewHome"), W = document.documentElement.clientWidth || innerWidth;
+    if(v && v.getClientRects().length){ const r = v.getBoundingClientRect(), cs = getComputedStyle(v), l = r.left + parseFloat(cs.paddingLeft || 0), w = r.width - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+      if(w > 200 && Math.abs((W - (l + w)) - l) < 2) return {left: Math.round(l), width: Math.round(w)}; }
+    return {left: 16, width: W - 32}; };
   window._hLine = () => { const c = document.querySelector("#viewHome>.wm-ph,#viewHome>.wm-card:not(.open):not(.wm-closing),#viewHome>.hcard"); const t = c ? c.getBoundingClientRect().top : 140; document.documentElement.style.setProperty("--hLine", t + "px"); return t; };
   function budgetPerDay(){ try { const ITEMS = g("ITEMS") || [], state = g("state") || {}, ms = g("monthSums"), sums = ms ? ms() : {}; const flex = ITEMS.filter(i => i.daily && state[i.k]);
     const plan = flex.reduce((a,i) => a + (+state[i.k].plan || 0), 0), spent = flex.reduce((a,i) => a + (sums[i.k] || 0), 0); return plan ? Math.max(0, (plan - spent) / daysLeftInMonth()) : 0; } catch(e){ return 0; } }
   function render(){
-    if(window._wmOpen || window._pg){ window._homeDirty = true; return; } // the wallet card or a page is open: rebuild later
+    if(window._wmOpen || window._pg || window._hx){ window._homeDirty = true; return; } // the wallet card or a page is open: rebuild later
     window._homeDirty = false;
     requestAnimationFrame(() => requestAnimationFrame(() => { fitHome(); window._freezeAgain && window._freezeAgain(); })); // the wallet card is open: leave Home as it is until it closes
     setTimeout(() => window.fxMood && window.fxMood(mood()), 0);
@@ -608,7 +613,7 @@
         // only our own short, bilingual hints on Home (no app offers like pizza, nothing cut off)
         const keep = shown[c.tab] && shown[c.tab].seed === seed && hintsFor(c.tab).includes(shown[c.tab].h) ? shown[c.tab].h : null;
         const h = keep || pick(mine.length ? mine : all.filter(x => /^💡/.test(x)).slice(-1), 11 + i); if(!keep){ lastHint[c.tab] = h; shown[c.tab] = {seed, h}; }
-        if(c.tab === "bal" && window.lastBalance != null) return wmCard() + '<i class="hsep" hidden></i>'; // Beshr 2026-11-23: Budget is its own full-width card under Balance
+        if(c.tab === "bal" && window.lastBalance != null) return wmCard();
         return `<button type="button" class="hcard" data-go="${c.tab}" style="--hc:${c.c}">
           <span class="hh" data-noi18n><span class="ic">${window.PH ? PH(PHN[c.tab]) : svg(c.icon)}</span><span class="tt">${c.title}</span><span class="big${b.mid ? " mid" : ""}${b.small ? " small" : ""}${b.bad ? " bad" : ""}">${b.big}</span><span class="go">›</span></span>
           ${b.rows ? `<span class="sub rows" data-noi18n>${b.rows}</span>` : b.sub || b.subHtml ? `<span class="sub" ${b.subHtml ? "" : "data-noi18n"}>${b.subHtml || esc(b.sub)}</span>` : ""}
@@ -715,12 +720,20 @@
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     /* Beshr 2026-11-23 (red marks): every card header follows the Balance card: icon as a tab cut into the top corner, title beside it, same size.
        Budget's bottom line is an AI hint chip lined up with Balance's "Lasts" chip. */
+    try { const rm = document.createElement("div"); rm.id = "rotMsg"; rm.setAttribute("role", "alert"); rm.innerHTML = (window.PH ? PH("device-mobile") : "") + "<span>" + L("Turn your phone upright to use the wallet","أعد الهاتف للوضع العمودي لاستخدام المحفظة") + "</span>"; document.body.appendChild(rm);
+      screen.orientation && screen.orientation.lock && screen.orientation.lock("portrait").catch(() => {}); } catch(e){}
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
-  html body #viewHome>.wm-card,html body #viewHome>.wm-ph,html body #viewHome>.hcard[data-go=bal]{grid-column:1 / -1!important}
-  #viewHome>.hsep{display:none!important}
-  html body #viewHome>.hcard[data-go=budget]+*{margin-top:0!important}
-  html body #viewHome>.hsep+*{margin-top:40px!important}
+  /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */
+  #rotMsg{display:none}
+  @media (orientation: landscape) and (max-height: 540px){#rotMsg{display:flex;position:fixed;inset:0;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#0F2A4A;color:#E6F1FB;font-size:17px;font-weight:500;text-align:center}#rotMsg svg{width:40px;height:40px;color:#B5D4F4}}
+  /* in-place opening (accordion) for Expenses, Prices log, Forsa */
+  #viewHome>.hcard{transition:border-radius .16s ease,box-shadow .16s ease}
+  #viewHome>.hcard.hx-on{border-end-start-radius:0!important;border-end-end-radius:0!important;border-bottom-color:transparent!important;box-shadow:none!important;position:relative;z-index:2;margin-bottom:-12px!important} /* the grid gap under the card is taken back, so the opening box starts right at its bottom edge */
+  #viewHome>.hx{grid-column:1 / -1;position:relative;z-index:1;margin-top:0!important;overflow:hidden;box-sizing:border-box;padding:4px 12px 16px;--hxpb:16px;background:var(--hxbg,#fff);border:1px solid var(--hxbd,#E2E8F0);border-top:0;border-end-start-radius:16px;border-end-end-radius:16px;box-shadow:0 12px 28px -14px rgba(15,42,74,.28)}
+  #viewHome>.hx>.view.hx-view{display:flex;position:static!important;margin:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
+  #viewHome>.hx .tabHero{padding-top:0}
+  #viewHome>.hx .tabHero>.thL,#viewHome>.hx .tabHero>.thN,#viewHome>.hx .tabHero>.thH{display:none!important}
   #viewHome .hcard .hh{padding-inline-start:36px;margin-top:-6px;min-height:24px}
   #viewHome .hcard .hh .ic{position:absolute!important;top:-1px!important;inset-inline-start:-1px!important;margin:0!important;width:38px!important;height:38px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:12px!important;box-shadow:none!important;background:#E8EEF6!important;color:#0F2A4A!important}
   #viewHome .hcard .hh .ic svg{width:18px!important;height:18px!important}
@@ -766,7 +779,7 @@
       window._freezeAgain = again; [0, 300, 1000, 2500].forEach(ms => setTimeout(again, ms)); // re-measure once Home has its final layout
     })();
     const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
-      const c = v.querySelector('#viewHome>.wm-ph,#viewHome>.wm-card,#viewHome>.hcard[data-go=bal]') || v.querySelector('.hcard[data-go=budget]'); if(!c) return; // the white band ends under the big Balance card
+      const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
       const r = c.getBoundingClientRect(); band.style.setProperty("--band", Math.round(r.bottom + window.scrollY + 8) + "px"); };
     window.addEventListener("resize", sizeBand); window._sizeBand = sizeBand;
     const first = document.querySelector(".view"); if(!first) return;
@@ -926,7 +939,7 @@
       const set = (el, r) => { el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px"; };
       const sides = () => [...document.querySelectorAll("#viewHome>*:not(.wm-card):not(.wm-ph)")]; /* title + search stay put */
       const target = () => { const top = Math.max(48, window._hLine() + 36) /* the flipped icon tab sits on the red line; nothing goes above it */, bot = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab")) || 0;
-        return {top, left: 12, width: ((window.visualViewport && visualViewport.width) || document.documentElement.clientWidth || innerWidth) - 24, height: Math.max(300, innerHeight - top - 12 - bot)}; };
+        return {top, left: window._gut().left, width: window._gut().width, height: Math.max(300, innerHeight - top - 12 - bot)}; };
       function open(card){
         if(busy || window._wmOpen) return; busy = true; window._wmOpen = true;
         card.getAnimations().forEach(a => a.cancel()); card.style.transform = ""; // drop the 0.97 press first so we measure the real card
@@ -997,7 +1010,7 @@
         const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "forwards"});
         fade.onfinish = () => fx.remove(); });
     }
-    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; window.showTab(c.dataset.go); });
+    v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c || !v.contains(c) || c.closest(".hx")) return; if(window._hx && window._hx === c.dataset.go){ window._hxClose(); return; } window.showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
     /* ===== Smooth transitions (Beshr's smooth-transitions skill, 2026-11-22): nothing cuts, everything moves ===== */
@@ -1010,7 +1023,7 @@
       let top = hl; if(src && src.dataset && src.dataset.go && src.dataset.go !== "bal" && src.closest("#viewHome")){ const minH = Math.max(320, (innerHeight - hl - sab) * .62), ct = src.getBoundingClientRect().top;
         top = Math.round(Math.max(hl, Math.min(ct, innerHeight - sab - 12 - minH))); }
       document.documentElement.style.setProperty("--pgTop", top + "px");
-      return {top, left: 12, width: ((window.visualViewport && visualViewport.width) || document.documentElement.clientWidth || innerWidth) - 24, height: Math.max(300, innerHeight - top - 12 - sab)}; };
+      return {top, left: window._gut().left, width: window._gut().width, height: Math.max(300, innerHeight - top - 12 - sab)}; };
     const pgSides = () => [...document.querySelectorAll("#viewHome>*,#qBar")];
     const solid = c => c && !/rgba\(.*,\s*0\)$|transparent/.test(c);
     const bigOf = el => el && el.querySelector(".big");
@@ -1312,13 +1325,55 @@
         const el = document.activeElement; if(kb > 40 && el && sh.contains(el)) setTimeout(() => { try { el.scrollIntoView({block: "center", behavior: "smooth"}); } catch(e){} }, 60); };
         vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); sh.addEventListener("focusin", () => setTimeout(fit, 250)); }
     })();
+
+    /* Beshr 2026-11-23: Expenses, Prices log and Forsa open IN PLACE, like an accordion: the white card grows downward from
+       where it is and the cards below simply move down to make room (no morph, no overlay). Closing folds it back the same way. */
+    const HX = {plan: 1, prices: 1, forsa: 1}, HX_EZ = "cubic-bezier(.3,.6,.2,1)"; let hx = null; window._hx = null;
+    const hxMs = h => reduced() ? 0 : Math.round(Math.min(460, Math.max(280, 240 + h * .25)));
+    function hxClose(cb, instant){
+      if(!hx){ cb && cb(); return; } const h = hx; hx = null; window._hx = null;
+      const fin = () => { h.v.hidden = true; h.v.classList.remove("hx-view"); h.par.insertBefore(h.v, h.next && h.next.parentNode === h.par ? h.next : null);
+        h.box.remove(); if(h.yt != null) window.scrollTo(0, h.yt); h.card.classList.remove("hx-on"); h.card.setAttribute("aria-expanded", "false");
+        if(window._homeDirty && !window._hx && !window._pg && !window._wmOpen) render(); else fitHome(); cb && cb(); };
+      h.box.getAnimations().forEach(a => a.cancel()); const from = h.box.getBoundingClientRect().height, ms = hxMs(from) * .85;
+      if(instant || !ms || !h.box.animate){ fin(); return; }
+      Object.assign(h.box.style, {height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"});
+      const a = h.box.animate([{height: from + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}, {height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}], {duration: ms, easing: HX_EZ});
+      a.onfinish = fin; a.oncancel = fin;
+      // the page scrolls back to where Home was, in step with the fold (the exact reverse of the opening)
+      const ys = window.scrollY, yt = Math.min(ys, h.y0); if(ys - yt > 2){ h.yt = yt;
+        const step = () => { if(!h.box.isConnected) return; const p = 1 - Math.min(1, h.box.getBoundingClientRect().height / (from || 1)); window.scrollTo(0, ys + (yt - ys) * p); if(!hx) requestAnimationFrame(step); }; step(); }
+      try { navigator.vibrate && navigator.vibrate(8); } catch(e){}
+    }
+    function hxOpen(card, go){
+      const v = viewOf(go); if(!v || !card) return;
+      if(hx){ if(hx.go === go) return; hxClose(); }
+      const box = document.createElement("div"); box.className = "hx"; box.dataset.noswipe = ""; box.dataset.for = go; box.style.setProperty("--hxbg", getComputedStyle(card).backgroundColor); box.style.setProperty("--hxbd", getComputedStyle(card).borderTopColor);
+      hx = {go, card, v, box, par: v.parentNode, next: v.nextSibling, y0: window.scrollY}; window._hx = go;
+      card.after(box); v.classList.add("hx-view"); box.appendChild(v); v.hidden = false; try { renderHero(go); } catch(e){}
+      document.documentElement.classList.remove("homefit");
+      card.classList.add("hx-on"); card.setAttribute("aria-expanded", "true");
+      const H = box.getBoundingClientRect().height, ms = hxMs(H);
+      try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+      if(ms && box.animate) box.animate([{height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}, {height: H + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}], {duration: ms, easing: HX_EZ}).onfinish = () => fitHome();
+      // a card low on the screen: the page scrolls along with the opening, just enough to show what opened (the card's top stops at the search bar line)
+      const cr = card.getBoundingClientRect(), qb = document.getElementById("qBar"), lim = (qb && qb.getClientRects().length ? qb.getBoundingClientRect().top : innerHeight) - 8;
+      const dy = Math.max(0, Math.min(Math.min(H, (lim - window._hLine()) * .6) - (lim - cr.bottom), cr.top - Math.max(48, window._hLine())));
+      if(dy > 2){ const y0 = window.scrollY; // in step with the box: the page moves by the same share the box has grown
+        const step = () => { if(!hx || hx.box !== box) return; const p = Math.min(1, box.getBoundingClientRect().height / (H || 1)); window.scrollTo(0, y0 + dy * p); if(p < 1) requestAnimationFrame(step); };
+        if(ms) requestAnimationFrame(step); else window.scrollTo(0, y0 + dy); }
+    }
+    window._hxClose = hxClose;
+    document.addEventListener("keydown", e => { if(e.key === "Escape" && hx && !window._pg && !document.body.classList.contains("shopen")) hxClose(); });
     window.showTab = function(name){
       if(window._pgBusy) return; // one moving thing at a time
+      if(hx && !pg && !window._wmOpen){ if(name === "home"){ hxClose(); return; } if(name === hx.go) return; if(HX[name] && cur === "home"){ hxOpen(homeCard(name), name); return; } if(!VIEW[name]) hxClose(null, true); }
       if(name === "bal" && window._wmOpen) name = "budget";
       if(window._wmOpen && window._wmReset){ window._wmReset(); render(); }
       if(pg){ if(name === "home"){ pgClose(); return; } if(VIEW[name]){ if(name !== pg.go) pgSwap(name); return; } const p = pg; pg = null; window._pg = null; const v = viewOf(p.go); if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform"].forEach(k => v.style[k] = ""); } cancelAnimationFrame(raf); M = null; homeAt(1); pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen", "pgready"); document.querySelectorAll("#viewHome .pg-src").forEach(e => e.classList.remove("pg-src")); }
       if(VIEW[name] && cur === "home" && !window._vtBusy){
         if(name === "bal" && !window._fromEl){ const w = document.getElementById("wmCard"); if(w){ w.click(); return; } }
+        if(HX[name] && homeCard(name)){ window._fromEl = null; hxOpen(homeCard(name), name); return; }
         const src = window._fromEl || homeCard(name); window._fromEl = null; if(src){ pgOpen(src, name); return; } }
       if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name;
       document.body.classList.remove("framed"); document.querySelectorAll(".view.fv").forEach(e => e.classList.remove("fv"));
