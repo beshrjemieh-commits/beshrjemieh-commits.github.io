@@ -429,8 +429,16 @@
   body.pgopen{overflow:hidden}
   #pgClose{display:none;position:fixed;left:50%;transform:translateX(-50%);z-index:32;width:88px;height:22px;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #pgClose::before{content:"";display:block;width:40px;height:5px;margin:7px auto 0;border-radius:3px;background:rgba(100,116,139,.45)}
-  body.pgopen #pgClose{display:block;top:var(--pgTop,60px)}
+  body.pgopen.pgready #pgClose{display:block;top:var(--pgTop,60px)}
   .tabHero .thS{font-size:13px;color:var(--muted);margin-top:8px}
+  #rows tr.gh{display:none!important}
+  #rows tr.group{cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+  #rows tr.group td::after{content:"";position:absolute;inset-inline-end:14px;top:50%;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-70%) rotate(45deg);transition:transform .3s cubic-bezier(.3,.6,.2,1)}
+  #rows tr.group.gc td::after{transform:translateY(-40%) rotate(-45deg)}
+  [dir=rtl] #rows tr.group.gc td::after{transform:translateY(-40%) rotate(135deg)}
+  .view:not(#viewBal) .tabHero .thL{color:var(--fg);font-weight:700}
+  .tabHero .thN .pd{font-size:.32em;font-weight:500;letter-spacing:0}
+  body.onhome #gsBox.wm-side-out{transition:opacity .24s ease,transform .36s cubic-bezier(.3,.6,.2,1)!important}
   section > div:first-child h2::after{transition:transform .32s cubic-bezier(.3,.6,.2,1)}
   #shScrim{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .38s cubic-bezier(.3,.6,.2,1);z-index:60}
   body.shopen #shScrim{opacity:.38;pointer-events:auto}
@@ -612,7 +620,7 @@
     const clean = x => x ? x.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, "") : "";
     let label = "", num = "", bad = false;
     if(tab === "bal"){ label = `<span class="thI"><span class="thR"><span class="thF">${window.PH ? PH(PHN.bal) : ""}</span><span class="thB">${window.PH ? PH(PHN.bal) : ""}</span></span></span><span class="thT">${CARDS[0].title}</span>`; num = b.big; bad = b.bad; } // same icon + title as the card, so they fly into place (Beshr 2026-11-22)
-    if(tab === "budget"){ label = L("You can spend per day","تقدر تصرف باليوم"); num = String(b.big || "").replace(/<span class="pd">.*<\/span>/, ""); bad = b.bad; }
+    if(tab === "budget"){ label = L("You can spend per day","تقدر تصرف باليوم"); num = String(b.big || ""); bad = b.bad; } /* same words as the card: "/ day" stays (smooth-transitions: text never changes) */
     if(tab === "plan"){
       const ymd = g("ymd") || (d => d.toISOString().slice(0,10)), t = ymd(new Date());
       const td = (g("entries") || []).filter(e => e.date === t).reduce((a, e) => a + e.amount, 0);
@@ -899,6 +907,14 @@
     const pgSides = () => [...document.querySelectorAll("#viewHome>*,#gsBox,#qBar")];
     const solid = c => c && !/rgba\(.*,\s*0\)$|transparent/.test(c);
     const bigOf = el => el && el.querySelector(".big");
+    const ANCH = [[".thI", ".ic"], [".thT", ".tt"], [".thN", ".big"]];
+    function anchors(v, card, box){ // where each page anchor must start so it sits exactly on the card's own icon, title and number
+      if(!card || !card.closest("#viewHome")) return []; const rtl = getComputedStyle(v).direction === "rtl", vb = v.getBoundingClientRect(), out = [];
+      ANCH.forEach(([ps, cs]) => { const pe = v.querySelector(".tabHero " + ps), ce = card.querySelector(cs); if(!pe || !ce) return;
+        const pr = pe.getBoundingClientRect(), cr = ce.getBoundingClientRect();
+        const dx = rtl ? (cr.right - box.left - box.width) - (pr.right - vb.right) : (cr.left - box.left) - (pr.left - vb.left), dy = (cr.top - box.top) - (pr.top - vb.top);
+        pe.style.transformOrigin = rtl ? "right top" : "left top"; out.push({el: pe, t: `translate(${dx}px,${dy}px)`}); });
+      return out; }
     function pgShow(name){ // the page's content shows while Home stays underneath
       if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); }
       cur = name; _show(name); try { renderHero(name); } catch(e){}
@@ -910,29 +926,30 @@
       const bg = solid(cs.backgroundColor) ? cs.backgroundColor : getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#fff";
       const rA = parseFloat(cs.borderTopLeftRadius) || 18, nb = bigOf(src), fs0 = nb ? parseFloat(getComputedStyle(nb).fontSize) : 0;
       pg = {go, src: fromHome ? src : homeCard(go), bg, rA, fs0}; window._pg = go;
-      if(reduced()){ pgShow(go); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen"); return; }
+      if(reduced()){ pgShow(go); v.classList.add("fv"); setR(v, pgTarget()); document.body.classList.add("pgopen", "pgready"); return; }
       window._pgBusy = true; try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
       // peek lines of the card fade away in place (140ms)
       const peeks = fromHome ? [...src.querySelectorAll(".sub,.hint")].filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(), c = e.cloneNode(true), s2 = getComputedStyle(e);
-        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font:${s2.font};`;
-        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 140, easing: "ease-out", fill: "forwards"}); return c; }) : [];
+        c.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width + 2}px;height:${r.height}px;margin:0;z-index:31;pointer-events:none;color:${s2.color};font-family:${s2.fontFamily};font-size:${s2.fontSize};font-weight:${s2.fontWeight};line-height:${s2.lineHeight};letter-spacing:${s2.letterSpacing};overflow:hidden;`;
+        document.body.appendChild(c); c.animate([{opacity: 1}, {opacity: 0}], {duration: 80, easing: "ease-out", fill: "forwards"}); return c; }) : [];
       if(pg.src) pg.src.classList.add("pg-src");
       pgShow(go);
-      v.classList.add("fv", "pg-anim"); v.style.background = bg; v.style.borderRadius = rA + "px"; setR(v, A); v.scrollTop = 0;
+      v.classList.add("fv"); setR(v, pgTarget()); v.scrollTop = 0; const an = anchors(v, pg.src, A);
+      v.style.background = bg; v.style.borderRadius = rA + "px"; setR(v, A); v.getBoundingClientRect(); v.classList.add("pg-anim");
+      an.forEach(a => a.el.animate([{transform: a.t}, {transform: "none"}], {duration: 420, easing: EZ}));
       pgSides().forEach(e => e.classList.add("wm-side-out"));
       const n = v.querySelector(".tabHero .thN"); if(n && fs0) n.animate([{fontSize: fs0 + "px"}, {fontSize: getComputedStyle(n).fontSize}], {duration: 420, easing: EZ});
-      const fl = v.querySelector(".tabHero .thI .thR"); if(fl) fl.animate([{transform: "rotateX(0deg)"}, {transform: "rotateX(180deg)"}], {duration: 450, easing: MK.flipEase});
       [...v.querySelectorAll(".tabHero .thS,.tabHero .thH"), ...detailsIn(v)].forEach((el, i) => el.animate([{opacity: 0, transform: "translateY(10px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 200 + 70 * Math.min(i, 8), easing: EZ, fill: "backwards"}));
       v.getBoundingClientRect(); // first frame = the card at rest
       document.body.classList.add("pgopen");
       v.style.background = ""; v.style.borderRadius = ""; setR(v, pgTarget());
-      setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); window._pgBusy = false; }, 440);
+      setTimeout(() => { v.classList.remove("pg-anim"); peeks.forEach(c => c.remove()); document.body.classList.add("pgready"); window._pgBusy = false; }, 440);
     }
     function pgDone(){ const p = pg; if(!p) return; const v = viewOf(p.go);
       pg = null; window._pg = null; window._pgBusy = false;
       window.showTab("home");
       if(v){ v.classList.remove("fv", "pg-anim", "pg-closing"); ["top","left","width","height","background","borderRadius","transform","transition"].forEach(k => v.style[k] = ""); v.getAnimations({subtree: true}).forEach(a => a.cancel()); }
-      pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen");
+      pgSides().forEach(e => e.classList.remove("wm-side-out")); document.body.classList.remove("pgopen", "pgready");
       if(p.src) p.src.classList.remove("pg-src");
     }
     function pgClose(){
@@ -942,7 +959,7 @@
       const card = p.src && p.src.isConnected ? p.src : homeCard(p.go), B = card ? card.getBoundingClientRect() : {left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80};
       [...v.querySelectorAll(".tabHero .thS,.tabHero .thH"), ...detailsIn(v)].forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: 90, fill: "forwards"}));
       const n = v.querySelector(".tabHero .thN"); if(n && p.fs0) n.animate([{fontSize: getComputedStyle(n).fontSize}, {fontSize: p.fs0 + "px"}], {duration: 340, easing: EZ, fill: "forwards"});
-      const fl = v.querySelector(".tabHero .thI .thR"); if(fl) fl.animate([{transform: "rotateX(180deg)"}, {transform: "rotateX(0deg)"}], {duration: 400, easing: MK.flipEase, fill: "forwards"});
+      document.body.classList.remove("pgready"); const an = anchors(v, card, B); an.forEach(a => a.el.animate([{transform: "none"}, {transform: a.t}], {duration: 340, easing: EZ, fill: "forwards"}));
       v.classList.add("pg-anim", "pg-closing"); v.style.background = p.bg; v.style.borderRadius = p.rA + "px"; setR(v, B);
       document.body.classList.remove("pgopen");
       if(card) card.querySelectorAll(".sub,.hint").forEach(e => e.animate([{opacity: 0}, {opacity: 1}], {duration: 150, delay: 340, easing: "ease-out", fill: "backwards"}));
@@ -976,6 +993,17 @@
       addEventListener("resize", () => { if(pg && !window._pgBusy) setR(viewOf(pg.go), pgTarget()); });
     })();
 
+    /* Monthly budget groups (Must pay, Living, Personal, Saving) start minimized; tap a group to open it (Beshr 2026-11-22) */
+    (function(){
+      const open = new Set();
+      const apply = () => { const tb = document.getElementById("rows"); if(!tb) return; let g = null;
+        [...tb.children].forEach(tr => { if(tr.classList.contains("group")){ g = tr.textContent.trim(); tr.classList.toggle("gc", !open.has(g)); tr.setAttribute("role", "button"); tr.setAttribute("aria-expanded", String(open.has(g))); }
+          else if(tr.classList.contains("total")) g = null; else if(g != null) tr.classList.toggle("gh", !open.has(g)); }); };
+      const go = () => { const tb = document.getElementById("rows"); if(!tb) return setTimeout(go, 300); new MutationObserver(apply).observe(tb, {childList: true}); apply();
+        tb.addEventListener("click", e => { const tr = e.target.closest("tr.group"); if(!tr) return; const g = tr.textContent.trim(); open.has(g) ? open.delete(g) : open.add(g); apply();
+          if(open.has(g) && !reduced()){ let n = tr.nextElementSibling, i = 0; while(n && n.classList.contains("gh") === false && !n.classList.contains("group") && !n.classList.contains("total")){ n.animate([{opacity: 0, transform: "translateY(-6px)"}, {opacity: 1, transform: "none"}], {duration: 260, delay: 30 * i++, easing: EZ, fill: "backwards"}); n = n.nextElementSibling; } } }); };
+      go();
+    })();
     /* Sections drop down in place, one open at a time (320ms); rows below slide to make room */
     (function(){
       let inner = false;
