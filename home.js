@@ -265,12 +265,21 @@
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
   /* Home: violet band behind title, search, Balance + Budget; organic wave edge; white below (Beshr 2026-11-22) */
   #homeBand{display:none;position:absolute;left:0;right:0;top:0;height:var(--band,320px);z-index:-1;pointer-events:none;background:#F8FAFC}
-  #homeBand svg{position:absolute;left:0;bottom:-39px;width:100%;height:40px;display:block}
+  /* moving organic waves (Beshr 2026-11-22): GPU transform only, slow loop, paused when hidden, still under Reduce Motion */
+  #homeBand .wv{position:absolute;left:0;right:0;overflow:hidden;pointer-events:none}
+  #homeBand .wv svg{display:block;width:200%!important;max-width:none!important;height:100%!important;animation:wvMove 14s linear infinite;will-change:transform}
+  #homeBand .wv.rev svg{animation-direction:reverse;animation-duration:19s}
+  #homeBand .wv.bot{bottom:-39px;height:40px}
+  #homeBand .wv.top{top:0;height:calc(env(safe-area-inset-top,0px) + 96px)}
+  #homeBand .wv.top.t2{height:calc(env(safe-area-inset-top,0px) + 70px)}
+  @keyframes wvMove{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+  html.wv-paused #homeBand .wv svg{animation-play-state:paused}
+  @media (prefers-reduced-motion: reduce){#homeBand .wv svg{animation:none}}
   body.onhome #homeBand{display:block}
   #viewHome>.hcard[data-go=budget]+*,#viewHome>.hcard[data-go=bal]:not(:has(+ .hcard[data-go=budget]))+*{margin-top:40px!important}
   body.onhome::before{display:none!important}
   body.onhome{background:linear-gradient(180deg,#16365E 0%,#0F2A4A 100%)!important}
-  @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand svg path{fill:var(--bg)!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
+  @media (prefers-color-scheme: dark){#homeBand{background:var(--bg)}#homeBand .bot path{fill:var(--bg)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{font-size:clamp(16px,5vw,19px)!important}
@@ -356,7 +365,9 @@
   function init(){
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     const band = document.createElement("div"); band.id = "homeBand"; band.setAttribute("aria-hidden", "true");
-    band.innerHTML = '<svg viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0,0 L400,0 L400,14 C340,40 290,4 220,18 C150,32 110,40 60,22 C35,13 15,16 0,24 Z" fill="#F8FAFC"/></svg>';
+    const wave = (cls, fill, op) => `<div class="wv ${cls}"><svg viewBox="0 0 800 40" preserveAspectRatio="none"><path d="M0,0 L0,20 C100,40 150,4 220,18 S340,36 400,20 C500,40 550,4 620,18 S740,36 800,20 L800,0 Z" fill="${fill}" fill-opacity="${op}"/></svg></div>`;
+    band.innerHTML = wave("top", "#0F2A4A", .07) + wave("top t2 rev", "#0F2A4A", .06) + wave("bot", "#F8FAFC", 1);
+    document.addEventListener("visibilitychange", () => document.documentElement.classList.toggle("wv-paused", document.hidden));
     document.body.appendChild(band);
     const sizeBand = () => { const v = document.getElementById("viewHome"); if(!v || v.hidden) return;
       const c = v.querySelector('.hcard[data-go=budget]') || v.querySelector('.hcard[data-go=bal]'); if(!c) return;
