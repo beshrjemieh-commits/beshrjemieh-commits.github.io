@@ -287,12 +287,12 @@
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
   /* Balance opened from Home stays as a big framed card: page inside a rounded card, navy frame around (Beshr 2026-11-22) */
-  body.framed{background:#0F2A4A!important}
+  /* Balance opened from Home: the page is a big card that starts at the Balance card's top edge; title + search stay above (Beshr 2026-11-22) */
+  body.framed{background:#FFFFFF!important;overflow:hidden;height:100dvh}
   body.framed::before{display:none!important}
-  body.framed .wrap{margin:12px!important;max-width:none!important;border-radius:28px;background:var(--bg);height:calc(100dvh - 24px);min-height:0!important;box-sizing:border-box;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-  body.framed{overflow:hidden;height:100dvh}
-  body.framed .wrap>*{flex-shrink:0}
-  @media (prefers-color-scheme: dark){body.framed{background:#000!important}}
+  body.framed #viewBal{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:28px;padding:12px;box-sizing:border-box;height:var(--vbH,70vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 20px 40px -20px rgba(15,42,74,.45)}
+  body.framed #hintBar{display:none!important}
+  @media (prefers-color-scheme: dark){body.framed{background:#000!important}body.framed #viewBal{background:var(--surface);border-color:var(--line)}}
   /* card <-> page morph (View Transitions). Kept light: no page cross-fade, viewport-sized snapshot, waves paused, iOS-style curve */
   ::view-transition-group(balcard){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
   ::view-transition-old(balcard),::view-transition-new(balcard){height:100%;width:100%;object-fit:cover;object-position:top left;mix-blend-mode:normal}
@@ -310,7 +310,7 @@
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
-  body.framed .wrap.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
+  body.framed #viewBal.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
   body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
@@ -462,10 +462,13 @@
        Older phones fall back to a simple grow layer. */
     const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
     const wrapEl = () => document.querySelector(".wrap");
+    const balView = () => document.getElementById("viewBal");
+    const sizeBal = () => { const v = balView(); if(!v || !document.body.classList.contains("framed")) return; v.style.setProperty("--vbH", Math.max(240, innerHeight - v.getBoundingClientRect().top - 12) + "px"); };
+    addEventListener("resize", sizeBal);
     const balCard = () => document.querySelector('#viewHome .hcard[data-go=bal]');
     window._vtBusy = false;
     function expandOpen(card, go){
-      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); return; }
+      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); sizeBal(); return; }
       /* The real Balance page is built first (instantly, under a frozen copy of Home), then the page itself grows
          out of the card using transform/opacity only, so the phone's graphics chip does all the moving. */
       const r = card.getBoundingClientRect(), wrap = wrapEl(), bs = getComputedStyle(document.body);
@@ -479,22 +482,23 @@
       w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
       snap.appendChild(w2); document.body.appendChild(snap);
       // 2) switch to the framed Balance page underneath (cheap, invisible for one frame)
-      showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); wrap.scrollTop = 0; } catch(e){}
-      const F = wrap.getBoundingClientRect();
+      showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
+      const page = balView(); sizeBal(); page.scrollTop = 0;
+      const F = page.getBoundingClientRect();
       const from = `translate(${r.left - F.left}px,${r.top - F.top}px) scale(${r.width / F.width},${r.height / F.height})`;
-      wrap.classList.add("growing");
+      page.classList.add("growing");
       const cover = document.createElement("div");
       cover.style.cssText = `position:fixed;left:${F.left}px;top:${F.top}px;width:${F.width}px;height:${F.height}px;z-index:3;pointer-events:none;background:${navy};border-radius:28px;transform-origin:0 0;will-change:transform,opacity`;
       document.body.appendChild(cover);
       const opt = {duration: 420, easing: "cubic-bezier(.32,.72,0,1)", fill: "both"};
-      const a1 = wrap.animate([{transform: from}, {transform: "none"}], opt);
+      const a1 = page.animate([{transform: from}, {transform: "none"}], opt);
       cover.animate([{transform: from, opacity: 1}, {opacity: 1, offset: .35}, {transform: "none", opacity: 0}], opt);
       snap.animate([{opacity: 1}, {opacity: 0}], {duration: 300, easing: "ease-out", fill: "both"});
-      a1.onfinish = () => { a1.cancel(); wrap.classList.remove("growing"); cover.remove(); snap.remove(); };
+      a1.onfinish = () => { a1.cancel(); page.classList.remove("growing"); cover.remove(); snap.remove(); };
     }
     window._balShrink = function(name){ // Balance page shrinks back into its card on the way Home
       window._vtBusy = true; document.documentElement.classList.add("vt");
-      const w = wrapEl(); if(w) w.style.viewTransitionName = "balcard";
+      const w = balView(); if(w) w.style.viewTransitionName = "balcard";
       const t = document.startViewTransition(() => {
         if(w) w.style.viewTransitionName = "";
         window.showTab(name);
