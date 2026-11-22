@@ -361,6 +361,9 @@
   /* no tab bar: swipe between screens; page dots */
   .tabs{display:none!important}
   body,body.onhome,body.framed{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+  /* Home: no extra scroll when everything fits, so the title never slides under the clock (Beshr 2026-11-22) */
+  html body.onhome{padding-bottom:0!important}
+  body.onhome .wrap{box-sizing:border-box!important;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
   html body .hintbar{bottom:max(12px,env(safe-area-inset-bottom,0px))!important}
   #pgDots{display:none!important}
   #pgDots-unused{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
