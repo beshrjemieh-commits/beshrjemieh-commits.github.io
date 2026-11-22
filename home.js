@@ -261,6 +261,11 @@
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]),#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget]{grid-column:span 1;justify-content:flex-start}
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hint{display:none!important}
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .sub,#viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .sub{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:13px!important}
+  /* Balance card shows the same tip as the Balance page, so it flies across without changing words (Beshr 2026-11-22) */
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]):has(.hint) .sub{display:none!important}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint{display:flex!important;align-items:center;gap:6.9px;margin-top:6px!important;padding:8.6px 10.3px!important;border-radius:10.3px!important;font-size:12px!important;line-height:normal!important}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint>svg{width:15.4px;height:15.4px;flex:none}
+  #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hint>span{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;min-width:0} /* one line, like the page tip it flies into */
   #viewHome>.hcard[data-go=bal]:has(+ .hcard[data-go=budget]) .hh .big{font-size:clamp(22px,7.5vw,28px)!important}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh{flex-wrap:wrap}
   #viewHome>.hcard[data-go=bal]+.hcard[data-go=budget] .hh .big{order:5;flex:1 0 100%!important;text-align:start!important;font-size:clamp(18px,6vw,24px)!important}
@@ -323,10 +328,13 @@
   .tabHero .thN{font-size:clamp(56px,17vw,76px);font-weight:600;line-height:1.05;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;color:var(--fg);margin:4px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tabHero .thN.bad{color:var(--loss)}
   .tabHero .thL:has(.thI){display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;overflow:visible;position:relative;padding-inline-start:40px;min-height:30px}
-  .tabHero .thL:has(.thI) .thI{position:absolute;top:-10px;inset-inline-start:-12px}
+  /* icon = a piece of the rectangle's own corner: outer corner follows the box, inner corner is round (Beshr 2026-11-22) */
+  .tabHero .thL:has(.thI){padding-inline-start:44px}
+  .tabHero .thL:has(.thI) .thI{position:absolute;top:-20px;inset-inline-start:-16px;width:52px;height:52px;border-radius:0;border-start-start-radius:28px;border-end-end-radius:26px;background:rgba(255,255,255,.12)}
+  .tabHero .thL:has(.thI) .thI svg{width:24px;height:24px}
+  body.framed #viewBal .tabHero .thL:has(.thI),#viewBal.ghost .tabHero .thL:has(.thI){color:#FFFFFF;font-weight:700} /* same title look as the card */
   /* Balance card icon sits in the top-left corner (Beshr 2026-11-22) */
-  #viewHome .hcard[data-go=bal] .hh .ic{position:absolute;top:8px;inset-inline-start:8px;margin:0}
-  #viewHome .hcard[data-go=bal] .hh .tt{margin-inline-start:24px}
+  #viewHome .hcard[data-go=bal] .hh .tt{margin-inline-start:28px}
   .tabHero .thI{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;background:rgba(255,255,255,.12)}
   .tabHero .thI svg{width:20px;height:20px}
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
@@ -347,8 +355,9 @@
   #viewHome .hcard[data-go=forsa] .hh .ic{box-shadow:0 4px 10px -3px rgba(180,83,9,.55),inset 0 1px 0 rgba(255,255,255,.5)!important}
   #viewHome .hcard:not([data-go=bal]) .hh .tt{font-weight:700!important;color:var(--fg)!important}
   #viewHome .hcard[data-go=forsa] .hh .tt{color:var(--deal-ink)!important}
-  #viewHome .hcard[data-go=bal] .hh .ic{display:grid!important;width:32px!important;height:32px!important;border-radius:50%!important;background:rgba(255,255,255,.14)!important;color:#fff!important;box-shadow:0 4px 10px -3px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.25)!important}
-  #viewHome .hcard[data-go=bal] .hh .ic svg{width:20px!important;height:20px!important}
+  #viewHome .hcard[data-go=bal] .hh .ic{display:grid!important;color:#fff!important}
+  #viewHome .hcard[data-go=bal] .hh .ic{position:absolute;top:-1px;inset-inline-start:-1px;margin:0;width:44px!important;height:44px!important;border-radius:0!important;border-start-start-radius:16px!important;border-end-end-radius:22px!important;background:rgba(255,255,255,.12)!important;box-shadow:none!important}
+  #viewHome .hcard[data-go=bal] .hh .ic svg{width:22px!important;height:22px!important}
   #viewHome .hcard[data-go=bal] .hh .tt{font-size:16px!important;font-weight:700!important;color:#fff!important}
   .hcard .hint{display:flex!important;align-items:center;gap:7px}
   .hcard .hint>svg{flex:none;width:14px;height:14px}
@@ -527,7 +536,7 @@
     const txt = e => { const r = document.createRange(); r.selectNodeContents(e); const x = r.getBoundingClientRect(); return x.width ? x : e.getBoundingClientRect(); };
     function cardSpots(card){ // measured while the card is on screen
       if(!card) return null; const c = x => card.querySelector(x), o = {}, fs = e => parseFloat(getComputedStyle(e).fontSize) || 16;
-      [["icon", c(".ic"), 0], ["title", c(".tt"), 1], ["num", c(".big"), 1], ["tip", [c(".hint > span"), c(".sub")].find(e => e && e.getClientRects().length), 1]].forEach(([k, e, t]) => { if(e) o[k] = {r: t ? txt(e) : e.getBoundingClientRect(), fs: fs(e)}; });
+      [["icon", c(".ic"), 0], ["title", c(".tt"), 1], ["num", c(".big"), 1], ["tip", [c(".hint"), c(".sub")].find(e => e && e.getClientRects().length), 0]].forEach(([k, e, t]) => { if(e) o[k] = {r: t ? txt(e) : e.getBoundingClientRect(), fs: fs(e)}; });
       return o;
     }
     function pairsFor(box, cs){
@@ -536,7 +545,7 @@
       const add = (el, src, mode) => { if(!el || !src) return; const b = el.getBoundingClientRect(), r = src.r; if(!b.width || !r.width) return;
         const t = mode === "tip" ? (el.querySelector("span") || el) : el, tb = mode === "icon" || mode === "tip" ? b : txt(t); // tip: the whole pill lines up with the card line, so it stays inside the card
         // icon: even scale by size; same words (title, number): by text width; tip: by font size
-        const s = mode === "icon" ? r.width / b.width : mode === "same" ? r.width / tb.width : src.fs / fs(t);
+        const s = mode === "icon" ? r.width / b.width : mode === "same" ? r.width / tb.width : src.fs / fs(t); // tip: by font size; the card pill is the page pill at 12/14 size
         const ox = (rtl ? tb.right : tb.left) - b.left, oy = tb.top - b.top + tb.height / 2; // anchor: start of the words, middle of the line
         out.push({el, a: {left: (rtl ? r.right : r.left) - ox * s, top: r.top + r.height / 2 - oy * s}, b: {left: b.left, top: b.top}, s}); };
       const q = x => box.querySelector(".tabHero " + x);
@@ -596,7 +605,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && document.startViewTransition && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && document.startViewTransition && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home" && !window._vtBusy) seed = Math.random(); /* same tip when the page shrinks back into the card */ if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
