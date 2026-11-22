@@ -302,6 +302,14 @@
   ::view-transition-old(root),::view-transition-new(root){animation:none}
   html.vt #homeBand .wv svg{animation-play-state:paused}
   @media (prefers-reduced-motion: reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
+  /* tab hero: one big number + one tip */
+  .tabHero{padding:8px 4px 14px;text-align:start}
+  .tabHero .thL{font-size:14px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tabHero .thN{font-size:clamp(56px,17vw,76px);font-weight:600;line-height:1.05;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;color:var(--fg);margin:4px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tabHero .thN.bad{color:var(--loss)}
+  .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
+  .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
+  .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
   body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
@@ -386,6 +394,44 @@
           ${h ? `<span class="hint">${window.PH ? PH("sparkle") : ""}<span>${esc(h.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, ""))}</span></span>` : ""}</button>`; }).join("");
     requestAnimationFrame(() => window._sizeBand && window._sizeBand());
   }
+  /* ---------- one big number + one important tip at the top of each tab (Beshr 2026-11-22) ---------- */
+  const VIEW = {bal:"viewBal", budget:"viewBudget", plan:"viewPlan", prices:"viewPrices", forsa:"viewForsa"};
+  function heroFor(tab){
+    const b = bodyFor(tab) || {};
+    const clean = x => x ? x.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, "") : "";
+    let label = "", num = "", bad = false;
+    if(tab === "bal"){ label = L("Your balance","رصيدك"); num = b.big; bad = b.bad; }
+    if(tab === "budget"){ label = L("You can spend per day","تقدر تصرف باليوم"); num = String(b.big || "").replace(/<span class="pd">.*<\/span>/, ""); bad = b.bad; }
+    if(tab === "plan"){
+      const ymd = g("ymd") || (d => d.toISOString().slice(0,10)), t = ymd(new Date());
+      const td = (g("entries") || []).filter(e => e.date === t).reduce((a, e) => a + e.amount, 0);
+      label = L("Spent today","صرفت اليوم"); num = td ? neg(td) : sar(0); bad = td > 0;
+    }
+    if(tab === "prices"){
+      let best = null;
+      priceGroups().forEach(recs => { const byStore = new Map(); recs.forEach(p => { const k = p.store || "?"; if(!byStore.has(k) || p.price < byStore.get(k).price) byStore.set(k, p); });
+        const r = [...byStore.values()]; if(r.length < 2) return; r.sort((a,b) => a.price - b.price);
+        const pct = Math.round((1 - r[0].price / r[r.length-1].price) * 100); if(!best || pct > best.pct) best = {pct, item: r[0].item, store: r[0].store}; });
+      if(best){ label = L(`Best saving · ${esc(best.item)} at ${esc(best.store || "?")}`, `أفضل توفير · ${esc(best.item)} في ${esc(best.store || "?")}`); num = `<span class="thG"><span class="thA">▼</span>${best.pct}%</span>`; }
+      else { label = L("Prices saved","أسعار محفوظة"); num = String((g("prices") || []).length); }
+    }
+    if(tab === "forsa"){
+      const live = (g("deals") || []).filter(d => d.status !== "hidden" && d.profit > 0).sort((a,b) => b.profit - a.profit);
+      if(live.length){ label = L(`Best deal · ${esc(live[0].title)}`, `أفضل فرصة · ${esc(live[0].title)}`); num = `<span class="thD">+${sar(live[0].profit)}</span>`; }
+      else { label = L("Deals found","فرص موجودة"); num = "0"; }
+    }
+    if(!num) return "";
+    const hs = hintsFor(tab), h = (shown[tab] && hs.includes(shown[tab].h) && shown[tab].h) || hs.find(x => /^💡|^⚠|^💎|^🆕/.test(x)) || hs[0];
+    return `<div class="tabHero" data-noi18n><div class="thL">${label}</div><div class="thN${bad ? " bad" : ""}">${num}</div>${h ? `<div class="thH">${window.PH ? PH("sparkle") : ""}<span>${esc(clean(h))}</span></div>` : ""}</div>`;
+  }
+  function renderHero(tab){
+    const v = document.getElementById(VIEW[tab]); if(!v) return;
+    let el = v.querySelector(":scope > .tabHero"); const html = heroFor(tab);
+    if(!html){ if(el) el.remove(); return; }
+    const tmp = document.createElement("div"); tmp.innerHTML = html; const n = tmp.firstElementChild;
+    if(el) el.replaceWith(n); else v.prepend(n);
+  }
+  window.walletHero = renderHero;
   let rt = 0; const soon = () => { clearTimeout(rt); rt = setTimeout(() => { if(!document.getElementById("viewHome").hidden) render(); }, 250); };
 
   function init(){
@@ -464,7 +510,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && document.startViewTransition && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(!window._vtBusy && name === "home" && cur === "bal" && document.body.classList.contains("framed") && document.startViewTransition && !reduced() && window._balShrink){ window._balShrink(name); return; } if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); if(VIEW[name]) { try { renderHero(name); } catch(e){} } try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
