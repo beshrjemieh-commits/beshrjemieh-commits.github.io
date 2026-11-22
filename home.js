@@ -310,6 +310,7 @@
   .tabHero .thN .thG{color:var(--gain)} .tabHero .thN .thD{color:var(--deal-ink,#92400E)} .tabHero .thA{font-size:.45em;vertical-align:.35em;margin-inline-end:.15em}
   .tabHero .thH{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--navy-soft,#E6ECF4);color:var(--fg);font-size:14px;font-weight:500}
   .tabHero .thH svg{width:18px;height:18px;flex:none;color:var(--accent-blue,#2563EB)}
+  body.framed .wrap.growing{position:relative;z-index:2;transform-origin:0 0;will-change:transform}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
   body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
@@ -464,19 +465,32 @@
     const balCard = () => document.querySelector('#viewHome .hcard[data-go=bal]');
     window._vtBusy = false;
     function expandOpen(card, go){
-      if(reduced()){ showTab(go); document.body.classList.add("framed"); return; }
-      if(document.startViewTransition){
-        window._vtBusy = true; document.documentElement.classList.add("vt");
-        card.style.viewTransitionName = "balcard";
-        const t = document.startViewTransition(() => {
-          card.style.viewTransitionName = "";
-          showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){}
-          const w = wrapEl(); if(w) w.style.viewTransitionName = "balcard";
-        });
-        t.finished.finally(() => { window._vtBusy = false; document.documentElement.classList.remove("vt"); const w = wrapEl(); if(w) w.style.viewTransitionName = ""; });
-        return;
-      }
-      return expandLayer(card, go);
+      if(reduced() || !document.body.animate){ showTab(go); document.body.classList.add("framed"); return; }
+      /* The real Balance page is built first (instantly, under a frozen copy of Home), then the page itself grows
+         out of the card using transform/opacity only, so the phone's graphics chip does all the moving. */
+      const r = card.getBoundingClientRect(), wrap = wrapEl(), bs = getComputedStyle(document.body);
+      const navy = getComputedStyle(card).backgroundColor;
+      // 1) frozen copy of Home, exactly where it is
+      const snap = document.createElement("div");
+      snap.style.cssText = `position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:${bs.backgroundColor};background-image:${bs.backgroundImage};`;
+      const band = document.getElementById("homeBand"), wr = wrap.getBoundingClientRect();
+      if(band){ const b2 = band.cloneNode(true); b2.removeAttribute("id"); b2.style.cssText += `;display:block;position:absolute;left:0;right:0;top:${-scrollY}px;height:${band.offsetHeight}px;z-index:0`; b2.querySelectorAll("svg").forEach(x => x.style.animation = "none"); snap.appendChild(b2); }
+      const w2 = wrap.cloneNode(true); w2.removeAttribute("id"); w2.querySelectorAll("[id]").forEach(x => x.removeAttribute("id"));
+      w2.style.cssText = `position:absolute;left:${wr.left}px;top:${wr.top}px;width:${wr.width}px;margin:0;z-index:1`;
+      snap.appendChild(w2); document.body.appendChild(snap);
+      // 2) switch to the framed Balance page underneath (cheap, invisible for one frame)
+      showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); wrap.scrollTop = 0; } catch(e){}
+      const F = wrap.getBoundingClientRect();
+      const from = `translate(${r.left - F.left}px,${r.top - F.top}px) scale(${r.width / F.width},${r.height / F.height})`;
+      wrap.classList.add("growing");
+      const cover = document.createElement("div");
+      cover.style.cssText = `position:fixed;left:${F.left}px;top:${F.top}px;width:${F.width}px;height:${F.height}px;z-index:3;pointer-events:none;background:${navy};border-radius:28px;transform-origin:0 0;will-change:transform,opacity`;
+      document.body.appendChild(cover);
+      const opt = {duration: 420, easing: "cubic-bezier(.32,.72,0,1)", fill: "both"};
+      const a1 = wrap.animate([{transform: from}, {transform: "none"}], opt);
+      cover.animate([{transform: from, opacity: 1}, {opacity: 1, offset: .35}, {transform: "none", opacity: 0}], opt);
+      snap.animate([{opacity: 1}, {opacity: 0}], {duration: 300, easing: "ease-out", fill: "both"});
+      a1.onfinish = () => { a1.cancel(); wrap.classList.remove("growing"); cover.remove(); snap.remove(); };
     }
     window._balShrink = function(name){ // Balance page shrinks back into its card on the way Home
       window._vtBusy = true; document.documentElement.classList.add("vt");
