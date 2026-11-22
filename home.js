@@ -149,7 +149,9 @@
       const cats = flex.filter(i => +state[i.k].plan > 0).map(i => ({i, left: state[i.k].plan - (sums[i.k] || 0)}));
       const c = cats.slice().sort((a,b) => a.left / (state[a.i.k].plan || 1) - b.left / (state[b.i.k].plan || 1))[0];
       const catTxt = c ? `<span>${esc(c.i.s)}</span>: ${c.left < 0 ? L(`${fmt(-c.left)} SAR over`, `متجاوز ${fmt(-c.left)} ريال`) : L(`${fmt(c.left)} SAR left`, `باقي ${fmt(c.left)} ريال`)}` : "";
-      return {big: (left < 0 ? neg(-perDay) : sar(perDay)) + `<span class="pd">${L(" / day", " / يوم")}</span>`, bad: left < 0,
+      const r1 = `<span class="rw"><span class="rl">${left < 0 ? L("Over","متجاوز") : L("Left","باقي")}</span><b${left < 0 ? ' class="loss"' : ""}>${left < 0 ? "▼ " + sar(-left) : sar(left)}</b></span>`;
+      const r2 = c ? `<span class="rw"><bdi class="rl">${esc(c.i.s)}</bdi><b${c.left < 0 ? ' class="loss"' : ""}>${c.left < 0 ? L(`${sar(-c.left)} over`, `متجاوز ${sar(-c.left)}`) : L(`${sar(c.left)} left`, `باقي ${sar(c.left)}`)}</b></span>` : "";
+      return {big: (left < 0 ? neg(-perDay) : sar(perDay)) + `<span class="pd">${L(" / day", " / يوم")}</span>`, bad: left < 0, rows: r1 + r2,
         subHtml: (left < 0 ? `<span class="loss">▼ ` + L(`${fmt(-left)} SAR over this month`, `متجاوز ${fmt(-left)} ريال هذا الشهر`) + `</span>` : L(`${fmt(left)} SAR left this month`, `باقي ${fmt(left)} ريال هذا الشهر`)) + (catTxt ? " · " + catTxt : "")};
     }
     if(tab === "plan"){
@@ -228,6 +230,7 @@
   .hcard .rows .rw>b{white-space:nowrap;font-variant-numeric:tabular-nums}
   .hcard .rows .rr{display:flex;flex-direction:column;align-items:flex-end;text-align:end;font-size:12px;flex:none;max-width:45%}
   .hcard .rows .gain,.hcard .big .gain{color:var(--gain,#16A34A)!important}
+  .hcard .rows .loss{color:var(--loss,#DC2626)!important}
   .hcard .rows .pbx{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
   .hcard .rows .pb{display:flex;flex-direction:column;gap:2px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface,#fff)}
   .hcard .rows .pb.good{border-color:color-mix(in srgb,var(--gain,#16A34A) 45%,transparent);background:color-mix(in srgb,var(--gain,#16A34A) 9%,var(--surface,#fff))}
