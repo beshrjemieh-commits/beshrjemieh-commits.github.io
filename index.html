@@ -1201,8 +1201,8 @@ function handleSmsLink(){
   if(!smsFromLink) return; const t=smsFromLink; smsFromLink=null;
   setTimeout(()=>{
     try{ sessionStorage.removeItem("w-sms"); }catch(e){}
-    showTab("plan");
-    const sec=document.getElementById("log"); if(sec&&sec.classList.contains("collapsed")){ const h=sec.querySelector("h2"); if(h) h.click(); }
+    if(window._sheet) window._sheet("exp"); else { showTab("plan");
+    const sec=document.getElementById("log"); if(sec&&sec.classList.contains("collapsed")){ const h=sec.querySelector("h2"); if(h) h.click(); } }
     document.getElementById("smsIn").value=t; readSms();
     const target=document.getElementById(smsItems.length?"smsOut":"addBtn");
     target.scrollIntoView({block:"center",behavior:"smooth"});

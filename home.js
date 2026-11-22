@@ -722,8 +722,11 @@
        Budget's bottom line is an AI hint chip lined up with Balance's "Lasts" chip. */
     try { const rm = document.createElement("div"); rm.id = "rotMsg"; rm.setAttribute("role", "alert"); rm.innerHTML = (window.PH ? PH("device-mobile") : "") + "<span>" + L("Turn your phone upright to use the wallet","أعد الهاتف للوضع العمودي لاستخدام المحفظة") + "</span>"; document.body.appendChild(rm);
       screen.orientation && screen.orientation.lock && screen.orientation.lock("portrait").catch(() => {}); } catch(e){}
+    try { const lg = document.getElementById("log"); const unc = () => { if(lg.classList.contains("collapsed")) lg.classList.remove("collapsed"); }; // its header is gone, so it always stays open
+      new MutationObserver(unc).observe(lg, {attributes: true, attributeFilter: ["class"]}); unc(); } catch(e){}
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
+  #viewPlan #log>div:first-child,#viewPlan #log>#addForm{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
   /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */
   #rotMsg{display:none}
   @media (orientation: landscape) and (max-height: 540px){#rotMsg{display:flex;position:fixed;inset:0;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#0F2A4A;color:#E6F1FB;font-size:17px;font-weight:500;text-align:center}#rotMsg svg{width:40px;height:40px;color:#B5D4F4}}
