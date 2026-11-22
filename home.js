@@ -286,6 +286,11 @@
   @media (prefers-color-scheme: dark){#homeBand{background:#000}#homeBand .bot path{fill:#000!important}#viewHome>.hcard[data-go=budget],body.onhome #gSearch,body.onhome #gAsk{background:var(--card)!important;border-color:var(--card-line,#3F5F99)!important}#homeBand .top path{fill:#FFFFFF!important}body.onhome{background:linear-gradient(180deg,#0F2A4A 0%,#0B1F38 100%)!important}}
   /* Beshr 2026-11-22: smaller values, icon shadow, bolder titles */
   #viewHome .hcard:not([data-go=bal]) .hh .big{font-size:16px!important;font-weight:600!important}
+  /* Balance opened from Home stays as a big framed card: page inside a rounded card, navy frame around (Beshr 2026-11-22) */
+  body.framed{background:#0F2A4A!important}
+  body.framed::before{display:none!important}
+  body.framed .wrap{margin:12px!important;max-width:none!important;border-radius:28px;background:var(--bg);min-height:calc(100dvh - 24px);box-sizing:border-box;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);overflow:clip}
+  @media (prefers-color-scheme: dark){body.framed{background:#000!important}}
   /* slimmer Search + Ask (Beshr 2026-11-22); smaller text; zoom is locked by the viewport so no focus zoom */
   body.onhome #gSearch,body.onhome #gAsk{height:34px!important;min-height:34px!important;border-radius:9px!important}
   body.onhome #gSearch{font-size:14px!important}body.onhome #gAsk{font-size:12px!important}
@@ -408,7 +413,7 @@
         {transform: `translate(${r.left - M}px,${r.top - M}px) scale(${sx},${sy})`},
         {transform: "translate(0,0) scale(1,1)"}
       ], {duration: 300, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards"});
-      setTimeout(() => { showTab(go); try { scrollTo(0, 0); } catch(e){} }, 40); // build the page while the layer grows
+      setTimeout(() => { showTab(go); document.body.classList.add("framed"); try { scrollTo(0, 0); } catch(e){} }, 40); // build the page while the layer grows
       grow.onfinish = () => requestAnimationFrame(() => {
         const fade = fx.animate([{opacity: 1}, {opacity: 0}], {duration: 200, easing: "ease-out", fill: "forwards"});
         fade.onfinish = () => fx.remove(); });
@@ -416,7 +421,7 @@
     v.addEventListener("click", e => { const c = e.target.closest(".hcard"); if(!c) return; if(c.dataset.go === "bal") expandOpen(c, "bal"); else showTab(c.dataset.go); });
     // show/hide the tab bar and refresh the cards whenever the Home screen is shown
     const _show = window.showTab || showTab;
-    window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
+    window.showTab = function(name){ if(name === "home") seed = Math.random(); if(!goingBack && cur && cur !== name){ backStack.push(cur); if(backStack.length > 30) backStack.shift(); } if(name === "home") backStack.length = 0; cur = name; if(name !== "bal") document.body.classList.remove("framed"); _show(name); try { dots(); } catch(e){} const home = !document.getElementById("viewHome").hidden; document.body.classList.toggle("onhome", home); if(home) render(); };
     try { showTab = window.showTab; } catch(e){}
     // the app always opens on Home (unless a #tab link was used)
     const h = location.hash.slice(1);
