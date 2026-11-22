@@ -835,7 +835,7 @@ const ALL_ITEMS=ITEMS.slice();
 })();
 const BY = Object.fromEntries(ALL_ITEMS.map(i=>[i.k,i]));
 let INCOME = 10000;
-const fmt = n => Math.round(n).toLocaleString("en-US");
+const _nf0 = new Intl.NumberFormat("en-US"), fmt = n => _nf0.format(Math.round(n)); // one shared formatter (toLocaleString per call was slow on iPhone)
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad = n => String(n).padStart(2,"0");
 const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -1552,7 +1552,7 @@ async function unifyNames(){
       for(const p of recs) if(norm(p.item)!==name||!p.locked){ try{ await db.doc("prices/"+p.id).update({item:name, locked:true}); }catch(e){} } }
   }catch(e){} finally{ unifying=false; }
 }
-const money = n => Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const _nf2 = new Intl.NumberFormat("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}), money = n => _nf2.format(Number(n));
 document.getElementById("pDate").value = ymd(new Date());
 function pStatus(t,err){ const el=document.getElementById("pStatus"); el.textContent=t; el.className="status"+(err?" err":""); }
 function fillList(id, vals){ document.getElementById(id).innerHTML=[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b)).map(v=>`<option value="${esc(v)}">`).join(""); }
