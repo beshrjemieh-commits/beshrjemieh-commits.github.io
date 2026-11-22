@@ -434,7 +434,15 @@
   body,body.onhome,body.framed{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
   /* Home: no extra scroll when everything fits, so the title never slides under the clock (Beshr 2026-11-22) */
   html body.onhome{padding-bottom:0!important}
-  body.onhome .wrap{box-sizing:border-box!important;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+  body.onhome .wrap{box-sizing:border-box!important;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
+  /* Quick action bar on Home (Beshr 2026-11-22): Add expense, Add bill (photo), New hunt */
+  #qBar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
+  body.onhome #qBar{display:grid} body.wm-open #qBar,body.framed #qBar{display:none!important}
+  #qBar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:56px;border:none;border-radius:14px;background:transparent;color:#0F172A;font:500 12px/1.2 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #qBar button:active{background:#EEF2F7;transform:scale(.97)}
+  #qBar button svg{width:24px;height:24px;color:#2563EB}
+  #qBar button[data-q=hunt] svg{color:#F59E0B}
+  @media (prefers-color-scheme: dark){#qBar{background:var(--card,#1C2A44);box-shadow:0 14px 30px -12px rgba(0,0,0,.7)}#qBar button{color:#E2E8F0}#qBar button:active{background:rgba(255,255,255,.08)}}
   html body .hintbar{bottom:max(12px,env(safe-area-inset-bottom,0px))!important}
   #pgDots{display:none!important}
   #pgDots-unused{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:0;padding:0 8px;border-radius:999px;background:color-mix(in srgb,var(--card) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
@@ -733,6 +741,22 @@
       }).finally(() => { ghost.remove(); window._vtBusy = false; });
     };
 
+
+    /* Quick action bar (Beshr 2026-11-22) */
+    (function(){
+      const q = document.createElement("nav"); q.id = "qBar"; q.setAttribute("aria-label", L("Quick actions","إجراءات سريعة")); q.setAttribute("data-noi18n", ""); q.setAttribute("data-noswipe", "");
+      const ic = n => window.PH ? PH(n) : "";
+      q.innerHTML = `<button type="button" data-q="exp">${ic("plus-circle")}<span>${L("Add expense","أضف مصروف")}</span></button>` +
+        `<button type="button" data-q="bill">${ic("camera")}<span>${L("Add bill","أضف فاتورة")}</span></button>` +
+        `<button type="button" data-q="hunt">${ic("magnifying-glass")}<span>${L("New hunt","بحث جديد")}</span></button>`;
+      document.body.appendChild(q);
+      const to = (tab, el) => { window.showTab(tab); const e = document.getElementById(el); const sec = e && e.closest("section"); if(sec && sec.classList.contains("collapsed")){ const h = sec.querySelector(":scope > div:first-child h2"); if(h) h.click(); } if(e){ try { e.scrollIntoView({block: "center"}); } catch(x){} } return e; };
+      q.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const k = b.dataset.q;
+        if(k === "exp"){ const f = to("plan", "fAmount"); if(f){ f.value = ""; f.focus(); } }
+        if(k === "bill"){ const f = document.getElementById("billFile"); if(f) f.click(); to("prices", "billsSec"); } // opens the iPhone photo picker / camera
+        if(k === "hunt"){ const f = to("forsa", "fSearch"); if(f){ f.value = ""; f.focus(); } }
+      });
+    })();
     /* Wallet card behaviour (wallet-card-morph.html): tap grows the card itself from its spot; tap again (not on a tile/button) closes */
     (function(){
       const INNER = ".wm-mc, .wm-rc, .wm-start, button";
