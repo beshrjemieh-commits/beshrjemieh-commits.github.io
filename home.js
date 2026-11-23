@@ -737,11 +737,11 @@
   #shelfLabel.busy{opacity:.6;pointer-events:none}
   #shelfStatus:empty{display:none}
   /* My items: category chips, group headings, shopping-list check (Beshr 2026-11-23) */
-  #pCats,#pSubCats{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:8px 0 0;padding-bottom:2px}
-  #pCats::-webkit-scrollbar,#pSubCats::-webkit-scrollbar{display:none}
-  #pCats .chip,#pSubCats .chip{flex:none;min-height:36px;padding:0 12px;font-size:14px;white-space:nowrap}
-  #pSubCats .chip{min-height:32px;font-size:13px}
-  #pCats .chip .tag,#pSubCats .chip .tag{font-size:12px;opacity:.7}
+  #pCats,#pSubCats,#oCats,#oSubCats{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:8px 0 0;padding-bottom:2px}
+  #pCats::-webkit-scrollbar,#pSubCats::-webkit-scrollbar,#oCats::-webkit-scrollbar,#oSubCats::-webkit-scrollbar{display:none}
+  #pCats .chip,#pSubCats .chip,#oCats .chip,#oSubCats .chip{flex:none;min-height:36px;padding:0 12px;font-size:14px;white-space:nowrap}
+  #pSubCats .chip,#oSubCats .chip{min-height:32px;font-size:13px}
+  #pCats .chip .tag,#pSubCats .chip .tag,#oCats .chip .tag,#oSubCats .chip .tag{font-size:12px;opacity:.7}
   .pcathead{font-size:13px;font-weight:600;color:#0F2A4A;padding:12px 4px 4px;letter-spacing:.2px}
   .plistbtn{display:flex!important;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:8px;cursor:pointer}
   .plistbtn svg{width:20px;height:20px}
@@ -755,7 +755,7 @@
   #pOthersList .on small{font-size:13px;color:#64748B}
   #pOthersList .op{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-variant-numeric:tabular-nums}
   #pOthersList .op .btn{min-height:36px;padding:0 12px}
-  #othersSec:not(:has(#pOthers:not([hidden]))){display:none!important} /* Beshr 2026-11-23: other users' items in their own section, shown once there are some */
+  #othersSec:not(:has(#pOthers:not([hidden]))){display:none!important} #pOthers{margin-top:8px} /* Beshr 2026-11-23: other users' items in their own section, shown once there are some */
   #pList .pitem summary .tag{white-space:nowrap} /* size stays with the name */
   /* Expenses list: only today in full, the rest folded (Beshr 2026-11-23) */
   #entries .earlyhead{display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;min-height:44px;box-sizing:border-box;background:var(--surface,#F8FAFC)}
