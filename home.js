@@ -746,6 +746,15 @@
   .plistbtn svg{width:20px;height:20px}
   .plistbtn.busy{opacity:.6;pointer-events:none}
   #pListRes{margin-top:8px}
+  #pOthersList .orow{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #E2E8F0}
+  #pOthersList .orow:first-child{border-top:0}
+  #pOthersList .on{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  #pOthersList .on b{font-weight:600;font-size:16px}
+  #pOthersList .on .tag{white-space:nowrap;font-weight:500}
+  #pOthersList .on small{font-size:13px;color:#64748B}
+  #pOthersList .op{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-variant-numeric:tabular-nums}
+  #pOthersList .op .btn{min-height:36px;padding:0 12px}
+  #othersSec:not(:has(#pOthers:not([hidden]))){display:none!important} /* Beshr 2026-11-23: other users' items in their own section, shown once there are some */
   #pList .pitem summary .tag{white-space:nowrap} /* size stays with the name */
   /* Expenses list: only today in full, the rest folded (Beshr 2026-11-23) */
   #entries .earlyhead{display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;min-height:44px;box-sizing:border-box;background:var(--surface,#F8FAFC)}
