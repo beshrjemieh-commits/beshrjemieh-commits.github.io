@@ -1445,13 +1445,10 @@
       a.onfinish = fin; a.oncancel = fin;
       // reverse: the full view fades, each fact travels back up into the card's summary as the card unfolds
       h.card.getAnimations().forEach(x => x.cancel()); hxClear(); const c1 = hxH(h.card); h.card.classList.remove("hx-min"); const c0 = hxH(h.card);
-      const back = Math.max(0, window.scrollY - Math.min(window.scrollY, h.y0)); // how far the page will scroll back down
-      const gs = hxFly(h.card, h.v, 0, true, ms); gs.forEach(g => { g.style.top = (parseFloat(g.style.top) + back) + "px"; });
-      // the ghost starts on the target as seen now: undo the 'back' shift in its first keyframe
-      gs.forEach(g => g.getAnimations().forEach(an => { const kf = an.effect.getKeyframes(); kf.forEach((k, n) => { if(n < 2 && k.transform){ const m = /translate\(([-\d.]+)px,([-\d.]+)px\)/.exec(k.transform); if(m) k.transform = `translate(${m[1]}px,${(+m[2] - back).toFixed(1)}px)`; } }); an.effect.setKeyframes(kf); }));
+      const gs = hxFly(h.card, h.v, 0, true, ms);
       h.gs = gs; const parts = hxParts(h.card); parts.forEach(p => p.style.opacity = "0"); h.parts = parts;
       h.card.classList.add("hx-anim"); h.card.animate([{height: c1 + "px"}, {height: c0 + "px"}], {duration: ms, easing: HX_EZ});
-      h.v.animate([{opacity: 1}, {opacity: 1, offset: .2}, {opacity: 0, offset: .6}, {opacity: 0}], {duration: ms, easing: "linear", fill: "forwards"});
+      h.v.animate([{opacity: 1}, {opacity: 1, offset: .05}, {opacity: 0, offset: .4}, {opacity: 0}], {duration: ms, easing: "linear", fill: "forwards"});
       // the page scrolls back to where Home was, in step with the fold (the exact reverse of the opening)
       const ys = window.scrollY, yt = Math.min(ys, h.y0); if(ys - yt > 2){ h.yt = yt;
         const step = () => { if(!h.box.isConnected) return; const p = 1 - Math.min(1, h.box.getBoundingClientRect().height / (from || 1)); window.scrollTo(0, ys + (yt - ys) * p); if(!hx) requestAnimationFrame(step); }; step(); }
@@ -1471,18 +1468,25 @@
     function hxGhost(card, p){ const r = card.getBoundingClientRect(), c = card.cloneNode(true), idx = [];
       for(let e = p; e && e !== card; e = e.parentElement) idx.unshift([...e.parentElement.children].indexOf(e));
       c.classList.remove("hx-on", "hx-min", "hx-anim", "pg-src", "pg-land"); c.classList.add("pg-peek", "hx-ghost"); c.removeAttribute("id"); c.setAttribute("aria-hidden", "true");
-      c.style.cssText = `position:fixed!important;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${hxH(card)}px;margin:0!important;z-index:3!important;pointer-events:none!important;visibility:hidden;transform:none;will-change:transform,opacity`;
+      c.style.cssText = `position:absolute!important;left:0;top:0;width:${r.width}px;height:${hxH(card)}px;margin:0!important;z-index:3!important;pointer-events:none!important;visibility:hidden;transform:none;will-change:transform,opacity`;
       let q = c; idx.forEach(n => { q = q && q.children[n]; }); if(q) q.style.visibility = "visible";
-      document.getElementById("viewHome").appendChild(c); return c; }
+      document.getElementById("viewHome").appendChild(c);
+      // Beshr 2026-11-23 (video): ghosts sit in PAGE coordinates (not screen), so the page scrolling back during the fold can't make them land a few points off and snap
+      const g0 = c.getBoundingClientRect(); c.style.left = (r.left - g0.left) + "px"; c.style.top = (r.top - g0.top) + "px"; return c; }
     function hxFly(card, v, scrollBy, reverse, ms){ // reverse = close
-      const rtl = getComputedStyle(document.body).direction === "rtl", out = []; hxPieces(card).forEach(p => { const t = hxTarget(v, p), k = hxKeyEl(p), kr = k.getBoundingClientRect(), g = hxGhost(card, p);
-        let dx = 0, dy = 28; if(t){ const tr = t.getBoundingClientRect(); const pr = p.getBoundingClientRect(); dx = (rtl ? tr.right - pr.right : tr.left - pr.left); dy = tr.top - kr.top; }
-        dy -= scrollBy; const far = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
-        const fr = reverse ? [{transform: far, opacity: 0}, {transform: far, opacity: 0, offset: .15}, {opacity: .55, offset: .55}, {transform: "none", opacity: 1}]
-                           : [{transform: "none", opacity: 1}, {opacity: .5, offset: .45}, {transform: far, opacity: 0}];
-        g.animate(fr, {duration: ms, easing: HX_EZ, fill: "forwards"});
-        if(t && !reverse) t.animate([{opacity: 0}, {opacity: 0, offset: .45}, {opacity: 1}], {duration: ms, easing: "linear"});
-        if(t && reverse) t.animate([{opacity: 1}, {opacity: 0, offset: .3}, {opacity: 0}], {duration: ms, easing: "linear", fill: "forwards"});
+      const rtl = getComputedStyle(document.body).direction === "rtl", out = [];
+      // Beshr 2026-11-23 (video): lines never cross each other's path or slide in sideways. If the opened view has the facts in a
+      // different order than the card, each line just dissolves in place with a short drift instead of travelling.
+      const L = hxPieces(card).map(p => { const t = hxTarget(v, p), k = hxKeyEl(p); return {p, t, k, kr: k.getBoundingClientRect(), tr: t && t.getBoundingClientRect()}; });
+      const ordered = L.every((x, i) => !i || !x.tr || !L[i-1].tr || x.tr.top > L[i-1].tr.top + 4);
+      L.forEach(({p, t, k, kr, tr}) => { const g = hxGhost(card, p);
+        let dx = 0, dy = reverse ? 14 : 18; if(t && ordered){ dx = rtl ? tr.right - kr.right : tr.left - kr.left; if(Math.abs(dx) > 48) dx = 0; dy = tr.top - kr.top; } else t = null;
+        const far = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+        const fr = reverse ? [{transform: far, opacity: 0}, {transform: far, opacity: 0, offset: .38}, {opacity: .65, offset: .7}, {transform: "none", opacity: 1}] // close: the lines appear only once the full view has mostly gone, so no text is drawn over other text
+                           : [{transform: "none", opacity: 1}, {opacity: .45, offset: .2}, {transform: far, opacity: 0, offset: .4}, {transform: far, opacity: 0}]; // open: the summary is gone before the full view comes in (no doubled text)
+        fr.forEach(k => k.easing = HX_EZ); g.animate(fr, {duration: ms, easing: "linear", fill: "forwards"}); // timing per step, so the fade offsets mean real time (they used to come in early)
+        if(t && !reverse) t.animate([{opacity: 0}, {opacity: 0, offset: .35}, {opacity: 1}], {duration: ms, easing: "linear"});
+        if(t && reverse) t.animate([{opacity: 1}, {opacity: 0, offset: .25}, {opacity: 0}], {duration: ms, easing: "linear", fill: "forwards"});
         out.push(g); });
       return out; }
     const hxClear = () => document.querySelectorAll("#viewHome>.hx-ghost").forEach(e => e.remove());
@@ -1505,7 +1509,7 @@
         card.classList.remove("hx-min"); const gs = hxFly(card, v, dy, false, ms); card.classList.add("hx-anim");
         const parts = hxParts(card); parts.forEach(p => p.style.opacity = "0"); // the ghosts carry the lines from here
         card.animate([{height: c0 + "px"}, {height: c1 + "px"}], {duration: ms, easing: HX_EZ}).onfinish = () => { gs.forEach(g => g.remove()); parts.forEach(p => p.style.opacity = ""); if(!hx || hx.card !== card) return; card.classList.add("hx-min"); card.classList.remove("hx-anim"); };
-        v.animate([{opacity: 0}, {opacity: 0, offset: .2}, {opacity: 1, offset: .7}, {opacity: 1}], {duration: ms, easing: "linear"}); }
+        v.animate([{opacity: 0}, {opacity: 0, offset: .3}, {opacity: 1, offset: .75}, {opacity: 1}], {duration: ms, easing: "linear"}); }
       try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
       if(ms && box.animate) box.animate([{height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}, {height: H + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}], {duration: ms, easing: HX_EZ}).onfinish = () => fitHome();
       if(dy > 2){ const y0 = window.scrollY; // in step with the box: the page moves by the same share the box has grown
