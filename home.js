@@ -725,8 +725,15 @@
       screen.orientation && screen.orientation.lock && screen.orientation.lock("portrait").catch(() => {}); } catch(e){}
     try { const lg = document.getElementById("log"); const unc = () => { if(lg.classList.contains("collapsed")) lg.classList.remove("collapsed"); }; // its header is gone, so it always stays open
       new MutationObserver(unc).observe(lg, {attributes: true, attributeFilter: ["class"]}); unc(); } catch(e){}
+    try { const sl = document.querySelector("#shelfLabel>span"); if(sl && window.PH) sl.insertAdjacentHTML("beforebegin", PH("camera")); const ai = document.getElementById("pAddItem"); if(ai && window.PH){ ai.innerHTML = PH("plus-circle") + "<span>" + L("Add item","أضف صنف") + "</span>"; ai.setAttribute("data-noi18n", ""); } } catch(e){}
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
+  #viewPrices #priceSec{display:none!important} /* Beshr 2026-11-23: no Price book section; '+ Add item' opens a sheet (photo of the price tag, or type it) */
+  #viewPrices #pAddItem{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px}
+  #viewPrices #pAddItem svg,#shelfLabel svg{width:20px;height:20px;flex:none}
+  #shelfLabel{display:flex;align-items:center;justify-content:center;gap:8px}
+  #shelfLabel.busy{opacity:.6;pointer-events:none}
+  #shelfStatus:empty{display:none}
   #viewPrices #billsSec{display:none!important} /* Beshr 2026-11-23: Add bill lives in the quick action bar */
   #viewPlan #log>div:first-child,#viewPlan #log>#addForm,#viewPlan #log>#month{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
   /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */
@@ -1303,6 +1310,7 @@
       const ACT = {
         exp:   {t: L("Add a cost","أضف مصروف"), els: ["addForm"], focus: "fAmount", tab: "plan", saved: () => !document.getElementById("fAmount").value},
         hunt:  {t: L("New hunt","بحث جديد"), els: [() => { const f = document.getElementById("fSearch"); return f && f.parentElement; }, "fLinks", "fMsg", "fTerms"], focus: "fSearch", tab: "forsa"},
+        item:  {t: L("Add item","أضف صنف"), els: ["shelfCard", "priceForm"], tab: "prices", saved: () => !document.getElementById("pItem").value},
         bill:  {t: L("Add bill","أضف فاتورة"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }], tab: "prices"}, // Beshr: keep only Upload bill in the sheet
         in:    {t: L("Money in","مبلغ داخل"), els: ["inBox"], focus: "inAmt", tab: "bal", saved: () => !document.getElementById("inAmt").value},
         start: {t: L("Starting point","نقطة البداية"), els: ["stBox"], focus: "stCash", tab: "bal"}

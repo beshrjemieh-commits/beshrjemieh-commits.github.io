@@ -787,8 +787,9 @@ form.card .logform{row-gap:11px!important}
       </div>
       <div class="tablebox" id="billList"><div class="empty">No bills yet.<br><button class="btn primary" type="button" onclick="document.getElementById('billFile').click()">⬆ Upload your first bill</button></div></div>
     </section>
-    <section>
+    <section id="priceSec">
       <div><h2>Price book</h2><p class="sub">Write down what things cost and where. Next time you shop, check here to see which store is cheapest.</p></div>
+      <div class="card" id="shelfCard"><label class="upl" id="shelfLabel"><input type="file" id="shelfFile" accept="image/*" capture="environment"><span>Take a photo of the price tag</span></label><span class="status" id="shelfStatus"></span></div>
       <form class="card" id="priceForm" novalidate>
         <p class="tag">Entering a receipt? Set the store once. It stays filled while you add each item.</p>
         <div class="logform">
@@ -801,6 +802,7 @@ form.card .logform{row-gap:11px!important}
         <div class="row"><span class="status" id="pStatus">Connecting to your saved data…</span><button class="btn primary" id="pAdd" type="submit" disabled>Save price</button></div>
       </form>
     </section>
+    <button class="btn primary" type="button" id="pAddItem">+ Add item</button>
     <section>
       <div><h2>My items</h2><p class="sub">Every item you've saved, with its cheapest store.</p></div>
       <div class="tiles ptiles">
@@ -1988,6 +1990,29 @@ async function shrinkTo(file,max){
     const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
     c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); return await new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",0.85)); }catch(e){ return file; }
 }
+/* Beshr 2026-11-23: add an item by photographing its shelf price tag; Claude reads it and it's saved to the list */
+document.getElementById("shelfFile").addEventListener("change", async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
+  const st=document.getElementById("shelfStatus"), lab=document.getElementById("shelfLabel"); st.textContent="Reading the price tag…"; lab.classList.add("busy");
+  try{
+    if(!sampleNS) throw {code:"unavailable"};
+    const blob=await shrinkTo(f,1600);
+    const out=await sampleNS.json(
+`This photo shows a product and/or its shelf price tag in a shop in Saudi Arabia (text may be Arabic, English or both). Read it and return ONLY JSON in this shape:
+{"item": "product name, English if possible, keep the brand", "size": "pack size like 2 L, 500 g, 12 pcs, or empty", "price": number or null, "store": "shop name if it is printed on the tag, else empty"}
+Rules: price is the current price in SAR for one unit as shown on the tag; if there is an offer price, use the offer price. If you cannot read the price, use null.`,
+      {images:[blob], modelTier:"default"});
+    const item=norm(out&&out.item).slice(0,80), price=Math.round((parseFloat(out&&out.price)||0)*100)/100, size=norm(out&&out.size).slice(0,40), store=norm(out&&out.store).slice(0,60);
+    if(item) document.getElementById("pItem").value=item; if(price>0) document.getElementById("pPrice").value=price; if(size) document.getElementById("pSize").value=size; if(store) document.getElementById("pStore").value=store;
+    if(item && price>0){ st.textContent=""; document.getElementById("priceForm").requestSubmit(); }
+    else st.textContent="Couldn't read all of it. Check the boxes below, then tap Save price.";
+  }catch(err){
+    const c=err&&err.code;
+    st.textContent = c==="not_granted" ? "You said no to letting Claude read it. You can type it below." : c==="rate_limited" ? "Too many requests. Wait a minute, then try again." : "Couldn't read the photo. Try again, closer to the price tag.";
+  }
+  lab.classList.remove("busy");
+});
+document.getElementById("pAddItem").addEventListener("click", ()=>{ if(window._sheet) window._sheet("item"); });
 function connectPhotos(){
   db.collection("products").onSnapshot(snap=>{
     photos={}; snap.docs.forEach(d=>{ const x=d.data()||{}; if(x.key && (x.url||x.assetId)) photos[String(x.key)]={url:String(x.url||("/_blob/"+x.assetId)), assetId:String(x.assetId||"")}; });
