@@ -1785,7 +1785,7 @@ function renderOthers(){
   const mine=new Set(prices.map(p=>looseKey(p.item,p.size))), best=new Map();
   community.forEach(c=>{ if(mine.has(c.lk)) return; const b=best.get(c.lk); if(!b||c.price<b.price) best.set(c.lk,c); });
   const q=norm(document.getElementById("pSearch").value).toLowerCase();
-  const all=[...best.values()]; all.forEach(c=>{ c.cat = pStoreCat([c]) || pCatOf(c.item); });
+  const all=[...best.values()]; all.forEach(c=>{ c.cat = pFinalCat([c], c.item); });
   if(all.length) renderPCats(all, oCatSel, ["oCats","oSubCats"]);
   const ord = k => { const i = PCAT.findIndex(c=>c[0]===k); return i < 0 ? 9999 : PGRP.findIndex(g=>g[0]===PCAT[i][1])*100 + i; };
   const inSel = c => oCatSel === "all" || c.cat === oCatSel || pGrpOf(c.cat) === oCatSel;
@@ -1805,16 +1805,23 @@ document.getElementById("pOthersList").addEventListener("click", onOtherAdd);
 document.getElementById("pCheaperList").addEventListener("click", onOtherAdd);
 /* ---------- My items: categories (Beshr 2026-11-23: easy to navigate, not one long list) ---------- */
 const LL = (en, ar) => document.documentElement.dir === "rtl" ? ar : en;
-const PGRP = [["groc","Groceries","بقالة"],["cafe","Coffee shops","مقاهي"],["food","Restaurants","مطاعم"],["elec","Electronics","إلكترونيات"],["home","Household & furniture","المنزل والأثاث"],["care","Personal care","العناية الشخصية"],["other","Other","أخرى"]];
+const PGRP = [["groc","Groceries","بقالة"],["cafe","Coffee shops","مقاهي"],["food","Restaurants","مطاعم"],["elec","Electronics","إلكترونيات"],["home","Household","المنزل"],["other","Other","أخرى"]];
 // Beshr 2026-11-23: the bill's store decides first (Barns = coffee shop), item words only after
-const PSTORE = [
+const PSTORE = [ // Beshr 2026-11-23: anything from a grocery store (Panda etc.) is Groceries; bought anywhere else = Household unless it's a café/restaurant/electronics store
+  ["groc",/panda|danube|tamimi|othaim|lulu|carrefour|nesto|\bfarm\b|bin ?dawood|manuel|spinneys|\bnana\b|hyper|super ?market|mini ?market|grocery|baqala|al ?raya|sadhan|ramez|bandar|aswaq|بنده|دانوب|التميمي|تميمي|العثيم|عثيم|لولو|كارفور|نستو|المزرعة|بن داود|مانويل|سبينيس|نانا|هايبر|سوبر ?ماركت|ماركت|بقالة|الراية|السدحان|رامز|أسواق|اسواق/i],
   ["cafe",/barn|starbucks|dunkin|tim horton|costa|half million|dose|brew ?92|overdose|kyan|elixir|camel step|caribou|%arabica|arabica|java time|coffee|cafe|café|bakery cafe|بارنز|ستاربكس|دانكن|تيم هورتنز|كوستا|هاف مليون|دوز|كيان|كاريبو|قهوة|كافيه|مقهى/i],
   ["home",/ikea|home ?cent(re|er)|home ?box|pan ?emirates|abyat|ashley|united furniture|midas|al ?mutlaq|ace hardware|saco|furniture|ايكيا|إيكيا|هوم سنتر|هوم بوكس|بان امارات|أبيات|ميداس|المطلق|ساكو|أثاث|مفروشات/i],
   ["elec",/extra|jarir|x-?cite|eros|virgin mega|apple store|samsung store|electronics|appliance|إكسترا|اكسترا|جرير|ساكو|إلكترونيات|الكترونيات|أجهزة/i],
   ["food",/mcdonald|kfc|albaik|al baik|kudu|herfy|burger king|hardee|pizza hut|domino|papa john|little caesar|shawarma|subway|maestro|five guys|shake shack|texas chicken|popeyes|restaurant|grill|talabat|hungerstation|jahez|مطعم|ماكدونالدز|كنتاكي|البيك|كودو|هرفي|برجر كنج|هارديز|بيتزا|دومينوز|شاورما|صب واي|مايسترو|طلبات|هنقرستيشن|جاهز/i]
 ];
-const pStoreCat = recs => { const n = {}; recs.forEach(r=>{ const s = norm(r.store); if(!s || /\((online|shared)\)/i.test(s)) return; const t = ({home:"furn"})[(PSTORE.find(x=>x[1].test(s))||["shop"])[0]] || (PSTORE.find(x=>x[1].test(s))||["shop"])[0]; n[t]=(n[t]||0)+1; });
-  const top = Object.keys(n).sort((a,b)=>n[b]-n[a])[0]; return top && top !== "shop" ? top : null; };
+const pStoreType = recs => { const n = {}; recs.forEach(r=>{ const s = norm(r.store); if(!s || /\((online|shared)\)/i.test(s)) return; const t = (PSTORE.find(x=>x[1].test(s))||["shop"])[0]; n[t]=(n[t]||0)+1; });
+  return Object.keys(n).sort((a,b)=>n[b]-n[a])[0] || null; };
+function pFinalCat(recs, item){ const st = pStoreType(recs), nc = pCatOf(item), ng = pGrpOf(nc);
+  if(st === "groc") return ng === "groc" ? nc : nc === "cafe" ? "drinks" : "gmisc";
+  if(st === "cafe" || st === "food" || st === "elec") return st;
+  if(st === "home") return "furn";
+  if(st === "shop") return ng === "groc" || nc === "cafe" || nc === "elec" ? nc : "furn";
+  return nc; }
 const PCAT = [
   ["cafe","cafe","Coffee shops","مقاهي",/frapp|latte|cappuccino|espresso|americano|macchiato|mocha|flat white|cortado|v60|cold brew|فرابيه|لاتيه|كابتشينو|اسبريسو|أمريكانو|موكا|كورتادو|كولد برو/i],
   ["food","food","Restaurants","مطاعم",/(?!)/],
@@ -1822,14 +1829,15 @@ const PCAT = [
   ["meat","groc","Meat & fish","لحوم وأسماك",/meat|beef|lamb|mutton|chicken|poultry|fish|tuna|shrimp|salmon|sausage|burger|mince|kebab|لحم|غنم|بقر|دجاج|فراخ|سمك|تونة|روبيان|جمبري|سلمون|نقانق|برجر|مفروم/i],
   ["bakery","groc","Bakery","مخبوزات",/bread|bun|toast|samoon|croissant|tortilla|pita|khubz|cake|muffin|خبز|صامولي|توست|كرواسون|تورتيلا|كيك|مافن|عيش/i],
   ["produce","groc","Fruit & veg","خضار وفواكه",/apple|banana|orange|tomato|potato|onion|cucumber|lettuce|carrot|lemon|grape|mango|date|berry|melon|pepper|garlic|veg|fruit|herb|parsley|mint|تفاح|موز|برتقال|طماطم|بطاطس|بصل|خيار|خس|جزر|ليمون|عنب|مانجو|تمر|بطيخ|فلفل|ثوم|خضار|فواكه|بقدونس|نعناع/i],
+  ["care","groc","Personal care","العناية الشخصية",/shampoo|conditioner|toothpaste|toothbrush|deodorant|soap|lotion|razor|shave|perfume|cream|sanitizer|cotton|شامبو|بلسم|معجون|فرشاة|مزيل|صابون|لوشن|شفرة|حلاقة|عطر|معقم|قطن/i],
   ["pantry","groc","Rice & pantry","رز ومؤونة",/rice|pasta|spaghetti|macaroni|noodle|flour|sugar|salt|oil|spice|sauce|ketchup|mayo|bean|lentil|chickpea|can|honey|jam|cereal|oat|corn|vinegar|paste|رز|أرز|مكرونة|معكرونة|شعيرية|طحين|دقيق|سكر|ملح|زيت|بهار|صلصة|كاتشب|مايونيز|فول|عدس|حمص|علب|عسل|مربى|شوفان|كورن/i],
   ["drinks","groc","Drinks","مشروبات",/water|juice|soda|cola|pepsi|7up|sprite|coffee|tea|nescafe|drink|energy|laban up|ماء|مياه|عصير|غازي|بيبسي|كولا|قهوة|شاي|نسكافيه|مشروب/i],
   ["snacks","groc","Snacks & sweets","سناكات وحلويات",/chip|crisp|chocolate|biscuit|cookie|candy|sweet|wafer|nut|popcorn|ice cream|snack|شيبس|بطاطا|شوكولات|بسكويت|حلاو|حلوى|مكسرات|فشار|آيس|ايسكريم|سناك/i],
   ["frozen","groc","Frozen","مجمّدات",/frozen|nugget|fries|مجمد|ناجتس/i],
   ["elec","elec","Electronics","إلكترونيات",/phone|charger|cable|headphone|earbud|airpods|laptop|tablet|ipad|\btv\b|television|monitor|speaker|power ?bank|kettle|blender|mixer|air ?fryer|vacuum|\biron\b|\bfan\b|heater|microwave|fridge|refrigerator|washing machine|router|playstation|ps5|جوال|شاحن|سماعة|لابتوب|تابلت|آيباد|شاشة|تلفزيون|باور بانك|غلاية|خلاط|قلاية|مكنسة|مكواة|مروحة|دفاية|ميكرويف|ثلاجة|غسالة|راوتر|بلايستيشن/i],
-  ["furn","home","Furniture & home","أثاث ومنزل",/chair|\btables?\b|desk|sofa|couch|\bbed\b|mattress|wardrobe|closet|cabinet|shelf|shelves|drawer|lamp|curtain|carpet|\brug\b|pillow|duvet|blanket|bedsheet|mirror|frame|vase|plant pot|kursi|كرسي|طاولة|مكتب|كنب|سرير|مرتبة|دولاب|خزانة|رف|أدراج|أباجورة|ستارة|ستائر|سجاد|سجادة|مخدة|وسادة|لحاف|بطانية|مفرش|مرآة|برواز|مزهرية/i],
+  ["gmisc","groc","Other groceries","بقالة أخرى",/(?!)/],
+  ["furn","home","Household","أغراض المنزل",/chair|\btables?\b|desk|sofa|couch|\bbed\b|mattress|wardrobe|closet|cabinet|shelf|shelves|drawer|lamp|curtain|carpet|\brug\b|pillow|duvet|blanket|bedsheet|mirror|frame|vase|plant pot|kursi|كرسي|طاولة|مكتب|كنب|سرير|مرتبة|دولاب|خزانة|رف|أدراج|أباجورة|ستارة|ستائر|سجاد|سجادة|مخدة|وسادة|لحاف|بطانية|مفرش|مرآة|برواز|مزهرية/i],
   ["clean","groc","Cleaning & laundry","تنظيف وغسيل",/detergent|tide|ariel|persil|clorox|bleach|dish|fairy|cleaner|tissue|napkin|kleenex|foil|wrap|trash|garbage|bag|sponge|softener|downy|منظف|تايد|آريال|كلوركس|مبيض|صحون|مناديل|كلينكس|ورق|قصدير|أكياس|كيس|اسفنج|منعم|داوني/i],
-  ["care","care","Personal care","العناية الشخصية",/shampoo|conditioner|toothpaste|toothbrush|deodorant|soap|lotion|razor|shave|perfume|cream|sanitizer|cotton|شامبو|بلسم|معجون|فرشاة|مزيل|صابون|لوشن|شفرة|حلاقة|عطر|معقم|قطن/i],
   ["baby","groc","Baby","الأطفال",/diaper|pampers|huggies|formula|wipes|baby|حفاض|حفاضات|بامبرز|حليب أطفال|مناديل مبللة|أطفال|رضع/i]
 ];
 let pCatSel = "all", pAiCat = {}; try{ pAiCat = JSON.parse(localStorage.getItem("w-pcat")||"{}")||{}; }catch(e){}
@@ -1867,7 +1875,7 @@ function renderPrices(){
   document.getElementById("ptStores").textContent = new Set(prices.map(p=>norm(p.store).toLowerCase()).filter(Boolean)).size;
   document.getElementById("ptRecs").textContent = prices.length;
   const q = norm(document.getElementById("pSearch").value).toLowerCase();
-  groups.forEach(g=>{ const sc = pStoreCat(g.recs), nc = pCatOf(g.item); g.cat = sc || (nc === "cafe" && g.recs.some(r=>norm(r.store) && !/\((online|shared)\)/i.test(r.store)) ? "drinks" : nc); });
+  groups.forEach(g=>{ g.cat = pFinalCat(g.recs, g.item); });
   renderPCats([...groups.values()], pCatSel);
   const unk = [...new Set([...groups.values()].filter(g=>g.cat==="other" && !(g.item.toLowerCase() in pAiCat)).map(g=>g.item))]; if(unk.length) setTimeout(()=>pAiClassify(unk), 800);
   const inSel = g => pCatSel === "all" || g.cat === pCatSel || pGrpOf(g.cat) === pCatSel;
