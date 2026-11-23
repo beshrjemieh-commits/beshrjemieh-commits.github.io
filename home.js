@@ -746,6 +746,7 @@
   .plistbtn svg{width:20px;height:20px}
   .plistbtn.busy{opacity:.6;pointer-events:none}
   #pListRes{margin-top:8px}
+  #pList .pitem summary .tag{white-space:nowrap} /* size stays with the name */
   /* Expenses list: only today in full, the rest folded (Beshr 2026-11-23) */
   #entries .earlyhead{display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;min-height:44px;box-sizing:border-box;background:var(--surface,#F8FAFC)}
   #entries .earlyhead .el{flex:1;display:flex;flex-direction:column;min-width:0}
