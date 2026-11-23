@@ -821,7 +821,7 @@
   /* in-place opening (accordion) for Expenses, Prices log, Forsa */
   #viewHome>.hcard{transition:border-radius .16s ease,box-shadow .16s ease}
   #viewHome>.hcard.hx-on{border-end-start-radius:0!important;border-end-end-radius:0!important;border-bottom-color:transparent!important;box-shadow:none!important;position:relative;z-index:2;margin-bottom:-12px!important} /* the grid gap under the card is taken back, so the opening box starts right at its bottom edge */
-  #viewHome>.hx{grid-column:1 / -1;position:relative;z-index:1;margin-top:0!important;overflow:hidden;box-sizing:border-box;padding:4px 12px 16px;--hxpb:16px;background:var(--hxbg,#fff);border:1px solid var(--hxbd,#E2E8F0);border-top:0;border-end-start-radius:16px;border-end-end-radius:16px;box-shadow:0 12px 28px -14px rgba(15,42,74,.28)}
+  #viewHome>.hx{grid-column:1 / -1;position:relative;z-index:1;margin-top:-1px!important;overflow:hidden;box-sizing:border-box;padding:4px 12px 16px;--hxpb:16px;background:var(--hxbg,#fff);border:1px solid var(--hxbd,#E2E8F0);border-top:0;border-end-start-radius:16px;border-end-end-radius:16px;box-shadow:0 12px 28px -14px rgba(15,42,74,.28)}
   #viewHome>.hx>.view.hx-view{display:flex;position:static!important;margin:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
   #viewHome>.hx .tabHero{padding-top:0;padding-bottom:0!important}
   #viewHome>.hx>.view.hx-view{gap:12px!important}
