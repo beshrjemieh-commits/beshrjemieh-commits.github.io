@@ -1048,13 +1048,22 @@ function renderMonth(){
   const box = document.getElementById("entries");
   if(!list.length){ box.innerHTML = `<div class="empty">${dbReady? "Nothing logged for "+esc(monthLabel(viewMonth))+" yet."+'<br><button class="btn primary" type="button" onclick="document.getElementById(\'fAmount\').focus()">+ Add your first cost</button>' : "Your entries will appear here once your saved data loads."}</div>`; return; }
   const byDay = {}; list.forEach(e=>{ (byDay[e.date]=byDay[e.date]||[]).push(e); });
-  box.innerHTML = Object.keys(byDay).sort().reverse().map(day=>{
+  // Beshr 2026-11-23: only today in full; every other day folds into one small "Earlier" row that opens on tap
+  const tdy = ymd(new Date()), daysSorted = Object.keys(byDay).sort().reverse(), dayHtml = day=>{
     const dt=new Date(day+"T12:00:00"), dayTotal=byDay[day].reduce((a,e)=>a+e.amount,0);
     const open = dayToggled.has(day) ? day!==ymd(new Date()) : day===ymd(new Date());
     return `<div class="day${open?"":" shut"}"><div class="dayhead" data-day="${esc(day)}" role="button" tabindex="0" aria-expanded="${open}"><span class="dd"><b>${esc(dt.toLocaleDateString("en-GB",{day:"numeric"}))}</b><i>${esc(dt.toLocaleDateString("en-GB",{weekday:"short"}))}</i></span><span class="dm"><span class="dl"><span>${byDay[day].length} item${byDay[day].length===1?"":"s"}${day===ymd(new Date())?" · Today":""}</span><span class="num">${fmt(dayTotal)} SAR</span></span><span class="dbar">${(()=>{ const c={}; byDay[day].forEach(e=>{ c[e.cat]=(c[e.cat]||0)+e.amount; }); return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<i title="${esc((BY[k]||BY.flex).s)}" style="flex:${v};background:${(BY[k]||BY.flex).c}"></i>`).join(""); })()}</span></span><span class="dc">${open?"▾":"▸"}</span></div>`+
       byDay[day].map(e=>`<div class="entry"><span class="dot" style="background:${(BY[e.cat]||BY.flex).c}"></span><span class="what">${esc((BY[e.cat]||BY.flex).s)}${e.note?`<small>${esc(e.note)}</small>`:""}</span><span class="num">${e.amount.toLocaleString("en-US",{maximumFractionDigits:2})}</span><button class="del" type="button" data-id="${esc(e.id)}" aria-label="Delete this entry">Delete</button></div>`).join("")+`</div>`;
-  }).join("");
+  };
+  const top = daysSorted.filter(d=>d>=tdy), rest = daysSorted.filter(d=>d<tdy);
+  const restTotal = rest.reduce((a,d)=>a+byDay[d].reduce((x,e)=>x+e.amount,0),0), cur = tdy.startsWith(viewMonth);
+  const ar = document.documentElement.dir==="rtl", lbl = cur ? (ar?"أيام سابقة هذا الشهر":"Earlier this month") : monthLabel(viewMonth);
+  const cnt = ar ? `${rest.length} ${rest.length===1?"يوم":"أيام"}` : `${rest.length} day${rest.length===1?"":"s"}`;
+  box.innerHTML = top.map(dayHtml).join("") + (rest.length ? `<div class="earlier${earlierOpen?"":" shut"}"><div class="earlyhead" role="button" tabindex="0" aria-expanded="${earlierOpen}" data-noi18n><span class="el"><b>${esc(lbl)}</b><small>${esc(cnt)}</small></span><span class="num">${fmt(restTotal)} SAR</span><span class="chev" aria-hidden="true">›</span></div><div class="earlybody">${rest.map(dayHtml).join("")}</div></div>` : "");
 }
+let earlierOpen = false;
+window._resetMonth = ()=>{ viewMonth = ymd(new Date()).slice(0,7); earlierOpen = false; try{ renderMonth(); }catch(e){} };
+document.getElementById("entries").addEventListener("click", ev=>{ if(!ev.target.closest(".earlyhead")) return; earlierOpen = !earlierOpen; renderMonth(); });
 document.getElementById("entries").addEventListener("click", ev=>{
   const h = ev.target.closest(".dayhead"); if(!h) return;
   const d=h.dataset.day; dayToggled.has(d)?dayToggled.delete(d):dayToggled.add(d); renderMonth();
