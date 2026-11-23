@@ -529,10 +529,11 @@
   html body.onhome{padding-bottom:0!important}
   body.onhome .wrap{box-sizing:border-box!important;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
   /* Quick action bar on Home (Beshr 2026-11-22): Add expense, Add bill (photo), New hunt */
-  #qBar{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
+  #qBar{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:6px;background:rgba(255,255,255,.97);border-radius:20px;box-shadow:0 14px 30px -12px rgba(0,0,0,.5),0 0 0 1px rgba(15,42,74,.06);z-index:15}
   body.onhome #qBar{display:grid} body.wm-open #qBar,body.framed #qBar{display:none!important}
   #qBar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:56px;border:none;border-radius:14px;background:transparent;color:#0F172A;font:500 12px/1.2 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #qBar button:active{background:#EEF2F7;transform:scale(.97)}
+  #qBar button{padding:0 2px!important}#qBar button span{white-space:nowrap;max-width:100%;overflow:hidden;font-size:11.5px;letter-spacing:-.1px}
   #qBar button svg{width:24px;height:24px;color:#2563EB}
   #qBar button[data-q=hunt] svg{color:#F59E0B}
   @media (prefers-color-scheme: dark){#qBar{background:var(--card,#1C2A44);box-shadow:0 14px 30px -12px rgba(0,0,0,.7)}#qBar button{color:#E2E8F0}#qBar button:active{background:rgba(255,255,255,.08)}}
@@ -780,6 +781,38 @@
   .plrow .pli{width:24px;height:24px;border-radius:12px;display:grid;place-items:center;font-size:13px;flex:none}
   .plrow.yes .pli{background:#DCFCE7;color:#16A34A}.plrow.no .pli{background:#FEE2E2;color:#DC2626}
   .plrow .plp{display:flex;flex-direction:column;align-items:flex-end;font-variant-numeric:tabular-nums}
+  /* Shop sheet (Beshr 2026-11-23) */
+  #shopBox{display:flex;flex-direction:column;gap:8px}
+  #shopBox .shSearch{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 12px;border-radius:14px;background:#F1F5F9;border:1px solid #E2E8F0;box-sizing:border-box}
+  #shopBox .shSearch svg{width:20px;height:20px;color:#64748B;flex:none}
+  #shopBox .shSearch input{flex:1;min-width:0;border:0!important;background:transparent!important;font:400 16px/1.3 inherit;font-family:inherit;color:#0F172A;outline:none;padding:0!important;margin:0!important;box-shadow:none!important;height:46px}
+  #shopBox .shPhoto{display:flex!important;align-items:center;justify-content:center;gap:8px;min-height:48px;margin:0;cursor:pointer;color:#2563EB;font-weight:500}
+  #shopBox .shPhoto svg,#shopBox .shAi svg{width:22px;height:22px}
+  #shopBox .busy{opacity:.55;pointer-events:none}
+  #shopBox .shTip{margin:-4px 0 0;text-align:center;font-size:12px;color:#64748B}
+  #shopBox .shMsg{margin:8px 4px 0;font-size:14px;color:#64748B}
+  #shopBox .shCount{margin:8px 4px 0;font-size:13px;font-weight:600;color:#0F2A4A}
+  #shopBox .shAi{display:flex!important;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:4px;color:#2563EB}
+  #shopRes{display:flex;flex-direction:column}
+  #shopBox .shRow{border-top:1px solid #E2E8F0}
+  #shopBox .shRow:first-of-type{border-top:0}
+  #shopBox .shRow>summary,#shopBox .shRow.none{display:flex;align-items:center;gap:12px;padding:10px 0;min-height:44px;list-style:none;cursor:pointer}
+  #shopBox .shRow>summary::-webkit-details-marker{display:none}
+  #shopBox .shImg{width:40px;height:40px;border-radius:10px;flex:none;object-fit:cover;background:#F1F5F9;display:grid;place-items:center;color:#0F2A4A}
+  #shopBox .shImg svg{width:20px;height:20px}
+  #shopBox .shRow.none .shImg{color:#64748B}
+  #shopBox .shN{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  #shopBox .shN b{font-size:16px;font-weight:500;color:#0F172A}
+  #shopBox .shN small,#shopBox .shP small{font-size:13px;color:#64748B}
+  #shopBox .shP{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none;max-width:42%;text-align:end;font-variant-numeric:tabular-nums}
+  #shopBox .shP b{font-size:16px;font-weight:600;color:#0F172A}
+  #shopBox .shStores{margin:0 0 10px 52px;display:flex;flex-direction:column;gap:2px}
+  [dir=rtl] #shopBox .shStores{margin:0 52px 10px 0}
+  #shopBox .shStores>div{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 10px;border-radius:8px;color:#334155}
+  #shopBox .shStores>div.low{background:#F1F5F9;font-weight:500;color:#0F172A}
+  #shopBox .shStores em{font-style:normal;font-size:12px;color:#0F2A4A;font-weight:600;margin-inline-start:4px}
+  #shopBox .shTotal{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #E2E8F0;padding:12px 0 0;margin-top:4px;font-size:16px}
+  #shopBox .shTotal b{font-weight:600;font-variant-numeric:tabular-nums}
   #viewPrices #billsSec{display:none!important} /* Beshr 2026-11-23: Add bill lives in the quick action bar */
   #viewPlan #log>div:first-child,#viewPlan #log>#addForm,#viewPlan #log>#month{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
   /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */
@@ -984,6 +1017,7 @@
       const ic = n => window.PH ? PH(n) : "";
       q.innerHTML = `<button type="button" data-q="exp">${ic("plus-circle")}<span>${L("Add expense","أضف مصروف")}</span></button>` +
         `<button type="button" data-q="bill">${ic("camera")}<span>${L("Add bill","أضف فاتورة")}</span></button>` +
+        `<button type="button" data-q="shop">${ic("shopping-cart")}<span>${L("Shop","تسوّق")}</span></button>` +
         `<button type="button" data-q="hunt">${ic("magnifying-glass")}<span>${L("New hunt","بحث جديد")}</span></button>`;
       document.body.appendChild(q);
       const to = (tab, el, b) => { window._fromEl = b || null; window.showTab(tab); window._fromEl = null; const e = document.getElementById(el); const sec = e && e.closest("section"); if(sec && sec.classList.contains("collapsed")){ const h = sec.querySelector(":scope > div:first-child h2"); if(h) h.click(); } if(e){ const v = e.closest(".view"), go = () => { if(window._vtBusy) return setTimeout(go, 60); if(v){ const vr = v.getBoundingClientRect(), er = e.getBoundingClientRect(); v.scrollTo({top: Math.max(0, v.scrollTop + er.top - vr.top - vr.height / 3), behavior: "smooth"}); } }; setTimeout(go, 60); } return e; }; // scroll once the page has finished growing
@@ -991,6 +1025,7 @@
         if(k === "exp") window._sheet("exp");
         if(k === "bill"){ window._sheet("bill"); } // the sheet opens first; the photo picker opens only when you tap Upload bill (Beshr 2026-11-22)
         if(k === "hunt") window._sheet("hunt");
+        if(k === "shop"){ window._shopPrep && window._shopPrep(); window._sheet("shop"); } // Beshr 2026-11-23: search My items by name or photo
       });
     })();
     /* Wallet card behaviour (wallet-card-morph.html): tap grows the card itself from its spot; tap again (not on a tile/button) closes */
@@ -1357,6 +1392,7 @@
         exp:   {t: L("Add a cost","أضف مصروف"), els: ["addForm"], focus: "fAmount", tab: "plan", saved: () => !document.getElementById("fAmount").value},
         hunt:  {t: L("New hunt","بحث جديد"), els: [() => { const f = document.getElementById("fSearch"); return f && f.parentElement; }, "fLinks", "fMsg", "fTerms"], focus: "fSearch", tab: "forsa"},
         item:  {t: L("Add item","أضف صنف"), els: ["shelfCard", "priceForm"], tab: "prices", saved: () => !document.getElementById("pItem").value},
+        shop:  {t: L("Shop","تسوّق"), els: ["shopBox"], tab: "prices"},
         bill:  {t: L("Add bill","أضف فاتورة"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }], tab: "prices"}, // Beshr: keep only Upload bill in the sheet
         in:    {t: L("Money in","مبلغ داخل"), els: ["inBox"], focus: "inAmt", tab: "bal", saved: () => !document.getElementById("inAmt").value},
         start: {t: L("Starting point","نقطة البداية"), els: ["stBox"], focus: "stCash", tab: "bal"}
