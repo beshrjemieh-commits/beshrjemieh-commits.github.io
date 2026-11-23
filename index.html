@@ -814,6 +814,7 @@ form.card .logform{row-gap:11px!important}
       <input class="search" id="pSearch" type="search" placeholder="Search items or stores" aria-label="Search prices">
       <label class="btn plistbtn" id="pListLbl"><input type="file" id="pListFile" accept="image/*" hidden><span>Check a shopping list photo</span></label>
       <div class="card" id="pListRes" hidden data-noi18n></div>
+      <div id="shopBox" hidden data-noi18n></div>
       <div class="chips pcats" id="pCats" role="group" aria-label="Categories" data-noi18n></div>
       <div class="chips pcats sub" id="pSubCats" role="group" aria-label="Sub-categories" data-noi18n hidden></div>
       <div class="card" id="pCheaper" hidden style="margin:8px 0"><b>💡 Friends found it cheaper</b><p class="sub" style="margin:4px 0 6px">Other users paid less for items you buy. Tap ✓ Add to put that price in your price book.</p><div id="pCheaperList"></div></div>
@@ -1899,6 +1900,75 @@ Return ONLY JSON: {"lines": [{"text": "the line as written", "match": "exact tex
     res.innerHTML=`<p class="sub" style="margin:0">${esc(c==="not_granted"?LL("You said no to letting Claude read it.","رفضت أن يقرأها Claude."):c==="rate_limited"?LL("Too many requests. Wait a minute, then try again.","طلبات كثيرة. انتظر دقيقة ثم حاول مرة ثانية."):LL("Couldn't read the photo. Try again.","ما قدرت أقرأ الصورة. حاول مرة ثانية."))}</p>`; }
   lab.classList.remove("busy");
 });
+/* Beshr 2026-11-23: Shop (quick action bar): type an item or snap a photo (one item or a shopping list) -> your cheapest store from My items */
+(function(){
+  const box=document.getElementById("shopBox"); let lastQ="", photoOut=null, aiSeq=0;
+  const grp=()=>{ const m=new Map(); prices.forEach(p=>{ const k=keyOf(p); if(!m.has(k)) m.set(k,{k, item:norm(p.item), size:norm(p.size), recs:[]}); m.get(k).recs.push(p); }); return m; };
+  const ico=n=>window.PH?PH(n):"";
+  const storeOf=r=>norm(r.store)||LL("No store","بدون محل");
+  function row(g, from){ // one item: name, size, cheapest price + store; tap shows every store
+    const by=new Map(); g.recs.forEach(r=>{ const s=storeOf(r), o=by.get(s.toLowerCase()); if(!o||r.price<o.price) by.set(s.toLowerCase(),{s, price:r.price}); });
+    const list=[...by.values()].sort((a,b)=>a.price-b.price), best=list[0];
+    return `<details class="shRow"><summary>${photos[g.k]?`<img class="shImg" src="${esc(photos[g.k].url)}" alt="" loading="lazy">`:`<span class="shImg">${ico("shopping-cart")}</span>`}
+      <span class="shN">${from?`<small>${esc(from)}</small>`:""}<b>${esc(g.item)}</b>${g.size?`<small><bdi dir="ltr">${esc(g.size)}</bdi></small>`:""}</span>
+      <span class="shP"><b>⃁${money(best.price)}</b><small><bdi>${esc(best.s)}</bdi></small></span></summary>
+      <div class="shStores">${list.map((x,i)=>`<div${i?"":" class=\"low\""}><span>${esc(x.s)}${i||list.length<2?"":` <em>${esc(LL("Cheapest","الأرخص"))}</em>`}</span><span class="num">⃁${money(x.price)}</span></div>`).join("")}</div></details>`;
+  }
+  const res=()=>document.getElementById("shopRes");
+  const words=t=>norm(t).toLowerCase().split(" ").filter(Boolean);
+  function search(){
+    const q=norm(document.getElementById("shopQ").value); lastQ=q; photoOut=null; const r=res(); if(!r) return;
+    if(!q){ r.innerHTML=prices.length?"":`<p class="shMsg">${esc(LL("Your Prices log is empty. Add items first.","سجل الأسعار فاضي. أضف أصناف أولاً."))}</p>`; return; }
+    const w=words(q), hit=[...grp().values()].filter(g=>{ const t=(g.item+" "+g.size).toLowerCase(); return w.every(x=>t.includes(x)); })
+      .sort((a,b)=>(+!a.item.toLowerCase().startsWith(w[0]))-(+!b.item.toLowerCase().startsWith(w[0])) || a.item.localeCompare(b.item)).slice(0,40);
+    if(hit.length){ r.innerHTML=`<p class="shCount">${esc(LL(`${hit.length} item${hit.length===1?"":"s"}`,`${hit.length} ${hit.length===1?"صنف":"أصناف"}`))}</p>`+hit.map(g=>row(g)).join(""); return; }
+    r.innerHTML=`<p class="shMsg">${esc(LL(`No item called “${q}”.`,`ما فيه صنف اسمه «${q}».`))}</p>`+(sampleNS&&prices.length?`<button class="btn shAi" type="button" id="shopAi">${ico("sparkle")}<span>${esc(LL("Find similar items","ابحث عن أصناف مشابهة"))}</span></button>`:"");
+  }
+  async function aiFind(){ // no word match (e.g. typed in Arabic, saved in English): ask Claude which saved items are the same kind of thing
+    const q=lastQ, n=++aiSeq, r=res(), b=document.getElementById("shopAi"); if(b) b.classList.add("busy");
+    const m=grp(), names=[...m.values()].map(g=>g.item+(g.size?" "+g.size:""));
+    try{ const out=await sampleNS.json(`A shopper searched for: ${JSON.stringify(q)} (Arabic or English). Which of MY ITEMS are that product or the same kind of product (any brand or size)? MY ITEMS: ${JSON.stringify(names.slice(0,300))}
+Return ONLY JSON: {"matches": ["exact text from MY ITEMS", ...]} (empty list if none).`, {modelTier:"default"});
+      if(n!==aiSeq||q!==lastQ) return; const by=new Map([...m.values()].map(g=>[(g.item+(g.size?" "+g.size:"")).toLowerCase(), g]));
+      const hit=[...new Set((Array.isArray(out&&out.matches)?out.matches:[]).map(x=>by.get(String(x).toLowerCase())).filter(Boolean))];
+      r.innerHTML=hit.length?`<p class="shCount">${esc(LL(`Similar to “${q}”`,`مشابه لـ «${q}»`))}</p>`+hit.map(g=>row(g)).join(""):`<p class="shMsg">${esc(LL(`Nothing like “${q}” in your items yet.`,`ما فيه شي مثل «${q}» في أصنافك.`))}</p>`;
+    }catch(err){ if(b) b.classList.remove("busy"); r.insertAdjacentHTML("beforeend",`<p class="shMsg">${esc(LL("Couldn't search. Try again.","ما قدرت أبحث. حاول مرة ثانية."))}</p>`); }
+  }
+  async function photo(f){
+    const r=res(), lab=document.getElementById("shopPhLbl"); document.getElementById("shopQ").value=""; lastQ=""; const n=++aiSeq;
+    lab.classList.add("busy"); r.innerHTML=`<p class="shMsg">${esc(LL("Reading your photo…","جارٍ قراءة الصورة…"))}</p>`;
+    const m=grp(), names=[...m.values()].map(g=>g.item+(g.size?" "+g.size:""));
+    try{ if(!sampleNS) throw {code:"unavailable"};
+      const blob=await shrinkTo(f,1600);
+      const out=await sampleNS.json(`This photo shows EITHER one product (or its price tag / package) OR a shopping list (handwritten or typed, Arabic and/or English).
+If it is a product, return one line naming it. If it is a list, return one line per list line.
+For each line, find the matching product in MY ITEMS (same kind of product; brand or size may differ), or null if there is none.
+MY ITEMS: ${JSON.stringify(names.slice(0,300))}
+Return ONLY JSON: {"kind": "item" or "list", "lines": [{"text": "short name as written or seen", "match": "exact text from MY ITEMS or null"}]}`, {images:[blob], modelTier:"default"});
+      if(n!==aiSeq) return;
+      const lines=(Array.isArray(out&&out.lines)?out.lines:[]).filter(x=>x&&norm(x.text)), list=out&&out.kind==="list"||lines.length>1;
+      if(!lines.length){ r.innerHTML=`<p class="shMsg">${esc(LL("Couldn't see an item or a list. Try a clearer photo.","ما شفت صنف أو قائمة. جرّب صورة أوضح."))}</p>`; }
+      else { const by=new Map([...m.values()].map(g=>[(g.item+(g.size?" "+g.size:"")).toLowerCase(), g])); let have=0, total=0;
+        const rows=lines.map(x=>{ const g=x.match&&by.get(String(x.match).toLowerCase()), t=norm(x.text);
+          if(!g) return `<div class="shRow none"><span class="shImg">${ico("prohibit")}</span><span class="shN"><b>${esc(t)}</b><small>${esc(LL("Not in your items yet","مو موجود في أصنافك"))}</small></span></div>`;
+          have++; total+=Math.min(...g.recs.map(r=>r.price)); return row(g, norm(g.item).toLowerCase()===t.toLowerCase()?"":t); });
+        r.innerHTML=(list?`<p class="shCount">${esc(LL(`${have} of ${lines.length} found in your items`,`${have} من ${lines.length} موجودة في أصنافك`))}</p>`:`<p class="shCount">${esc(LL("In your photo","في صورتك"))}</p>`)+rows.join("")+
+          (list&&have>1?`<div class="shTotal"><span>${esc(LL("Total at cheapest","المجموع بأرخص سعر"))}</span><b>⃁${money(total)}</b></div>`:""); }
+    }catch(err){ if(n!==aiSeq) return; const c=err&&err.code;
+      r.innerHTML=`<p class="shMsg">${esc(c==="not_granted"?LL("You said no to letting Claude read it.","رفضت أن يقرأها Claude."):c==="rate_limited"?LL("Too many requests. Wait a minute, then try again.","طلبات كثيرة. انتظر دقيقة ثم حاول مرة ثانية."):LL("Couldn't read the photo. Try again.","ما قدرت أقرأ الصورة. حاول مرة ثانية."))}</p>`; }
+    lab.classList.remove("busy");
+  }
+  window._shopPrep=function(){ aiSeq++;
+    box.innerHTML=`<label class="shSearch">${ico("magnifying-glass")}<input id="shopQ" type="search" autocomplete="off" enterkeyhint="search" placeholder="${esc(LL("Type an item","اكتب اسم الصنف"))}" aria-label="${esc(LL("Search my items","ابحث في أصنافي"))}"></label>
+      <label class="btn shPhoto" id="shopPhLbl"><input type="file" id="shopFile" accept="image/*" hidden>${ico("camera")}<span>${esc(LL("Search by photo","ابحث بصورة"))}</span></label>
+      <p class="shTip">${esc(LL("An item or a shopping list","صنف أو قائمة مشتريات"))}</p><div id="shopRes"></div>`;
+    lastQ=""; search();
+    document.getElementById("shopQ").addEventListener("input", search);
+    document.getElementById("shopQ").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); e.target.blur(); } });
+    document.getElementById("shopFile").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(f) photo(f); });
+  };
+  box.addEventListener("click", e=>{ if(e.target.closest("#shopAi")) aiFind(); });
+})();
 document.getElementById("pListRes").addEventListener("click", e=>{ if(e.target.closest("#pListClose")){ const r=document.getElementById("pListRes"); r.hidden=true; r.innerHTML=""; } });
 document.getElementById("pList").addEventListener("toggle", e=>{ const d=e.target.closest&&e.target.closest("details"); if(!d) return; d.open?pOpen.add(d.dataset.k):pOpen.delete(d.dataset.k); }, true);
 document.getElementById("pList").addEventListener("click", async e=>{
@@ -2450,7 +2520,7 @@ document.getElementById("salV").addEventListener("click", async ()=>{
 <script>(function(){ const b=document.getElementById("stToggle"), box=document.getElementById("stBox"); if(!b||!box) return;
   b.addEventListener("click",()=>{ const open=box.hidden; box.hidden=!open; b.setAttribute("aria-expanded",String(open)); b.textContent=T(open?"✕ Close":"🏁 Starting point"); }); })();</script>
 <script>/* start fresh: empty every search / entry box when the app opens or comes back after a while */
-(function(){ function clear(){ ["gSearch","fSearch","pSearch","smsIn","fAmount","fAmount2","fNote","fNote2","stCash","stBank","inAmt","inNote","gName","gTarget","pPrice","pSize","ceName","daName","daAmt"].forEach(id=>{ const el=document.getElementById(id); if(!el||el===document.activeElement) return; if(el.value){ el.value=""; if(el.tagName==="TEXTAREA") el.style.height=""; } });
+(function(){ function clear(){ ["gSearch","fSearch","pSearch","shopQ","smsIn","fAmount","fAmount2","fNote","fNote2","stCash","stBank","inAmt","inNote","gName","gTarget","pPrice","pSize","ceName","daName","daAmt"].forEach(id=>{ const el=document.getElementById(id); if(!el||el===document.activeElement) return; if(el.value){ el.value=""; if(el.tagName==="TEXTAREA") el.style.height=""; } });
     const r=document.getElementById("gsRes"); if(r) r.hidden=true; }
   setTimeout(clear,0); window.addEventListener("pageshow",e=>{ if(e.persisted) clear(); });
   let hidAt=0; document.addEventListener("visibilitychange",()=>{ if(document.hidden) hidAt=Date.now(); else if(hidAt && Date.now()-hidAt>5*60e3) clear(); }); })();
