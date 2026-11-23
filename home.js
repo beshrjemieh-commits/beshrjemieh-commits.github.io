@@ -725,6 +725,7 @@
       screen.orientation && screen.orientation.lock && screen.orientation.lock("portrait").catch(() => {}); } catch(e){}
     try { const lg = document.getElementById("log"); const unc = () => { if(lg.classList.contains("collapsed")) lg.classList.remove("collapsed"); }; // its header is gone, so it always stays open
       new MutationObserver(unc).observe(lg, {attributes: true, attributeFilter: ["class"]}); unc(); } catch(e){}
+    try { const pl = document.querySelector("#pListLbl>span"); if(pl && window.PH) pl.insertAdjacentHTML("beforebegin", PH("camera")); } catch(e){}
     try { const sl = document.querySelector("#shelfLabel>span"); if(sl && window.PH) sl.insertAdjacentHTML("beforebegin", PH("camera")); const ai = document.getElementById("pAddItem"); if(ai && window.PH){ ai.innerHTML = PH("plus-circle") + "<span>" + L("Add item","أضف صنف") + "</span>"; ai.setAttribute("data-noi18n", ""); } } catch(e){}
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
@@ -734,6 +735,25 @@
   #shelfLabel{display:flex;align-items:center;justify-content:center;gap:8px}
   #shelfLabel.busy{opacity:.6;pointer-events:none}
   #shelfStatus:empty{display:none}
+  /* My items: category chips, group headings, shopping-list check (Beshr 2026-11-23) */
+  #pCats,#pSubCats{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:8px 0 0;padding-bottom:2px}
+  #pCats::-webkit-scrollbar,#pSubCats::-webkit-scrollbar{display:none}
+  #pCats .chip,#pSubCats .chip{flex:none;min-height:36px;padding:0 12px;font-size:14px;white-space:nowrap}
+  #pSubCats .chip{min-height:32px;font-size:13px}
+  #pCats .chip .tag,#pSubCats .chip .tag{font-size:12px;opacity:.7}
+  .pcathead{font-size:13px;font-weight:600;color:#0F2A4A;padding:12px 4px 4px;letter-spacing:.2px}
+  .plistbtn{display:flex!important;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:8px;cursor:pointer}
+  .plistbtn svg{width:20px;height:20px}
+  .plistbtn.busy{opacity:.6;pointer-events:none}
+  #pListRes{margin-top:8px}
+  .plhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .plhead .del{flex:none;min-height:36px}
+  .plrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #E2E8F0}
+  .plrow>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column}
+  .plrow small{font-size:12px;color:#64748B}
+  .plrow .pli{width:24px;height:24px;border-radius:12px;display:grid;place-items:center;font-size:13px;flex:none}
+  .plrow.yes .pli{background:#DCFCE7;color:#16A34A}.plrow.no .pli{background:#FEE2E2;color:#DC2626}
+  .plrow .plp{display:flex;flex-direction:column;align-items:flex-end;font-variant-numeric:tabular-nums}
   #viewPrices #billsSec{display:none!important} /* Beshr 2026-11-23: Add bill lives in the quick action bar */
   #viewPlan #log>div:first-child,#viewPlan #log>#addForm,#viewPlan #log>#month{display:none!important} /* Beshr 2026-11-23: 'Add a cost' lives in the quick action bar (Add expense); the month details and entries stay */
   /* Beshr 2026-11-23: portrait only. iPhone can't lock a home-screen web app, so a sideways phone gets a calm "turn it upright" screen instead of a broken layout */

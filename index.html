@@ -812,6 +812,10 @@ form.card .logform{row-gap:11px!important}
       </div>
       <div class="card" id="shopCard" hidden><div class="row"><b>🛒 Shopping list</b><button class="del" type="button" id="shopClear">Clear list</button></div><div id="shopList"></div></div>
       <input class="search" id="pSearch" type="search" placeholder="Search items or stores" aria-label="Search prices">
+      <label class="btn plistbtn" id="pListLbl"><input type="file" id="pListFile" accept="image/*" hidden><span>Check a shopping list photo</span></label>
+      <div class="card" id="pListRes" hidden data-noi18n></div>
+      <div class="chips pcats" id="pCats" role="group" aria-label="Categories" data-noi18n></div>
+      <div class="chips pcats sub" id="pSubCats" role="group" aria-label="Sub-categories" data-noi18n hidden></div>
       <div class="card" id="pCheaper" hidden style="margin:8px 0"><b>💡 Friends found it cheaper</b><p class="sub" style="margin:4px 0 6px">Other users paid less for items you buy. Tap ✓ Add to put that price in your price book.</p><div id="pCheaperList"></div></div>
       <details class="card" id="pOthers" hidden style="margin:8px 0"><summary><b>👥 From other users' price books</b> <span class="tag" id="pOthersN"></span></summary><p class="sub" style="margin:4px 0 6px">Items other people bought (no names shown). Tap + Add to copy one into your price book.</p><div id="pOthersList"></div></details>
       <div class="tablebox" id="pList"><div class="empty">No prices yet.<br><button class="btn primary" type="button" onclick="document.getElementById('pItem').focus()">+ Add your first price</button></div></div>
@@ -1779,6 +1783,44 @@ const onOtherAdd = async e=>{
 };
 document.getElementById("pOthersList").addEventListener("click", onOtherAdd);
 document.getElementById("pCheaperList").addEventListener("click", onOtherAdd);
+/* ---------- My items: categories (Beshr 2026-11-23: easy to navigate, not one long list) ---------- */
+const LL = (en, ar) => document.documentElement.dir === "rtl" ? ar : en;
+const PGRP = [["groc","Groceries","بقالة"],["home","Household","المنزل"],["care","Personal care","العناية الشخصية"],["baby","Baby","الأطفال"],["other","Other","أخرى"]];
+const PCAT = [
+  ["dairy","groc","Dairy & eggs","ألبان وبيض",/milk|laban|yog|cheese|butter|cream|egg|labneh|ghee|حليب|لبن|زبادي|روب|جبن|زبد|قشط|بيض|لبنة|سمن/i],
+  ["meat","groc","Meat & fish","لحوم وأسماك",/meat|beef|lamb|mutton|chicken|poultry|fish|tuna|shrimp|salmon|sausage|burger|mince|kebab|لحم|غنم|بقر|دجاج|فراخ|سمك|تونة|روبيان|جمبري|سلمون|نقانق|برجر|مفروم/i],
+  ["bakery","groc","Bakery","مخبوزات",/bread|bun|toast|samoon|croissant|tortilla|pita|khubz|cake|muffin|خبز|صامولي|توست|كرواسون|تورتيلا|كيك|مافن|عيش/i],
+  ["produce","groc","Fruit & veg","خضار وفواكه",/apple|banana|orange|tomato|potato|onion|cucumber|lettuce|carrot|lemon|grape|mango|date|berry|melon|pepper|garlic|veg|fruit|herb|parsley|mint|تفاح|موز|برتقال|طماطم|بطاطس|بصل|خيار|خس|جزر|ليمون|عنب|مانجو|تمر|بطيخ|فلفل|ثوم|خضار|فواكه|بقدونس|نعناع/i],
+  ["pantry","groc","Rice & pantry","رز ومؤونة",/rice|pasta|spaghetti|macaroni|noodle|flour|sugar|salt|oil|spice|sauce|ketchup|mayo|bean|lentil|chickpea|can|honey|jam|cereal|oat|corn|vinegar|paste|رز|أرز|مكرونة|معكرونة|شعيرية|طحين|دقيق|سكر|ملح|زيت|بهار|صلصة|كاتشب|مايونيز|فول|عدس|حمص|علب|عسل|مربى|شوفان|كورن/i],
+  ["drinks","groc","Drinks","مشروبات",/water|juice|soda|cola|pepsi|7up|sprite|coffee|tea|nescafe|drink|energy|laban up|ماء|مياه|عصير|غازي|بيبسي|كولا|قهوة|شاي|نسكافيه|مشروب/i],
+  ["snacks","groc","Snacks & sweets","سناكات وحلويات",/chip|crisp|chocolate|biscuit|cookie|candy|sweet|wafer|nut|popcorn|ice cream|snack|شيبس|بطاطا|شوكولات|بسكويت|حلاو|حلوى|مكسرات|فشار|آيس|ايسكريم|سناك/i],
+  ["frozen","groc","Frozen","مجمّدات",/frozen|nugget|fries|مجمد|ناجتس/i],
+  ["clean","home","Cleaning & laundry","تنظيف وغسيل",/detergent|tide|ariel|persil|clorox|bleach|dish|fairy|cleaner|tissue|napkin|kleenex|foil|wrap|trash|garbage|bag|sponge|softener|downy|منظف|تايد|آريال|كلوركس|مبيض|صحون|مناديل|كلينكس|ورق|قصدير|أكياس|كيس|اسفنج|منعم|داوني/i],
+  ["care","care","Personal care","العناية الشخصية",/shampoo|conditioner|toothpaste|toothbrush|deodorant|soap|lotion|razor|shave|perfume|cream|sanitizer|cotton|شامبو|بلسم|معجون|فرشاة|مزيل|صابون|لوشن|شفرة|حلاقة|عطر|معقم|قطن/i],
+  ["baby","baby","Baby","الأطفال",/diaper|pampers|huggies|formula|wipes|baby|حفاض|حفاضات|بامبرز|حليب أطفال|مناديل مبللة|أطفال|رضع/i]
+];
+let pCatSel = "all", pAiCat = {}; try{ pAiCat = JSON.parse(localStorage.getItem("w-pcat")||"{}")||{}; }catch(e){}
+function pCatOf(name){ const n = String(name||""), ai = pAiCat[n.toLowerCase()]; if(ai && PCAT.some(c=>c[0]===ai)) return ai;
+  // the first category whose words match; personal-care "cream" only if no grocery word matched
+  for(const c of PCAT) if(c[4].test(n)) return c[0]; return "other"; }
+const pGrpOf = k => (PCAT.find(c=>c[0]===k)||[0,"other"])[1];
+let pAiBusy = false;
+async function pAiClassify(names){ // items no keyword matched: ask Claude once, remember the answer on this phone
+  if(pAiBusy || !sampleNS || !names.length) return; pAiBusy = true;
+  try{ const out = await sampleNS.json(`Put each shop item into ONE category key. Keys: ${PCAT.map(c=>c[0]+" ("+c[2]+")").join(", ")}, other. Items: ${JSON.stringify(names.slice(0,60))}. Return ONLY JSON like {"cats": {"item name": "key"}}.`, {modelTier:"default"});
+    const m = (out && out.cats) || {}; let ch = false; names.forEach(n=>{ const v = m[n]; pAiCat[n.toLowerCase()] = PCAT.some(c=>c[0]===v) ? v : "other"; ch = true; });
+    if(ch){ try{ localStorage.setItem("w-pcat", JSON.stringify(pAiCat)); }catch(e){} renderPrices(); }
+  }catch(e){} pAiBusy = false; }
+function renderPCats(groups){
+  const cnt = {}, gcnt = {}; groups.forEach(g=>{ cnt[g.cat]=(cnt[g.cat]||0)+1; const gr=pGrpOf(g.cat); gcnt[gr]=(gcnt[gr]||0)+1; });
+  const top = pCatSel === "all" ? "all" : PGRP.some(g=>g[0]===pCatSel) ? pCatSel : pGrpOf(pCatSel);
+  const chip = (k, t, n) => `<button type="button" class="chip" data-pc="${k}" aria-pressed="${pCatSel===k}">${esc(t)}${n!=null?` <span class="tag">${n}</span>`:""}</button>`;
+  document.getElementById("pCats").innerHTML = chip("all", LL("All","الكل"), groups.length) + PGRP.filter(g=>gcnt[g[0]]).map(g=>`<button type="button" class="chip" data-pc="${g[0]}" aria-pressed="${top===g[0]}">${esc(LL(g[1],g[2]))} <span class="tag">${gcnt[g[0]]}</span></button>`).join("");
+  const subs = top !== "all" ? PCAT.filter(c=>c[1]===top && cnt[c[0]]) : [], sb = document.getElementById("pSubCats");
+  sb.hidden = subs.length < 2; sb.innerHTML = subs.length < 2 ? "" : chip(top, LL("All","الكل"), gcnt[top]) + subs.map(c=>chip(c[0], LL(c[2],c[3]), cnt[c[0]])).join("");
+}
+document.getElementById("pCats").addEventListener("click", e=>{ const b=e.target.closest("[data-pc]"); if(!b) return; pCatSel = b.dataset.pc; renderPrices(); });
+document.getElementById("pSubCats").addEventListener("click", e=>{ const b=e.target.closest("[data-pc]"); if(!b) return; pCatSel = b.dataset.pc; renderPrices(); });
 function renderPrices(){
   renderOthers();
   fillList("pItemList", prices.map(p=>norm(p.item)));
@@ -1790,11 +1832,18 @@ function renderPrices(){
   document.getElementById("ptStores").textContent = new Set(prices.map(p=>norm(p.store).toLowerCase()).filter(Boolean)).size;
   document.getElementById("ptRecs").textContent = prices.length;
   const q = norm(document.getElementById("pSearch").value).toLowerCase();
-  let list = [...groups.entries()].filter(([k,g])=>!q || k.includes(q) || g.recs.some(r=>norm(r.store).toLowerCase().includes(q)));
-  list.sort((a,b)=>a[1].item.localeCompare(b[1].item));
+  groups.forEach(g=>{ g.cat = pCatOf(g.item); });
+  renderPCats([...groups.values()]);
+  const unk = [...new Set([...groups.values()].filter(g=>g.cat==="other" && !(g.item.toLowerCase() in pAiCat)).map(g=>g.item))]; if(unk.length) setTimeout(()=>pAiClassify(unk), 800);
+  const inSel = g => pCatSel === "all" || g.cat === pCatSel || pGrpOf(g.cat) === pCatSel;
+  let list = [...groups.entries()].filter(([k,g])=>inSel(g) && (!q || k.includes(q) || g.recs.some(r=>norm(r.store).toLowerCase().includes(q))));
+  const ord = k => PCAT.findIndex(c=>c[0]===k) < 0 ? 99 : PCAT.findIndex(c=>c[0]===k);
+  list.sort((a,b)=>(ord(a[1].cat)-ord(b[1].cat)) || a[1].item.localeCompare(b[1].item));
   const box = document.getElementById("pList");
   if(!list.length){ box.innerHTML = `<div class="empty">${prices.length?"Nothing matches your search.":"No prices yet."+'<br><button class="btn primary" type="button" onclick="document.getElementById(\'pItem\').focus()">+ Add your first price</button>'}</div>`; return; }
+  let lastCat = null;
   box.innerHTML = list.map(([k,g])=>{
+    const head = g.cat !== lastCat ? `<div class="pcathead" data-noi18n>${esc(LL(...((PCAT.find(c=>c[0]===g.cat)||[0,0,"Other","أخرى"]).slice(2,4))))}</div>` : ""; lastCat = g.cat;
     const recs = g.recs.slice().sort((a,b)=>(b.date.localeCompare(a.date))||(b.createdAt-a.createdAt));
     const low = Math.min(...recs.map(r=>r.price));
     const best = recs.find(r=>r.price===low), last = recs[0];
@@ -1802,7 +1851,7 @@ function renderPrices(){
     const sn = x => esc(x.store||"store not set");
     const com = communityFor(k);
     const sum = last.price>low ? `Last paid ${money(last.price)} at ${sn(last)}, ${money(last.price-low)} more than the cheapest.` : `Store: ${sn(last)}${stores>1?" (cheapest so far)":""}`;
-    return `<details class="pitem" data-k="${esc(k)}" ${pOpen.has(k)?"open":""}>
+    return head + `<details class="pitem" data-k="${esc(k)}" ${pOpen.has(k)?"open":""}>
       <summary>${photos[k]?`<img class="pimg" src="${esc(photos[k].url)}" alt="" loading="lazy">`:`<span class="pimg" aria-hidden="true">🛒</span>`}<b>${esc(g.item)}${g.size?` <span class="tag">${esc(g.size)}</span>`:""}${g.recs.some(r=>r.locked)?` <span title="Shared name">🔒</span>`:""}</b><span class="num">${money(low)} SAR</span>
         <small><span class="best">Cheapest: ${esc(best.store||"store not set")}</span> · ${sum}${com[0]?` · <span class="${com[0].price<low-0.009?"diff-down":""}">${esc(`👥 Others paid ${money(com[0].price)} at ${com[0].store||"a store"}`)}</span>`:""}</small></summary>
       <div class="phist"><div class="photoRow">${photos[k]?`<img src="${esc(photos[k].url)}" alt="Photo of ${esc(g.item)}">`:""}${assetsNS?`<label class="btn">${photos[k]?"Change photo":"📷 Add photo"}<input type="file" accept="image/*" data-photo="${esc(k)}"></label>`:""}</div>${recs.map(r=>`<div class="pr ${r.price===low?"low":""}"><span>${esc(r.store||"Store not set")}</span><span class="num">${money(r.price)}</span><button class="del" type="button" data-del="${esc(r.id)}" aria-label="Delete this price">Delete</button></div>`).join("")}${com.map(c=>`<div class="pr ${c.price<low-0.009?"low":""}"><span>${esc(`👥 ${c.store||"Store not set"} (${c.people} ${c.people===1?"person":"people"})`)}</span><span class="num">${money(c.price)}</span><span></span></div>`).join("")}
@@ -1812,6 +1861,32 @@ function renderPrices(){
   }).join("");
 }
 document.getElementById("pSearch").addEventListener("input", renderPrices);
+/* Beshr 2026-11-23: photo of a shopping list -> which of those things are already in My items (and their best price) */
+document.getElementById("pListFile").addEventListener("change", async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
+  const res=document.getElementById("pListRes"), lab=document.getElementById("pListLbl"); res.hidden=false; lab.classList.add("busy");
+  res.innerHTML=`<p class="sub" style="margin:0">${esc(LL("Reading your list…","جارٍ قراءة قائمتك…"))}</p>`;
+  const groups=new Map(); prices.forEach(p=>{ const k=keyOf(p); if(!groups.has(k)) groups.set(k,{item:norm(p.item), size:norm(p.size), recs:[]}); groups.get(k).recs.push(p); });
+  const mine=[...groups.values()].map(g=>g.item+(g.size?" "+g.size:""));
+  try{
+    if(!sampleNS) throw {code:"unavailable"};
+    const blob=await shrinkTo(f,1600);
+    const out=await sampleNS.json(
+`This photo is a shopping list (handwritten or typed, Arabic and/or English). Read every line. Then, for each line, find the matching product in MY ITEMS below (same kind of product; brand or size may differ), or null if there is none.
+MY ITEMS: ${JSON.stringify(mine.slice(0,300))}
+Return ONLY JSON: {"lines": [{"text": "the line as written", "match": "exact text from MY ITEMS or null"}]}`, {images:[blob], modelTier:"default"});
+    const lines=(Array.isArray(out&&out.lines)?out.lines:[]).filter(x=>x&&norm(x.text));
+    if(!lines.length){ res.innerHTML=`<p class="sub" style="margin:0">${esc(LL("Couldn't find a list in this photo. Try a clearer one.","ما لقيت قائمة في الصورة. جرّب صورة أوضح."))}</p>`; lab.classList.remove("busy"); return; }
+    const byName=new Map([...groups.values()].map(g=>[(g.item+(g.size?" "+g.size:"")).toLowerCase(), g]));
+    let have=0; const rows=lines.map(x=>{ const g=x.match&&byName.get(String(x.match).toLowerCase()); if(!g) return `<div class="plrow no"><span class="pli">✕</span><span><b>${esc(norm(x.text))}</b><small>${esc(LL("Not in your items yet","مو موجود في أصنافك"))}</small></span></div>`;
+      have++; const low=Math.min(...g.recs.map(r=>r.price)), best=g.recs.find(r=>r.price===low);
+      return `<div class="plrow yes"><span class="pli">✓</span><span><b>${esc(norm(x.text))}</b><small>${esc(g.item)}${g.size?" · "+esc(g.size):""}</small></span><span class="plp"><b>\u20C1${money(low)}</b><small>${esc(best.store||"")}</small></span></div>`; });
+    res.innerHTML=`<div class="plhead"><b>${esc(LL(`${have} of ${lines.length} on your list are in My items`,`${have} من ${lines.length} في قائمتك موجودة في أصنافك`))}</b><button class="del" type="button" id="pListClose">${esc(LL("Close","إغلاق"))}</button></div>`+rows.join("");
+  }catch(err){ const c=err&&err.code;
+    res.innerHTML=`<p class="sub" style="margin:0">${esc(c==="not_granted"?LL("You said no to letting Claude read it.","رفضت أن يقرأها Claude."):c==="rate_limited"?LL("Too many requests. Wait a minute, then try again.","طلبات كثيرة. انتظر دقيقة ثم حاول مرة ثانية."):LL("Couldn't read the photo. Try again.","ما قدرت أقرأ الصورة. حاول مرة ثانية."))}</p>`; }
+  lab.classList.remove("busy");
+});
+document.getElementById("pListRes").addEventListener("click", e=>{ if(e.target.closest("#pListClose")){ const r=document.getElementById("pListRes"); r.hidden=true; r.innerHTML=""; } });
 document.getElementById("pList").addEventListener("toggle", e=>{ const d=e.target.closest&&e.target.closest("details"); if(!d) return; d.open?pOpen.add(d.dataset.k):pOpen.delete(d.dataset.k); }, true);
 document.getElementById("pList").addEventListener("click", async e=>{
   const again = e.target.closest("[data-again]");
