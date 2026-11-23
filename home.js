@@ -1428,6 +1428,10 @@
     /* Beshr 2026-11-23: Expenses, Prices log and Forsa open IN PLACE, like an accordion: the white card grows downward from
        where it is and the cards below simply move down to make room (no morph, no overlay). Closing folds it back the same way. */
     const HX = {plan: 1, prices: 1, forsa: 1}, HX_EZ = "cubic-bezier(.3,.6,.2,1)"; let hx = null; window._hx = null;
+    // Beshr 2026-11-23: nothing scrolls while a card opens or closes (no auto-scroll, and finger scrolling waits until it's done)
+    let hxLockN = 0; const hxStop = e => { if(hxLockN > 0 && e.cancelable) e.preventDefault(); };
+    document.addEventListener("touchmove", hxStop, {passive: false}); document.addEventListener("wheel", hxStop, {passive: false});
+    const hxLock = ms => { hxLockN++; setTimeout(() => { hxLockN = Math.max(0, hxLockN - 1); }, ms + 40); };
     const hxMs = h => reduced() ? 0 : Math.round(Math.min(460, Math.max(280, 240 + h * .25)));
     // the card's own summary lines (Beshr 2026-11-23: they dissolve as it opens, so the open card shows the full content instead)
     const hxParts = card => [...card.querySelectorAll(":scope>.sub,:scope>.hint")];
@@ -1440,6 +1444,7 @@
         if(window._homeDirty && !window._hx && !window._pg && !window._wmOpen) render(); else fitHome(); cb && cb(); };
       h.box.getAnimations().forEach(a => a.cancel()); const from = h.box.getBoundingClientRect().height, ms = hxMs(from) * .85;
       if(instant || !ms || !h.box.animate){ fin(); return; }
+      hxLock(ms);
       Object.assign(h.box.style, {height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"});
       const a = h.box.animate([{height: from + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}, {height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}], {duration: ms, easing: HX_EZ});
       a.onfinish = fin; a.oncancel = fin;
@@ -1503,7 +1508,7 @@
       const H = box.getBoundingClientRect().height, ms = hxMs(H);
       // a card low on the screen: the page scrolls along with the opening, just enough to show what opened (the card's top stops at the search bar line)
       const qb = document.getElementById("qBar"), lim = (qb && qb.getClientRects().length ? qb.getBoundingClientRect().top : innerHeight) - 8;
-      const dy = Math.max(0, Math.min(Math.min(H, (lim - window._hLine()) * .6) - (lim - cr.bottom), cr.top - Math.max(48, window._hLine())));
+      const dy = 0; // Beshr 2026-11-23: the page no longer scrolls by itself while a card opens; you scroll when it's open
       if(ms && card.animate){
         // targets are measured now, in the final layout; then the card goes back to its summary for the first frame
         card.classList.remove("hx-min"); const gs = hxFly(card, v, dy, false, ms); card.classList.add("hx-anim");
@@ -1511,7 +1516,10 @@
         card.animate([{height: c0 + "px"}, {height: c1 + "px"}], {duration: ms, easing: HX_EZ}).onfinish = () => { gs.forEach(g => g.remove()); parts.forEach(p => p.style.opacity = ""); if(!hx || hx.card !== card) return; card.classList.add("hx-min"); card.classList.remove("hx-anim"); };
         v.animate([{opacity: 0}, {opacity: 0, offset: .3}, {opacity: 1, offset: .75}, {opacity: 1}], {duration: ms, easing: "linear"}); }
       try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
-      if(ms && box.animate) box.animate([{height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}, {height: H + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}], {duration: ms, easing: HX_EZ}).onfinish = () => fitHome();
+      if(ms) hxLock(ms);
+      if(ms && box.animate) box.animate([{height: "0px", paddingTop: "0px", paddingBottom: "0px", borderBottomWidth: "0px"}, {height: H + "px", paddingTop: "4px", paddingBottom: "16px", borderBottomWidth: "1px"}], {duration: ms, easing: HX_EZ}).onfinish = () => { fitHome();
+        // only a card hidden behind the quick action bar (Forsa on a small phone): once it's open, glide up just enough to show it
+        if(!hx || hx.box !== box) return; const br = box.getBoundingClientRect(), seen = lim - br.top; if(seen < 140){ const by = Math.min(card.getBoundingClientRect().top - Math.max(48, window._hLine()), 140 - seen + 60); if(by > 4){ hxLock(420); window.scrollTo({top: window.scrollY + by, behavior: "smooth"}); } } };
       if(dy > 2){ const y0 = window.scrollY; // in step with the box: the page moves by the same share the box has grown
         const step = () => { if(!hx || hx.box !== box) return; const p = Math.min(1, box.getBoundingClientRect().height / (H || 1)); window.scrollTo(0, y0 + dy * p); if(p < 1) requestAnimationFrame(step); };
         if(ms) requestAnimationFrame(step); else window.scrollTo(0, y0 + dy); }
