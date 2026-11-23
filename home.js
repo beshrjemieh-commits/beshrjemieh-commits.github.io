@@ -746,6 +746,22 @@
   .plistbtn svg{width:20px;height:20px}
   .plistbtn.busy{opacity:.6;pointer-events:none}
   #pListRes{margin-top:8px}
+  /* Expenses list: only today in full, the rest folded (Beshr 2026-11-23) */
+  #entries .earlyhead{display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;min-height:44px;box-sizing:border-box;background:var(--surface,#F8FAFC)}
+  #entries .earlyhead .el{flex:1;display:flex;flex-direction:column;min-width:0}
+  #entries .earlyhead .el b{font-size:14px;font-weight:600;color:#0F172A}
+  #entries .earlyhead .el small{font-size:12px;color:#64748B}
+  #entries .earlyhead .num{font-weight:600;font-size:15px;color:#0F172A;font-variant-numeric:tabular-nums}
+  #entries .earlyhead .chev{color:#64748B;transition:transform .2s ease;font-size:18px}
+  #entries .earlier:not(.shut) .earlyhead .chev{transform:rotate(90deg)}
+  #entries .earlier.shut .earlybody{display:none}
+  #entries .earlybody .dayhead{padding:6px 12px;gap:10px}
+  #entries .earlybody .dayhead .dd{flex-direction:row;gap:4px;align-items:baseline;min-width:52px}
+  #entries .earlybody .dayhead .dd b{font-size:14px}
+  #entries .earlybody .dayhead .dm{gap:3px}
+  #entries .earlybody .dayhead .dl{font-size:12px}
+  #entries .earlybody .dayhead .dl .num{font-size:13px}
+  #entries .earlybody .dbar{height:3px}
   .plhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
   .plhead .del{flex:none;min-height:36px}
   .plrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #E2E8F0}
@@ -1430,6 +1446,7 @@
       const box = document.createElement("div"); box.className = "hx"; box.dataset.noswipe = ""; box.dataset.for = go; box.style.setProperty("--hxbg", getComputedStyle(card).backgroundColor); box.style.setProperty("--hxbd", getComputedStyle(card).borderTopColor);
       hx = {go, card, v, box, par: v.parentNode, next: v.nextSibling, y0: window.scrollY}; window._hx = go;
       card.getAnimations().forEach(a => a.cancel()); hxClear(); const c0 = hxH(card), cr = card.getBoundingClientRect();
+      if(go === "plan" && window._resetMonth) window._resetMonth(); // always lands on this month, today first
       card.after(box); v.classList.add("hx-view"); box.appendChild(v); v.hidden = false; try { renderHero(go); } catch(e){}
       document.documentElement.classList.remove("homefit");
       card.classList.add("hx-on", "hx-min"); const c1 = hxH(card); card.setAttribute("aria-expanded", "true");
