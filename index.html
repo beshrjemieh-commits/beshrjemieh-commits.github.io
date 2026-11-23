@@ -2641,7 +2641,7 @@ function ordinal(n){ n=Number(n)||0; const s=["th","st","nd","rd"], v=n%100; ret
 })();
 </script>
 
-<script src="home.js"></script>
+<script src="simple.js"></script>
 <script>/* block pinch / double-tap zoom on iPhone */
 ["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault();},{passive:false});});
 (function(){var last=0;document.addEventListener("touchend",function(e){var n=Date.now();if(n-last<300&&!e.target.closest("input,textarea,select,button,a,label")){e.preventDefault();}last=n;},{passive:false});})();
