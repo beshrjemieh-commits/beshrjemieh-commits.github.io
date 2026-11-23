@@ -731,7 +731,7 @@
     const st2 = document.createElement("style"); st2.textContent = `
   #viewHome .hcard{padding-top:12px!important}
   #viewPrices #priceSec{display:none!important} /* Beshr 2026-11-23: no Price book section; '+ Add item' opens a sheet (photo of the price tag, or type it) */
-  #viewPrices #pAddItem{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px}
+  #viewPrices #pAddItem{display:none!important} #viewPrices #pAddItem{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px}
   #viewPrices #pAddItem svg,#shelfLabel svg{width:20px;height:20px;flex:none}
   #shelfLabel{display:flex;align-items:center;justify-content:center;gap:8px}
   #shelfLabel.busy{opacity:.6;pointer-events:none}
@@ -1016,7 +1016,7 @@
       const q = document.createElement("nav"); q.id = "qBar"; q.setAttribute("aria-label", L("Quick actions","إجراءات سريعة")); q.setAttribute("data-noi18n", ""); q.setAttribute("data-noswipe", "");
       const ic = n => window.PH ? PH(n) : "";
       q.innerHTML = `<button type="button" data-q="exp">${ic("plus-circle")}<span>${L("Add expense","أضف مصروف")}</span></button>` +
-        `<button type="button" data-q="bill">${ic("camera")}<span>${L("Add bill","أضف فاتورة")}</span></button>` +
+        `<button type="button" data-q="bill">${ic("camera")}<span>${L("Add bill / item","فاتورة / صنف")}</span></button>` +
         `<button type="button" data-q="shop">${ic("shopping-cart")}<span>${L("Shop","تسوّق")}</span></button>` +
         `<button type="button" data-q="hunt">${ic("magnifying-glass")}<span>${L("New hunt","بحث جديد")}</span></button>`;
       document.body.appendChild(q);
@@ -1314,8 +1314,8 @@
       const ACTS = {
         bal: [["arrow-down-left", L("Add money in","أضف دخل"), () => window._sheet && window._sheet("in")], ["flag", L("Starting point","نقطة البداية"), () => window._sheet && window._sheet("start")]],
         budget: [["chart-pie-slice", L("Open budget","افتح الميزانية"), () => window.showTab("budget")], ["plus-circle", L("Add expense","أضف مصروف"), () => window._sheet && window._sheet("exp")]],
-        plan: [["plus-circle", L("Add expense","أضف مصروف"), () => window._sheet && window._sheet("exp")], ["camera", L("Add bill","أضف فاتورة"), () => window._sheet && window._sheet("bill")]],
-        prices: [["camera", L("Add bill","أضف فاتورة"), () => window._sheet && window._sheet("bill")], ["tag", L("Open Prices log","افتح سجل الأسعار"), () => window.showTab("prices")]],
+        plan: [["plus-circle", L("Add expense","أضف مصروف"), () => window._sheet && window._sheet("exp")], ["camera", L("Add bill / item","فاتورة / صنف"), () => window._sheet && window._sheet("bill")]],
+        prices: [["camera", L("Add bill / item","فاتورة / صنف"), () => window._sheet && window._sheet("bill")], ["tag", L("Open Prices log","افتح سجل الأسعار"), () => window.showTab("prices")]],
         forsa: [["magnifying-glass", L("New hunt","بحث جديد"), () => window._sheet && window._sheet("hunt")], ["fire", L("Open Forsa","افتح فرصة"), () => window.showTab("forsa")]]
       };
       const keyOf = c => c.id === "wmCard" ? "bal" : c.dataset.go;
@@ -1393,7 +1393,7 @@
         hunt:  {t: L("New hunt","بحث جديد"), els: [() => { const f = document.getElementById("fSearch"); return f && f.parentElement; }, "fLinks", "fMsg", "fTerms"], focus: "fSearch", tab: "forsa"},
         item:  {t: L("Add item","أضف صنف"), els: ["shelfCard", "priceForm"], tab: "prices", saved: () => !document.getElementById("pItem").value},
         shop:  {t: L("Shop","تسوّق"), els: ["shopBox"], tab: "prices"},
-        bill:  {t: L("Add bill","أضف فاتورة"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }], tab: "prices"}, // Beshr: keep only Upload bill in the sheet
+        bill:  {t: L("Add bill / item","أضف فاتورة / صنف"), els: [() => { const f = document.getElementById("billFile"); return f && f.closest(".card"); }, "shelfCard", "priceForm"], tab: "prices", saved: () => !document.getElementById("pItem").value}, // Beshr 2026-11-23: one place for bills and single items // Beshr: keep only Upload bill in the sheet
         in:    {t: L("Money in","مبلغ داخل"), els: ["inBox"], focus: "inAmt", tab: "bal", saved: () => !document.getElementById("inAmt").value},
         start: {t: L("Starting point","نقطة البداية"), els: ["stBox"], focus: "stCash", tab: "bal"}
       };
