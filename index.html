@@ -823,6 +823,8 @@ form.card .logform{row-gap:11px!important}
     </section>
     <section id="othersSec">
       <div><h2>Other users' items</h2><p class="sub">Items other people bought that you haven't (no names shown). Tap + Add to copy one into My items.</p></div>
+      <div class="chips pcats" id="oCats" role="group" aria-label="Categories" data-noi18n></div>
+      <div class="chips pcats sub" id="oSubCats" role="group" aria-label="Sub-categories" data-noi18n hidden></div>
       <div class="card" id="pOthers" hidden><span class="tag" id="pOthersN" hidden></span><div id="pOthersList"></div></div>
     </section>
   </div>
@@ -1783,9 +1785,14 @@ function renderOthers(){
   const mine=new Set(prices.map(p=>looseKey(p.item,p.size))), best=new Map();
   community.forEach(c=>{ if(mine.has(c.lk)) return; const b=best.get(c.lk); if(!b||c.price<b.price) best.set(c.lk,c); });
   const q=norm(document.getElementById("pSearch").value).toLowerCase();
-  const list=[...best.values()].filter(c=>!q||(c.item+" "+c.size+" "+c.store).toLowerCase().includes(q)).sort((a,b)=>a.item.localeCompare(b.item));
+  const all=[...best.values()]; all.forEach(c=>{ c.cat = pStoreCat([c]) || pCatOf(c.item); });
+  if(all.length) renderPCats(all, oCatSel, ["oCats","oSubCats"]);
+  const ord = k => { const i = PCAT.findIndex(c=>c[0]===k); return i < 0 ? 9999 : PGRP.findIndex(g=>g[0]===PCAT[i][1])*100 + i; };
+  const inSel = c => oCatSel === "all" || c.cat === oCatSel || pGrpOf(c.cat) === oCatSel;
+  const list=all.filter(c=>inSel(c) && (!q||(c.item+" "+c.size+" "+c.store).toLowerCase().includes(q))).sort((a,b)=>(ord(a.cat)-ord(b.cat))||a.item.localeCompare(b.item));
+  let lastCat = null; const head = c => { const h = c.cat !== lastCat ? `<div class="pcathead" data-noi18n>${esc(LL(...((PCAT.find(x=>x[0]===c.cat)||[0,0,"Other","أخرى"]).slice(2,4))))}</div>` : ""; lastCat = c.cat; return h; };
   box.hidden=!best.size; document.getElementById("pOthersN").textContent=best.size?String(best.size):"";
-  document.getElementById("pOthersList").innerHTML=list.map(c=>`<div class="orow" data-noi18n><span class="on"><b>${esc(c.item)}${c.size?` <span class="tag">${esc(c.size)}</span>`:""}</b><small>${esc(LL("Found at ","وجدوه في ")+(c.store||LL("a store","محل"))+" · "+(document.documentElement.dir==="rtl"?`${c.people} ${c.people===1?"شخص":"أشخاص"}`:`${c.people} ${c.people===1?"person":"people"}`))}</small></span><span class="op"><b>\u20C1${money(c.price)}</b><button class="btn" type="button" data-oadd="${esc(c.lk)}">${esc(LL("+ Add","+ أضف"))}</button></span></div>`).join("")||`<div class="empty">Nothing matches your search.</div>`;
+  document.getElementById("pOthersList").innerHTML=list.map(c=>head(c)+`<div class="orow" data-noi18n><span class="on"><b>${esc(c.item)}${c.size?` <span class="tag">${esc(c.size)}</span>`:""}</b><small>${esc(LL("Found at ","وجدوه في ")+(c.store||LL("a store","محل"))+" · "+(document.documentElement.dir==="rtl"?`${c.people} ${c.people===1?"شخص":"أشخاص"}`:`${c.people} ${c.people===1?"person":"people"}`))}</small></span><span class="op"><b>\u20C1${money(c.price)}</b><button class="btn" type="button" data-oadd="${esc(c.lk)}">${esc(LL("+ Add","+ أضف"))}</button></span></div>`).join("")||`<div class="empty">Nothing matches your search.</div>`;
 }
 const onOtherAdd = async e=>{
   const b=e.target.closest("[data-oadd]"); if(!b||!db) return;
@@ -1798,10 +1805,11 @@ document.getElementById("pOthersList").addEventListener("click", onOtherAdd);
 document.getElementById("pCheaperList").addEventListener("click", onOtherAdd);
 /* ---------- My items: categories (Beshr 2026-11-23: easy to navigate, not one long list) ---------- */
 const LL = (en, ar) => document.documentElement.dir === "rtl" ? ar : en;
-const PGRP = [["groc","Groceries","بقالة"],["cafe","Coffee shops","مقاهي"],["food","Restaurants","مطاعم"],["home","Household","المنزل"],["care","Personal care","العناية الشخصية"],["other","Other","أخرى"]];
+const PGRP = [["groc","Groceries","بقالة"],["cafe","Coffee shops","مقاهي"],["food","Restaurants","مطاعم"],["elec","Electronics","إلكترونيات"],["home","Household","المنزل"],["care","Personal care","العناية الشخصية"],["other","Other","أخرى"]];
 // Beshr 2026-11-23: the bill's store decides first (Barns = coffee shop), item words only after
 const PSTORE = [
   ["cafe",/barn|starbucks|dunkin|tim horton|costa|half million|dose|brew ?92|overdose|kyan|elixir|camel step|caribou|%arabica|arabica|java time|coffee|cafe|café|bakery cafe|بارنز|ستاربكس|دانكن|تيم هورتنز|كوستا|هاف مليون|دوز|كيان|كاريبو|قهوة|كافيه|مقهى/i],
+  ["elec",/extra|jarir|saco|x-?cite|eros|virgin mega|apple store|samsung store|electronics|appliance|إكسترا|اكسترا|جرير|ساكو|إلكترونيات|الكترونيات|أجهزة/i],
   ["food",/mcdonald|kfc|albaik|al baik|kudu|herfy|burger king|hardee|pizza hut|domino|papa john|little caesar|shawarma|subway|maestro|five guys|shake shack|texas chicken|popeyes|restaurant|grill|talabat|hungerstation|jahez|مطعم|ماكدونالدز|كنتاكي|البيك|كودو|هرفي|برجر كنج|هارديز|بيتزا|دومينوز|شاورما|صب واي|مايسترو|طلبات|هنقرستيشن|جاهز/i]
 ];
 const pStoreCat = recs => { const n = {}; recs.forEach(r=>{ const s = norm(r.store); if(!s || /\((online|shared)\)/i.test(s)) return; const t = (PSTORE.find(x=>x[1].test(s))||["shop"])[0]; n[t]=(n[t]||0)+1; });
@@ -1817,6 +1825,7 @@ const PCAT = [
   ["drinks","groc","Drinks","مشروبات",/water|juice|soda|cola|pepsi|7up|sprite|coffee|tea|nescafe|drink|energy|laban up|ماء|مياه|عصير|غازي|بيبسي|كولا|قهوة|شاي|نسكافيه|مشروب/i],
   ["snacks","groc","Snacks & sweets","سناكات وحلويات",/chip|crisp|chocolate|biscuit|cookie|candy|sweet|wafer|nut|popcorn|ice cream|snack|شيبس|بطاطا|شوكولات|بسكويت|حلاو|حلوى|مكسرات|فشار|آيس|ايسكريم|سناك/i],
   ["frozen","groc","Frozen","مجمّدات",/frozen|nugget|fries|مجمد|ناجتس/i],
+  ["elec","elec","Electronics","إلكترونيات",/phone|charger|cable|headphone|earbud|airpods|laptop|tablet|ipad|\btv\b|television|monitor|speaker|power ?bank|kettle|blender|mixer|air ?fryer|vacuum|\biron\b|\bfan\b|heater|microwave|fridge|refrigerator|washing machine|router|playstation|ps5|جوال|شاحن|سماعة|لابتوب|تابلت|آيباد|شاشة|تلفزيون|باور بانك|غلاية|خلاط|قلاية|مكنسة|مكواة|مروحة|دفاية|ميكرويف|ثلاجة|غسالة|راوتر|بلايستيشن/i],
   ["clean","home","Cleaning & laundry","تنظيف وغسيل",/detergent|tide|ariel|persil|clorox|bleach|dish|fairy|cleaner|tissue|napkin|kleenex|foil|wrap|trash|garbage|bag|sponge|softener|downy|منظف|تايد|آريال|كلوركس|مبيض|صحون|مناديل|كلينكس|ورق|قصدير|أكياس|كيس|اسفنج|منعم|داوني/i],
   ["care","care","Personal care","العناية الشخصية",/shampoo|conditioner|toothpaste|toothbrush|deodorant|soap|lotion|razor|shave|perfume|cream|sanitizer|cotton|شامبو|بلسم|معجون|فرشاة|مزيل|صابون|لوشن|شفرة|حلاقة|عطر|معقم|قطن/i],
   ["baby","groc","Baby","الأطفال",/diaper|pampers|huggies|formula|wipes|baby|حفاض|حفاضات|بامبرز|حليب أطفال|مناديل مبللة|أطفال|رضع/i]
@@ -1833,16 +1842,18 @@ async function pAiClassify(names){ // items no keyword matched: ask Claude once,
     const m = (out && out.cats) || {}; let ch = false; names.forEach(n=>{ const v = m[n]; pAiCat[n.toLowerCase()] = PCAT.some(c=>c[0]===v) ? v : "other"; ch = true; });
     if(ch){ try{ localStorage.setItem("w-pcat", JSON.stringify(pAiCat)); }catch(e){} renderPrices(); }
   }catch(e){} pAiBusy = false; }
-function renderPCats(groups){
+function renderPCats(groups, pCatSel = "all", ids = ["pCats","pSubCats"]){
   const cnt = {}, gcnt = {}; groups.forEach(g=>{ cnt[g.cat]=(cnt[g.cat]||0)+1; const gr=pGrpOf(g.cat); gcnt[gr]=(gcnt[gr]||0)+1; });
   const top = pCatSel === "all" ? "all" : PGRP.some(g=>g[0]===pCatSel) ? pCatSel : pGrpOf(pCatSel);
   const chip = (k, t, n) => `<button type="button" class="chip" data-pc="${k}" aria-pressed="${pCatSel===k}">${esc(t)}${n!=null?` <span class="tag">${n}</span>`:""}</button>`;
-  document.getElementById("pCats").innerHTML = chip("all", LL("All","الكل"), groups.length) + PGRP.filter(g=>gcnt[g[0]]).map(g=>`<button type="button" class="chip" data-pc="${g[0]}" aria-pressed="${top===g[0]}">${esc(LL(g[1],g[2]))} <span class="tag">${gcnt[g[0]]}</span></button>`).join("");
-  const subs = top !== "all" ? PCAT.filter(c=>c[1]===top && cnt[c[0]]) : [], sb = document.getElementById("pSubCats");
+  document.getElementById(ids[0]).innerHTML = chip("all", LL("All","الكل"), groups.length) + PGRP.filter(g=>gcnt[g[0]]).map(g=>`<button type="button" class="chip" data-pc="${g[0]}" aria-pressed="${top===g[0]}">${esc(LL(g[1],g[2]))} <span class="tag">${gcnt[g[0]]}</span></button>`).join("");
+  const subs = top !== "all" ? PCAT.filter(c=>c[1]===top && cnt[c[0]]) : [], sb = document.getElementById(ids[1]);
   sb.hidden = subs.length < 2; sb.innerHTML = subs.length < 2 ? "" : chip(top, LL("All","الكل"), gcnt[top]) + subs.map(c=>chip(c[0], LL(c[2],c[3]), cnt[c[0]])).join("");
 }
 document.getElementById("pCats").addEventListener("click", e=>{ const b=e.target.closest("[data-pc]"); if(!b) return; pCatSel = b.dataset.pc; renderPrices(); });
 document.getElementById("pSubCats").addEventListener("click", e=>{ const b=e.target.closest("[data-pc]"); if(!b) return; pCatSel = b.dataset.pc; renderPrices(); });
+let oCatSel = "all"; // Beshr 2026-11-23: other users' items keep their own categories, never mixed with mine
+["oCats","oSubCats"].forEach(id=>document.getElementById(id).addEventListener("click", e=>{ const b=e.target.closest("[data-pc]"); if(!b) return; oCatSel = b.dataset.pc; renderOthers(); }));
 function renderPrices(){
   renderOthers();
   fillList("pItemList", prices.map(p=>norm(p.item)));
@@ -1855,7 +1866,7 @@ function renderPrices(){
   document.getElementById("ptRecs").textContent = prices.length;
   const q = norm(document.getElementById("pSearch").value).toLowerCase();
   groups.forEach(g=>{ const sc = pStoreCat(g.recs), nc = pCatOf(g.item); g.cat = sc || (nc === "cafe" && g.recs.some(r=>norm(r.store) && !/\((online|shared)\)/i.test(r.store)) ? "drinks" : nc); });
-  renderPCats([...groups.values()]);
+  renderPCats([...groups.values()], pCatSel);
   const unk = [...new Set([...groups.values()].filter(g=>g.cat==="other" && !(g.item.toLowerCase() in pAiCat)).map(g=>g.item))]; if(unk.length) setTimeout(()=>pAiClassify(unk), 800);
   const inSel = g => pCatSel === "all" || g.cat === pCatSel || pGrpOf(g.cat) === pCatSel;
   let list = [...groups.entries()].filter(([k,g])=>inSel(g) && (!q || k.includes(q) || g.recs.some(r=>norm(r.store).toLowerCase().includes(q))));
