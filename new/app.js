@@ -173,7 +173,8 @@ function famSheetHTML(g){const ps=g.map(d=>d.price).filter(Boolean),lo=Math.min(
   (ps.length>1&&hi>lo?`<div class="arng"><i style="inset-inline-start:0;width:100%"></i>${g.filter(d=>d.price).map(d=>`<u style="inset-inline-start:${(d.price-lo)/(hi-lo)*100}%"></u>`).join("")}</div><div class="arl"><span>${M(lo)}</span><span>${tx(`${M(hi-lo)} difference`,`فرق ${M(hi-lo)}`)}</span><span>${M(hi)}</span></div>`:"")+`</div>`}
 // Beshr 2026-11-24 (later): keep it simple. By category only, one row per item: name, market price, current price. Tap = open the ad.
 // Added rows (Beshr 2026-11-24, option 1): one thin line per deal (photo, name, price, % off); swipe left or right to delete, with Undo
-function addedRows(list){return list.slice().sort(byScore).map(d=>`<div class="asw" data-did="${esc(d.id)}"><span class="asd">${tx("Delete","احذف")}</span><span class="asd">${tx("Delete","احذف")}</span><a class="afr ln" href="${esc(dLink(d))}" target="_blank" rel="noopener" draggable="false">${d.image?`<img src="${esc(d.image)}" alt="" draggable="false" referrerpolicy="no-referrer">`:`<i class="aph">${PH("fire")}</i>`}<b class="aln" dir="auto">${esc(d.name)}</b><b class="afp">${d.price?M(d.price):""}</b><em class="alp">${d.pct?`▼${d.pct}%`:""}</em></a></div>`).join("")}
+// Added (Beshr 2026-11-25): iPhone Photos-style grid, 3 square tiles per row with price + % off on the photo; tap opens the ad, press and hold to delete (Undo)
+function addedRows(list){return `<div class="agrid">${list.slice().sort(byScore).map(d=>`<div class="asw agt" data-did="${esc(d.id)}"><a class="agl" href="${esc(dLink(d))}" target="_blank" rel="noopener" draggable="false">${d.image?`<img src="${esc(d.image)}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()">`:""}<i class="agf">${PH("fire")}</i>${d.pct?`<em class="agd">▼${d.pct}%</em>`:""}<span class="agb"><b class="agn" dir="auto">${esc(d.name)}</b><b class="agp">${d.price?M(d.price):""}</b></span></a></div>`).join("")}</div>`}
 // Added (Beshr 2026-11-25): small chips All / Used / New, then category chips, then rows; no count in the header
 function addedHTML(all,k){if(!all.length)return "";const nU=all.filter(d=>dKind(d)=="used").length,nN=all.length-nU;k=k||"all";const list=k=="all"?all:all.filter(d=>dKind(d)==k);
  const kc=[["all",tx("All","الكل"),all.length],["used",tx("Used","مستعمل"),nU],["new",tx("New","جديد"),nN]].map(([x,n,c])=>`<button data-ak="${x}" class="${x==k?"on":""}">${n} <i>${c}</i></button>`).join("");
@@ -643,6 +644,13 @@ ${q}`;
   window._saveShop(tx("Removed from list","انشال من القائمة"))},true); }
  // ---- Forsa Added: slide category chips, tap a product -> its offers lowest to highest ----
  { { const fc=document.querySelector('.card[data-k="f"]');let sx=0,sy=0,row=null,dx=0,on=0,pid=null;
+  // grid tile: press and hold to delete (instant, 6 s Undo)
+  { let lt=null,lx=0,ly=0;const stop=()=>{clearTimeout(lt);lt=null;document.querySelectorAll(".agt.hold").forEach(x=>x.classList.remove("hold"))};
+   fc&&fc.addEventListener("pointerdown",ev=>{const t=ev.target.closest(".agt");if(!t||!OK)return;lx=ev.clientX;ly=ev.clientY;t.classList.add("hold");lt=setTimeout(()=>{lt=null;t.classList.remove("hold");const a=t.querySelector(".agl");a.dataset.swiped="1";setTimeout(()=>delete a.dataset.swiped,600);try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}window._delKept(t)},550)},true);
+   fc&&fc.addEventListener("pointermove",ev=>{if(lt&&Math.hypot(ev.clientX-lx,ev.clientY-ly)>8)stop()},true);
+   fc&&fc.addEventListener("pointerup",()=>{if(lt)stop()},true);fc&&fc.addEventListener("pointercancel",stop,true);
+   fc&&fc.addEventListener("contextmenu",ev=>{if(ev.target.closest(".agt"))ev.preventDefault()},true);
+   fc&&fc.addEventListener("click",ev=>{const a=ev.target.closest(".agl[data-swiped]");if(a){ev.preventDefault();ev.stopPropagation()}},true); }
   // swipe a kept deal left or right to delete it (instant, 6 s Undo: his delete rule)
   fc&&fc.addEventListener("pointerdown",ev=>{const r=ev.target.closest(".asw .afr");if(!r||!OK)return;row=r;sx=ev.clientX;sy=ev.clientY;dx=0;on=0;pid=ev.pointerId},true);
   fc&&fc.addEventListener("pointermove",ev=>{if(!row||ev.pointerId!=pid)return;const x=ev.clientX-sx,y=ev.clientY-sy;if(!on){if(Math.abs(y)>10&&Math.abs(y)>Math.abs(x)){row=null;return}if(Math.abs(x)>10){on=1;row.closest(".asw").classList.add("sw");try{row.setPointerCapture(pid)}catch(e){}}}

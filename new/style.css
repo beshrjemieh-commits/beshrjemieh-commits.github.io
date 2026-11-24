@@ -412,3 +412,15 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .fwsep{flex:none;width:1px;background:#FCD34D;margin:6px 2px}
 .achips.akind{margin:4px -16px 2px}.akind button{padding:6px 11px;font-size:13px}
 .akw .achips button{padding:6px 11px;font-size:13px}
+/* Forsa Added: Photos-style grid (2026-11-25) */
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin:4px 0 0;border-radius:14px;overflow:hidden}
+.agt{border:0!important;aspect-ratio:1;background:#FEF3C7;transition:transform .15s}
+.agt.hold{transform:scale(.94)}
+.agl{position:absolute;inset:0;display:block;text-decoration:none;color:#fff;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.agl img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.agf{position:absolute;inset:0;display:grid;place-items:center;color:#F59E0B;font-style:normal}.agf svg{width:30px;height:30px}
+.agd{position:absolute;top:5px;inset-inline-end:5px;z-index:2;font-style:normal;font-size:11px;font-weight:600;color:#fff;background:#16A34A;border-radius:8px;padding:1px 6px}
+.agb{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:16px 6px 5px;background:linear-gradient(transparent,rgba(15,23,42,.72));display:flex;flex-direction:column;line-height:1.2}
+.agn{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92}.agp{font-size:13px;font-weight:600}
+.agrid{border-radius:0;overflow:visible}.agt{border-radius:6px;background:#fff;box-shadow:0 0 0 1px #FDE68A inset}
+.agt:not(:has(img)) .agb{background:none;color:#78350F}.agt:not(:has(img)) .agf{padding-bottom:22px}
