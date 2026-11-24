@@ -317,3 +317,9 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 #slsheet .slr:first-child{border-top:0}
 .mnav button span{font-size:13px;color:inherit}.mnav button{height:30px;min-width:84px;font-size:13px}.mnsp{min-width:84px}
 .dleg{gap:4px}.dleg button{padding:5px 8px;border-radius:10px;column-gap:6px}.dleg i{width:8px;height:8px}.dleg button{grid-template-columns:8px 1fr auto}.dleg span{font-size:12px}.dleg b{font-size:13px}.dleg small{font-size:10px}
+.slq{display:flex;align-items:center;gap:2px;background:#F1F5F9;border-radius:10px;padding:2px}
+.slq button{width:26px;height:26px;border:0;background:#fff;border-radius:8px;color:#2563EB;font:600 16px/1 "IBM Plex Sans",sans-serif;cursor:pointer;padding:0}
+.slq b{min-width:18px;text-align:center;font-size:13px;font-weight:600}
+.sln .slsv{color:#16A34A;font-weight:500}.sln .slsv s{color:#94A3B8;font-weight:400}
+.sltot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;border-top:.5px solid #E2E8F0;font-size:14px;color:#475569}.sltot b{font-size:16px;color:#0F172A}
+[data-gapopen]{cursor:pointer}
