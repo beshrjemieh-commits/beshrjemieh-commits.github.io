@@ -5,7 +5,7 @@ let AR=false;try{AR=localStorage.getItem("w-lang")==="ar"}catch(e){}
 document.documentElement.dir=AR?"rtl":"ltr";document.documentElement.lang=AR?"ar":"en";
 const RS="⃁",tx=(e,a)=>AR?a:e,_nf=new Intl.NumberFormat("en-US"),fmt=n=>_nf.format(Math.round(n)),M=v=>`<bdi dir="ltr">${RS}${typeof v=="number"?fmt(v):v}</bdi>`;
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const G="#8E8E93",LN="#E5E5EA",ink="#1C1C1E",GR="#16A34A",ACC={w:"#007AFF",e:"#FF6B35",s:"#34C759",f:"#FFB800"},fl="";
+const G="#64748B",LN="#E2E8F0",ink="#0F172A",GR="#16A34A",NAVY="#0F2A4A",BLUE="#2563EB",AMB="#F59E0B",ACC={w:NAVY,e:NAVY,s:GR,f:AMB},fl="";
 const e3=x=>x<0?0:x>1?1:1-Math.pow(1-x,3),lerp=(a,b,p)=>a+(b-a)*p,cl=x=>x<0?0:x>1?1:x,ez=e3;
 const pad=n=>String(n).padStart(2,"0"),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const norm=s=>String(s||"").trim().replace(/\s+/g," "),keyOf=p=>(norm(p.item)+"|"+norm(p.size)).toLowerCase();
@@ -148,21 +148,21 @@ function build(m){
   sec(tx("Stores","المتاجر"),[...cheapCount.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([s,n])=>dig(hd(esc(s),tx(`${n} cheapest`,`${n} الأرخص`)),r2(m.G2.filter(g=>g.best&&g.best.store==s).slice(0,6).map(g=>[esc(g.item),M(g.best.price.toFixed(g.best.price%1?2:0)),null])),"")).join(""))];
  // forsa page
  const F=[(m.hunt.terms||[]).length?sec(tx("You're hunting","تدور على"),`<div class="hchips">${m.hunt.terms.slice(0,12).map(t=>`<span>${esc(clean(t))}</span>`).join("")}</div>`):"",
-  sec(tx("Deals for you","صفقات لك")+` · ${m.deals.length}`,m.deals.slice(0,30).map(d=>dig(hd(`<span>${esc(d.name)}</span><small class="ds">${esc([d.source,d.city].filter(Boolean).join(" · "))}</small>`,d.price?M(d.price):"","#E8A400",d.image),
-   r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,"#E8A400"]:null,d.offer?[esc(d.offer),"",null]:null].filter(Boolean)),
+  sec(tx("Deals for you","صفقات لك")+` · ${m.deals.length}`,m.deals.slice(0,30).map(d=>dig(hd(`<span>${esc(d.name)}</span><small class="ds">${esc([d.source,d.city].filter(Boolean).join(" · "))}</small>`,d.price?M(d.price):"",AMB,d.image),
+   r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,AMB]:null,d.offer?[esc(d.offer),"",null]:null].filter(Boolean)),
    r3([[tx("Full title","العنوان كامل"),esc(d.title)]].concat(d.code?[[tx("Code","الكود"),esc(d.code)]]:[]).concat(d.ends?[[tx("Ends","ينتهي"),esc(d.ends)]]:[]))+(d.url?`<div class="r3"><a class="lnk" href="${esc(d.url)}" target="_blank" rel="noopener">${tx("Open listing","افتح الإعلان")} ›</a></div>`:""))).join("")||`<div class="empty">${tx("No deals yet","ما فيه صفقات")}</div>`)];
  return {w:W,e:E,s:S,f:F}}
 // ---------- home cards ----------
 function cards(m){
  const bal=m.balance;
- const w={t:tx("Wallet","المحفظة"),ic:"wallet",v:bal==null?"—":M(bal),line:tx(`Salary in ${m.toPay} days`,`الراتب بعد ${m.toPay} يوم`),chart:(p,o)=>K.dots(30,Math.round((m.cycle-m.toPay)/m.cycle*30),ACC.w,p,`<span>${tx("last salary","آخر راتب")}</span><span>${tx("next","الجاي")}</span>`),hero:"dots"};
+ const w={t:tx("Wallet","المحفظة"),ic:"wallet",v:bal==null?"—":M(bal),line:tx(`Salary in ${m.toPay} days`,`الراتب بعد ${m.toPay} يوم`),chart:(p,o)=>K.dots(30,Math.round((m.cycle-m.toPay)/m.cycle*30),"#FFFFFF",p,`<span style="color:#ffffffa0">${tx("last salary","آخر راتب")}</span><span style="color:#ffffffa0">${tx("next","الجاي")}</span>`),hero:"dots"};
  const diff=Math.round(m.usual-m.todayDaily);
  const e={t:tx("Expenses","المصاريف"),ic:"receipt",v:M(m.todaySum),line:m.usual>0&&diff>0?tx(`${RS}${fmt(diff)} under usual`,`أقل بـ ${RS}${fmt(diff)}`):tx("Today","اليوم"),chart:(p,o)=>K.bars(m.days7.map(v=>v||0.0001),ACC.e,p,o),hero:"bars"};
  const drop=m.G2.find(g=>g.drop),top=m.G2[0];
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",v:drop?esc(drop.best.store):top?esc(top.best.store):"—",line:drop?tx("Price dropped","السعر نزل"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`),
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),esc(drop.item).slice(0,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),esc(top.item).slice(0,22),ACC.s,p):""};
  const d=m.deals[0];
- const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(d.source||""),"#E8A400",p):""};
+ const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(d.source||""),AMB,p):""};
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`):""};
  return {w,e,s,f,H}}
@@ -175,10 +175,11 @@ function start(m){
  const HH=order.map(k=>k==HK?142:112),TOPS=order.map((k,i)=>y0+HH.slice(0,i).reduce((a,b)=>a+b+8,0)),APPH=window.APPH||770;
  const hr=new Date().getHours(),greet=hr<12?tx("Good morning","صباح الخير"):hr<18?tx("Good afternoon","مساء الخير"):tx("Good evening","مساء الخير");
  const dstr=new Date().toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{weekday:"long",day:"numeric",month:"long"});
- app.innerHTML=`<div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="old" onclick="location.href='../'">${tx("Old app","التطبيق القديم")}</button><button id="lang">${AR?"English":"عربي"}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search your items, costs, deals","ابحث في أغراضك ومصاريفك وصفقاتك")}</span></div>`
-  +order.map((k,i)=>{const c=C[k];return `<div class="card" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><div class="k">${PH(c.ic)}${c.t}<span class="tm">${c.line}</span></div><div class="big" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis">${c.v}</div><div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
-  +`<div class="abar" style="background:none;box-shadow:none;height:84px">${[["plus-circle",tx("Add expense","أضف مصروف"),ACC.e],["camera",tx("Add bill","أضف فاتورة"),ACC.s],["fire",tx("New hunt","صيد جديد"),ACC.f]].map(([i,l,c])=>`<div class="ab" role="button" tabindex="0" style="gap:6px"><span style="width:52px;height:52px;border-radius:26px;background:#fff;display:grid;place-items:center;color:${c};line-height:0;box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 8px 18px -10px ${c}">${PH(i)}</span>${l}</div>`).join("")}</div>`
-  +(HK?`<div id="chip" style="position:absolute;left:0;right:0;margin:auto;width:max-content;max-width:330px;top:${TOPS[order.indexOf(HK)]+HH[order.indexOf(HK)]-14}px;z-index:15;background:#fff;color:${ACC[HK]};font-size:13px;font-weight:600;padding:6px 12px;border-radius:14px;white-space:nowrap">${PH("sparkle")} ${C.H[HK]}</div>`:"")
+ const bandH=TOPS[0]+HH[0]-34,wave=`<svg viewBox="0 0 786 40" preserveAspectRatio="none"><path d="M0,20 C98,0 295,0 393,20 C491,40 688,40 786,20 L786,40 L0,40Z" fill="#16365E"/></svg>`;
+ app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="old" onclick="location.href='../'">${tx("Old app","التطبيق القديم")}</button><button id="lang">${AR?"English":"عربي"}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
+  +order.map((k,i)=>{const c=C[k];return `<div class="card c-${k}" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><span class="ctab">${PH(c.ic)}</span><div class="k">${c.t}<span class="tm">${c.line}</span></div><div class="big" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis">${c.v}</div><div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
+  +`<div class="abar" style="background:none;box-shadow:none;height:84px">${[["plus-circle",tx("Add expense","أضف مصروف"),BLUE],["camera",tx("Add bill","أضف فاتورة"),BLUE],["fire",tx("New hunt","صيد جديد"),BLUE]].map(([i,l,c])=>`<div class="ab" role="button" tabindex="0" style="gap:6px"><span style="width:52px;height:52px;border-radius:26px;background:#fff;display:grid;place-items:center;color:${c};line-height:0;box-shadow:0 8px 20px -8px rgba(0,0,0,.45)">${PH(i)}</span>${l}</div>`).join("")}</div>`
+  +(HK?`<div id="chip" style="position:absolute;left:0;right:0;margin:auto;width:max-content;max-width:330px;top:${TOPS[order.indexOf(HK)]+HH[order.indexOf(HK)]-14}px;z-index:15;background:${HK=="f"?"#FEF3C7":"#EEF2F7"};color:${HK=="f"?"#92400E":NAVY};font-size:13px;font-weight:600;padding:6px 12px;border-radius:14px;white-space:nowrap">${PH("sparkle")} ${C.H[HK]}</div>`:"")
   +`<div id="scrim"></div><div id="sheet" role="dialog"></div>`;
  document.getElementById("lang").onclick=()=>{try{localStorage.setItem("w-lang",AR?"en":"ar")}catch(e){}location.reload()};
  const cardEls=[...document.querySelectorAll(".card")];
@@ -191,9 +192,9 @@ function start(m){
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez(t/0.7);vz.innerHTML=isB?C[k].chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${C[k].chart(p)}</div>`;
    pg.style.top=lerp(h0,isB?232:isD?200:186,f?op:0)+"px";
-   pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
-  const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;
-  const ch=document.getElementById("chip");if(ch){const hc=document.querySelector(`.card[data-k="${HK}"]`),A=ACC[HK],u=t-0.5,v=Math.max(0,u-0.4),g=ez(u/0.4)*(0.7+0.3*Math.cos(2*Math.PI*v/1.2)*Math.exp(-v/1.2)),al=n=>Math.round(Math.min(255,Math.max(0,n*g))).toString(16).padStart(2,"0");
+   pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
+  const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=1;
+  const ch=document.getElementById("chip");if(ch){const hc=document.querySelector(`.card[data-k="${HK}"]`),A=HK=="f"?AMB:BLUE,u=t-0.5,v=Math.max(0,u-0.4),g=ez(u/0.4)*(0.7+0.3*Math.cos(2*Math.PI*v/1.2)*Math.exp(-v/1.2)),al=n=>Math.round(Math.min(255,Math.max(0,n*g))).toString(16).padStart(2,"0");
    ch.style.opacity=(u<0?0:1)*fade;ch.style.boxShadow=`0 0 0 1px ${A}88,0 0 ${16*g}px ${A}${al(170)}`;if(op==0)hc.style.boxShadow=`0 0 0 ${1.5*g}px ${A}${al(200)},0 10px ${30*g}px -6px ${A}${al(150)}`;else if(HK!=OK)hc.style.boxShadow="none"}
   if(t>TL.close+TL.cd){OK="";TL.tap=TL.close=1e9;cardEls.forEach(c=>{c.style.zIndex="";c.style.boxShadow="none";c.scrollTop=0})}
   requestAnimationFrame(render)}
@@ -220,7 +221,7 @@ function start(m){
    sh.querySelectorAll(".chips button").forEach(x=>x.onclick=()=>{sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));x.classList.add("sel")});
    b.onclick=async()=>{b.disabled=true;try{await addCost(+a.value,sh.querySelector(".chips .sel").dataset.k,document.getElementById("nt").value);close();toast(tx("Saved","انحفظ"));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}}),
   ()=>{toast(tx("Opening your full app to read the bill","أفتح التطبيق الكامل لقراءة الفاتورة"));setTimeout(()=>location.href="../",700)},
-  ()=>show("#E8A400",`<h3><span style="color:#E8A400;line-height:0">${PH("fire")}</span>${tx("New hunt","صيد جديد")}</h3><input class="txt" id="hq" placeholder="${tx("What are you looking for?","وش تدور؟")}"><div class="chips">${(m.hunt.terms||[]).slice(0,6).map(t=>`<span class="opt">${esc(clean(t))}</span>`).join("")}</div><button class="go" id="hs">${tx("Start hunting","ابدأ الصيد")}</button>`,()=>{
+  ()=>show(AMB,`<h3><span style="color:#B45309;line-height:0">${PH("fire")}</span>${tx("New hunt","صيد جديد")}</h3><input class="txt" id="hq" placeholder="${tx("What are you looking for?","وش تدور؟")}"><div class="chips">${(m.hunt.terms||[]).slice(0,6).map(t=>`<span class="opt">${esc(clean(t))}</span>`).join("")}</div><button class="go" id="hs">${tx("Start hunting","ابدأ الصيد")}</button>`,()=>{
    const q=document.getElementById("hq"),b=document.getElementById("hs");setTimeout(()=>q.focus(),350);
    b.onclick=async()=>{const v=norm(q.value);if(!v)return;b.disabled=true;const h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(x=>x.toLowerCase()!=v.toLowerCase()).concat(v);h.requestedAt=Date.now();try{await put("settings","hunt",h);close();toast(tx("Hunt saved. Results come at the next check.","انحفظ. النتائج بالفحص الجاي."));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}})];
  document.querySelectorAll(".abar .ab").forEach((b,i)=>b.onclick=()=>{if(!OK)ACT[i]()});
@@ -229,7 +230,7 @@ function start(m){
   const q=document.getElementById("sq"),out=document.getElementById("sres");setTimeout(()=>q.focus(),350);
   q.oninput=()=>{const v=q.value.trim().toLowerCase();if(v.length<2){out.innerHTML="";return}
    const it=m.G2.filter(g=>g.item.toLowerCase().includes(v)).slice(0,6),ex=m.ex.filter(x=>x.note.toLowerCase().includes(v)||nm(x.cat).toLowerCase().includes(v)).slice(0,6),dl=m.deals.filter(d=>d.title.toLowerCase().includes(v)).slice(0,6);
-   out.innerHTML=(it.length?`<h5>${tx("Items","الأغراض")}</h5>`+rows(it.map(g=>[`${esc(g.item)} <small class="ds">${esc(g.best.store)}</small>`,M(g.best.price.toFixed(g.best.price%1?2:0)),GR])):"")+(ex.length?`<h5>${tx("Costs","المصاريف")}</h5>`+rows(ex.map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):"")+(dl.length?`<h5>${tx("Deals","الصفقات")}</h5>`+rows(dl.map(d=>[esc(d.name),d.price?M(d.price):"","#E8A400"])):"")||`<div class="empty">${tx("Nothing found","ما لقيت شي")}</div>`}})};
+   out.innerHTML=(it.length?`<h5>${tx("Items","الأغراض")}</h5>`+rows(it.map(g=>[`${esc(g.item)} <small class="ds">${esc(g.best.store)}</small>`,M(g.best.price.toFixed(g.best.price%1?2:0)),GR])):"")+(ex.length?`<h5>${tx("Costs","المصاريف")}</h5>`+rows(ex.map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):"")+(dl.length?`<h5>${tx("Deals","الصفقات")}</h5>`+rows(dl.map(d=>[esc(d.name),d.price?M(d.price):"",AMB])):"")||`<div class="empty">${tx("Nothing found","ما لقيت شي")}</div>`}})};
 }
 // ---------- boot ----------
 (function fit(){const w=document.documentElement.clientWidth,h=document.documentElement.clientHeight||innerHeight,s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
