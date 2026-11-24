@@ -621,11 +621,11 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
  if(!b&&navigator.standalone&&screen.height>=812)b=34;document.documentElement.style.setProperty("--sab",b+"px")})();
 (function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
-(async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){gate(`${tx("Sign in on your wallet app first, then come back here.","سجّل دخولك في تطبيق المحفظة أول، بعدين ارجع هنا.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the wallet app","افتح تطبيق المحفظة")}</a>`);return}
+(async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Sign in on your wallet app first, then come back here.","سجّل دخولك في تطبيق المحفظة أول، بعدين ارجع هنا.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the wallet app","افتح تطبيق المحفظة")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
  const uid=data.session.user&&data.session.user.id,c=readCache(uid);
- if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}return}
+ if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}window.__spReady=1;return}
  gate(`<span class="think" style="justify-content:center"><i></i>${tx("Loading your data","أحمّل بياناتك")}</span>`);
- const R=await load();saveCache(R,uid);const m=model(R);document.getElementById("gate").remove();start(m)}
- catch(e){gate(`${tx("Couldn't load your data. Check your connection and reload.","ما قدرت أحمّل بياناتك. تأكد من الاتصال وحدّث الصفحة.")}<br><small style="color:${G}">${esc(e&&e.message||e)}</small>`)}})();
+ const R=await load();saveCache(R,uid);const m=model(R);document.getElementById("gate").remove();start(m);window.__spReady=1}
+ catch(e){window.__spReady=1;gate(`${tx("Couldn't load your data. Check your connection and reload.","ما قدرت أحمّل بياناتك. تأكد من الاتصال وحدّث الصفحة.")}<br><small style="color:${G}">${esc(e&&e.message||e)}</small>`)}})();
 })();
