@@ -110,10 +110,10 @@ svg{display:block;overflow:visible}
 body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 #band{position:absolute;left:0;right:0;top:0;background:#fff;z-index:0;pointer-events:none}
 #band .wv{position:absolute;left:0;right:0;top:calc(100% - 1px);height:110px;overflow:hidden;transform:scaleY(-1)}
-#band .wv svg{width:200%;height:100%;animation:wv 16s linear infinite}
+#band .wv svg{width:400%;height:100%;animation:wv 32s linear infinite;will-change:transform}
 @keyframes wv{to{transform:translateX(-50%)}}
 #band .wv path{fill:#fff}
-#band .wv2{height:170px;opacity:.28}#band .wv2 svg{animation-duration:23s;animation-direction:reverse}
+#band .wv2{height:170px;opacity:.28}#band .wv2 svg{animation-duration:46s;animation-direction:reverse}
 #band::after{content:"";position:absolute;left:0;right:0;top:100%;height:0}
 .hd,.srch,.tg{z-index:2}.hd .d{color:#64748B}.hd h1{color:#0F2A4A;font-size:28px;font-weight:600}
 .srch{background:#fff;border:1px solid #CBD5E1;color:#64748B;padding-inline-end:5px}
