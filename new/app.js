@@ -16,15 +16,15 @@ const K={
  bars:(a,c,p,o={})=>{const w=o.w||172,h=o.h||46,mx=Math.max(...a),gap=o.gap||5,bw=(w-gap*(a.length-1))/a.length;
   return `<svg width="${w}" height="${h+(o.lab?14:0)}"${fl}>${a.map((v,i)=>{const hh=Math.max(3,h*v/mx*p),hi=o.hi==null?i==a.length-1:o.hi.includes(i);return `<rect x="${i*(bw+gap)}" y="${h-hh}" width="${bw}" height="${hh}" rx="${Math.min(3,bw/2)}" fill="${hi?c:(o.mute||LN)}"/>`+(o.lab?`<text x="${i*(bw+gap)+bw/2}" y="${h+12}" font-size="10" fill="${G}" text-anchor="middle">${o.lab[i]}</text>`:"")}).join("")}</svg>`},
  ring:(v,c,p,lab)=>{const s=50,r=20,L=2*Math.PI*r;return `<div style="display:flex;align-items:center;gap:10px"><div style="text-align:end;font-size:12px;color:${G};line-height:1.3">${lab}</div><svg width="${s}" height="${s}"><circle cx="25" cy="25" r="${r}" fill="none" stroke="${c}" stroke-opacity=".18" stroke-width="7"/><circle cx="25" cy="25" r="${r}" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L*v*p} ${L}" transform="rotate(-90 25 25)"/><text x="25" y="29" font-size="12" font-weight="600" text-anchor="middle" fill="${ink}">${Math.round(v*100*p)}%</text></svg></div>`},
- track:(v,c,p,l,r,o={})=>`<div style="width:172px"><div style="display:flex;justify-content:space-between;margin-bottom:6px;color:${G}"><span>${l}</span><span style="color:${o.rc||G};font-weight:${o.rc?600:400}">${r}</span></div><div style="height:8px;border-radius:4px;background:${c}26;position:relative;overflow:hidden"><i style="position:absolute;inset-block:0;inset-inline-start:0;width:${v*p*100}%;background:${c};border-radius:4px"></i></div></div>`,
- rows:(rs,p)=>`<div style="width:172px;display:grid;gap:3px">${rs.map(([n,v,c,f],i)=>`<div style="display:flex;align-items:center;gap:8px;opacity:${e3(p*3-i)}"><span style="flex:0 0 58px;white-space:nowrap;color:${i?G:ink}">${n}</span><span style="flex:1;height:6px;border-radius:3px;background:${LN};position:relative"><i style="position:absolute;inset-block:0;inset-inline-start:0;width:${f*100*p}%;background:${c};border-radius:3px"></i></span><b style="font-weight:600;color:${c==LN?G:ink};min-width:30px;text-align:end">${v}</b></div>`).join("")}</div>`,
+ track:(v,c,p,l,r,o={})=>`<div style="width:172px"><div style="display:flex;justify-content:space-between;margin-bottom:6px;color:${G}"><span>${l}</span><span style="color:${o.rc||G};font-weight:${o.rc?600:400}">${r}</span></div><div style="height:8px;border-radius:4px;background:${c}26;position:relative;overflow:hidden"><i style="position:absolute;inset-block:0;left:0;width:${v*p*100}%;background:${c};border-radius:4px"></i></div></div>`,
+ rows:(rs,p)=>`<div style="width:172px;display:grid;gap:3px">${rs.map(([n,v,c,f],i)=>`<div style="display:flex;align-items:center;gap:8px;opacity:${e3(p*3-i)}"><span style="flex:0 0 58px;white-space:nowrap;color:${i?G:ink}">${n}</span><span style="flex:1;height:6px;border-radius:3px;background:${LN};position:relative"><i style="position:absolute;inset-block:0;left:0;width:${f*100*p}%;background:${c};border-radius:3px"></i></span><b style="font-weight:600;color:${c==LN?G:ink};min-width:30px;text-align:end">${v}</b></div>`).join("")}</div>`,
  list:(rs,p)=>`<div style="width:172px;display:grid;gap:2px">${rs.map(([n,v,c],i)=>`<div style="display:flex;justify-content:space-between;opacity:${e3(p*3-i)};color:${ink}"><span>${n}</span><b style="font-weight:600;color:${c}">${v}</b></div>`).join("")}</div>`,
  gauge:(v,c,p,lab)=>{const r=34,L=Math.PI*r;return `<div style="display:flex;align-items:flex-end;gap:10px"><div style="font-size:12px;color:${G};text-align:end;line-height:1.3">${lab}</div><svg width="80" height="44"><path d="M6,40 A34,34 0 0 1 74,40" fill="none" stroke="${c}" stroke-opacity=".18" stroke-width="8" stroke-linecap="round"/><path d="M6,40 A34,34 0 0 1 74,40" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${L*v*p} ${L}"/></svg></div>`},
  dots:(n,f,c,p,lab)=>`<div style="width:172px"><div style="display:grid;grid-template-columns:repeat(15,1fr);gap:4px">${Array.from({length:n},(_,i)=>`<i style="aspect-ratio:1;border-radius:50%;background:${i<f*p?c:c+"2e"}"></i>`).join("")}</div><div style="display:flex;justify-content:space-between;margin-top:6px;color:${G}">${lab}</div></div>`,
  strike:(a,b,item,c,p)=>String(a)==String(b)?`<div style="text-align:end"><div style="font-size:12px;color:${G}">${item}</div><div style="margin-top:2px;color:${c};font-size:22px;font-weight:700;opacity:${e3(p*2-1)}">${M(b)}</div></div>`:`<div style="text-align:end"><div style="font-size:12px;color:${G}">${item}</div><div style="display:flex;align-items:baseline;gap:8px;justify-content:flex-end;margin-top:2px"><span style="color:${G};font-size:15px;text-decoration:line-through;opacity:${e3(p*2)}">${M(a)}</span><span style="color:${G};opacity:${e3(p*2-.6)}">${AR?"←":"→"}</span><span style="color:${c};font-size:22px;font-weight:700;opacity:${e3(p*2-1)}">${M(b)}</span></div></div>`,
  donut:(seg,p,leg)=>{const r=19,L=2*Math.PI*r;let acc=0;return `<div style="display:flex;align-items:center;gap:10px"><div style="display:grid;gap:2px;font-size:12px">${leg.map(([n,c])=>`<span style="display:flex;align-items:center;gap:5px;color:${ink}"><i style="width:7px;height:7px;border-radius:50%;background:${c}"></i>${n}</span>`).join("")}</div><svg width="50" height="50">${seg.map(([v,c])=>{const s=`<circle cx="25" cy="25" r="${r}" fill="none" stroke="${c}" stroke-width="9" stroke-dasharray="${Math.max(0,L*v*p-2)} ${L}" stroke-dashoffset="${-L*acc*p}" transform="rotate(-90 25 25)"/>`;acc+=v;return s}).join("")}</svg></div>`},
  heat:(a,c,p)=>`<div style="width:172px"><div style="display:grid;grid-template-columns:repeat(12,1fr);gap:3px">${a.map((v,i)=>`<i style="aspect-ratio:1;border-radius:3px;background:${i<a.length*p?(v==2?ACC.e:v==1?GR+"cc":GR+"40"):LN}"></i>`).join("")}</div></div>`,
- twin:(rs,p)=>`<div style="width:172px;display:grid;gap:6px">${rs.map(([n,v,f,c])=>`<div style="display:flex;align-items:center;gap:8px"><span style="flex:0 0 40px;color:${G}">${n}</span><span style="flex:1;height:10px;border-radius:5px;background:transparent;position:relative"><i style="position:absolute;inset-block:0;inset-inline-start:0;width:${f*p*100}%;background:${c};border-radius:5px"></i></span><b style="font-weight:600;color:${ink};min-width:34px;text-align:end">${v}</b></div>`).join("")}</div>`,
+ twin:(rs,p)=>`<div style="width:172px;display:grid;gap:6px">${rs.map(([n,v,f,c])=>`<div style="display:flex;align-items:center;gap:8px"><span style="flex:0 0 40px;color:${G}">${n}</span><span style="flex:1;height:10px;border-radius:5px;background:transparent;position:relative"><i style="position:absolute;inset-block:0;left:0;width:${f*p*100}%;background:${c};border-radius:5px"></i></span><b style="font-weight:600;color:${ink};min-width:34px;text-align:end">${v}</b></div>`).join("")}</div>`,
 };
 
 // ---------- same categories as the full app ----------
@@ -278,6 +278,33 @@ function cards(m){
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),esc(drop.item).slice(0,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),esc(top.item).slice(0,22),ACC.s,p):""};
  const d=m.deals[0];
  const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(d.source||""),AMB,p):""};
+ // ---- chart pools (Beshr 2026-11-24): each card rotates through its charts from the approved chart pool, built from his real numbers ----
+ const sm=a=>a.reduce((x,y)=>x+y,0),LV=m.items.filter(i=>i.g=="Living"||i.g=="Personal"),lvPlan=sm(LV.map(i=>m.planOf(i.k))),lvSpent=sm(LV.map(i=>m.spent[i.k]||0)),allPlan=sm(m.items.map(i=>m.planOf(i.k))),monOut=sm(m.monthEx.map(x=>x.amount)),monIn=sm(m.inc.filter(x=>x.date.startsWith(m.mon)).map(x=>x.amount));
+ const WC="#FFFFFF",ago=n=>{const x=new Date();x.setDate(x.getDate()-n);return ymd(x)},wk=(a,b)=>{const o={};m.ex.filter(x=>x.date>ago(b)&&x.date<=ago(a)).forEach(x=>o[x.cat]=(o[x.cat]||0)+x.amount);return o};
+ const W=[{line:w.line,chart:w.chart,hero:"dots"}];
+ if(lvPlan>0){const left=Math.max(0,lvPlan-lvSpent),safe=left/Math.max(1,m.toPay);W.push({line:tx("Safe to spend today","تقدر تصرف اليوم"),chart:p=>K.gauge(cl(left/lvPlan),WC,p,`${M(safe)}<br>${tx("a day to payday","باليوم للراتب")}`)})}
+ if(allPlan>0)W.push({line:tx("This month's plan","خطة هالشهر"),chart:p=>K.ring(cl(monOut/allPlan),WC,p,`${M(monOut)}<br>${tx("of","من")} ${M(allPlan)}`)});
+ if(monIn>0)W.push({line:tx("Money in and out","الداخل والطالع"),chart:p=>K.twin([[tx("In","داخل"),M(monIn),1,"#4ADE80"],[tx("Out","طالع"),M(monOut),cl(monOut/monIn),WC]],p)});
+ const dts=m.debts.filter(x=>x.total>0);if(dts.length)W.push({line:tx("Debt paid off","سداد الديون"),chart:p=>K.rows(dts.slice(0,3).map(x=>[esc(x.name).slice(0,9),Math.round(x.paid/x.total*100)+"%",WC,cl(x.paid/x.total)]),p)});
+ const E=[{line:e.line,chart:e.chart,hero:"bars"}];
+ if(m.usual>0){const mx=Math.max(m.todayDaily,m.usual)||1;E.push({line:m.todayDaily<=m.usual?tx("Calmer than usual","أهدى من المعتاد"):tx("Today vs usual","اليوم والمعتاد"),chart:p=>K.twin([[tx("Today","اليوم"),fmt(m.todayDaily),m.todayDaily/mx,ACC.e],[tx("Usual","المعتاد"),fmt(m.usual),m.usual/mx,LN]],p)})}
+ const mc=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]);if(monOut>0&&mc.length){const t2=mc.slice(0,2),cs=[ACC.e,"#8FB0D3"],oth=monOut-sm(t2.map(x=>x[1]));
+  E.push({line:tx(`Mostly ${nm(mc[0][0])}`,`أغلبها ${nm(mc[0][0])}`),chart:p=>K.donut(t2.map((x,i)=>[x[1]/monOut,cs[i]]).concat(oth>0?[[oth/monOut,LN]]:[]),p,t2.map((x,i)=>[`${nm(x[0])} ${Math.round(x[1]/monOut*100)}%`,cs[i]]).concat(oth>0?[[tx("Other","أخرى"),"#CBD5E1"]]:[]))})}
+ if(lvPlan>0){const dn=new Date().getDate(),dl=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();E.push({line:lvSpent<=lvPlan?tx(`${RS}${fmt(lvPlan-lvSpent)} left`,`باقي ${RS}${fmt(lvPlan-lvSpent)}`):tx("Over the month plan","فوق خطة الشهر"),chart:p=>K.track(cl(lvSpent/lvPlan),ACC.e,p,tx(`used ${Math.round(lvSpent/lvPlan*100)}%`,`صرفت ${Math.round(lvSpent/lvPlan*100)}٪`),tx(`day ${dn} of ${dl}`,`يوم ${dn} من ${dl}`))})}
+ {const tw=wk(0,7),lw=wk(7,14),ch=Object.keys(lw).filter(k=>lw[k]>0&&LOG_CATS.slice(0,10).includes(k)).map(k=>[k,((tw[k]||0)-lw[k])/lw[k]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,3);
+  if(ch.length>1)E.push({line:tx("This week vs last","هالأسبوع والماضي"),chart:p=>K.list(ch.map(([k,r])=>[nm(k),(r<=0?"▼":"▲")+Math.abs(Math.round(r*100))+"%",r<=0?GR:"#DC2626"]),p)})}
+ const S=[{line:s.line,chart:s.chart}];
+ {const gp=m.G2.filter(g=>g.stores.length>1&&g.stores.at(-1).price>g.best.price).map(g=>[g,g.stores.at(-1).price-g.best.price]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  if(gp.length>1)S.push({line:tx("Cheapest vs dearest","الأرخص والأغلى"),chart:p=>K.list(gp.map(([g,v])=>[esc(g.item).slice(0,16),"▼"+RS+p2(v),GR]),p)})}
+ {const cnt={};m.G2.forEach(g=>{if(g.best)cnt[g.best.store]=(cnt[g.best.store]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  if(cs.length>1)S.push({line:tx("Where it's cheapest","وين الأرخص"),chart:p=>K.rows(cs.map(([n,v],i)=>[esc(n).slice(0,9),String(v),i?LN:ACC.s,v/cs[0][1]]),p)})}
+ {const h=m.G2.find(g=>g.hist.length>2);if(h)S.push({line:tx(`${esc(h.item).slice(0,18)} price`,`سعر ${esc(h.item).slice(0,18)}`),chart:p=>K.line(h.hist,ACC.s,p,{area:0,mark:0})})}
+ const F=[{line:f.line,chart:f.chart}];
+ if(d&&d.market>d.price&&d.price)F.push({line:tx("Price vs market","السعر والسوق"),chart:p=>K.track(d.price/d.market,AMB,p,M(d.price),tx("market ","السوق ")+M(d.market))});
+ {const cnt={};m.deals.forEach(x=>{const c=dCat(x);cnt[c]=(cnt[c]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3),cn=c=>({electronics:tx("Tech","تقنية"),appliances:tx("Home","البيت"),food:tx("Food","أكل")})[c]||(DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):tx("Other","أخرى"));
+  if(cs.length>1)F.push({line:tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>K.rows(cs.map(([c,v])=>[cn(c).slice(0,9),String(v),"#E8A400",v/cs[0][1]]),p)})}
+ if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5)));F.push({line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>K.gauge(sc/10,"#E8A400",p,`<b style="font-size:20px;color:${ink}">${sc}</b>/10`)})}
+ w.pool=W;e.pool=E;s.pool=S;f.pool=F;
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`):""};
  return {w,e,s,f,H}}
@@ -298,15 +325,20 @@ function start(m){
   +`<div id="scrim"></div><div id="sheet" role="dialog"></div>`;
  
  const cardEls=[...document.querySelectorAll(".card")];
- function render(){const t=now(),op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
+ // chart rotation: a different chart per visit, then every 6 s one card (in turn) moves to its next chart while Home is showing
+ const CUR={},CHG={};order.forEach((k,i)=>{const n=C[k].pool.length;CUR[k]=(vis+i)%n;CHG[k]=0});let nextEv=6,evI=vis%4;
+ const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
+ function render(){const t=now();
+  if(!OK&&t>nextEv){for(let j=0;j<4;j++){const k=order[evI++%4];if(C[k].pool.length>1){CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"});break}}nextEv=t+6}
+  const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
    if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);c.style.left=c.style.right=lerp(16,-off,op)+"px"};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
    else{c.style.opacity=closing&&OK?1-cl(op/0.12):1-cl(op/0.45)}
    c.style.overflowY=f&&op>=1&&!closing?"auto":"hidden";
    {const fo=f&&FP?1-cl(op/0.4):1;c.querySelector(".big").style.opacity=fo;c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
-   const isB=C[k].hero=="bars",isD=C[k].hero=="dots",W=f?lerp(172,isB?329:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(173,16,op):173,Y=f?lerp(48,98,op):48;
+   const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",W=f?lerp(172,isB?329:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(173,16,op):173,Y=f?lerp(48,98,op):48;
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
-   const p=ez(t/0.7);vz.innerHTML=isB?C[k].chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${C[k].chart(p)}</div>`;
+   const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
    pg.style.top=lerp(h0,FP?44:isB?232:isD?200:186,f?op:0)+"px";
    pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=1;
@@ -370,7 +402,7 @@ function start(m){
    x.querySelector(".xb").onclick=async()=>{const v=+a.value;if(!(v>0))return;try{await addCost(v,x.querySelector(".xc .sel").dataset.k,x.querySelector(".xn").value||sm.value.slice(0,60));toast(tx("Added","انضاف"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}};} }
  const wire=root=>{root.querySelectorAll(".tbtn[data-oadd]").forEach(b=>b.onclick=async()=>{const o=m.others.find(x=>x.k==b.dataset.oadd);if(!o)return;b.disabled=true;try{await put("prices",newId(),{item:o.item.slice(0,80),price:Math.round(o.price*100)/100,store:(o.store||"Store not set").slice(0,50)+" (shared)",size:o.size.slice(0,40),date:o.date||ymd(new Date()),createdAt:Date.now()});toast(tx("Added to My items","انضاف لأغراضك"));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}});
  root.querySelectorAll(".tbtn[data-list]").forEach(b=>b.onclick=async()=>{const k=b.dataset.list,keys=m.shopKeys.includes(k)?m.shopKeys.filter(x=>x!=k):m.shopKeys.concat(k);m.shopKeys=keys;window._shopRefresh&&window._shopRefresh();b.textContent=keys.includes(k)?tx("Remove from shopping list","شيله من قائمة التسوق"):tx("Add to shopping list","أضفه لقائمة التسوق");window._saveShop(tx("List updated","انحدثت القائمة"))});};wire(document);
- const sh=document.getElementById("sheet"),sc=document.getElementById("scrim"),close=()=>{sh.classList.remove("on");sc.classList.remove("on")};sc.onclick=close;
+ const sh=document.getElementById("sheet"),sc=document.getElementById("scrim"),close=()=>{sh.classList.remove("on");sc.classList.remove("on");if(window._huntDirty){window._huntDirty=0;reload()}};sc.onclick=close;
  const show=(a,html,init)=>{{const k=app.getBoundingClientRect().width/393||1,o=Math.max(0,(document.documentElement.clientWidth/k-393)/2)+"px";sh.style.left=sh.style.right=sc.style.left=sc.style.right="-"+o}sh.style.setProperty("--a",a);sh.innerHTML=`<div class="grab"></div>`+html;sh.classList.add("on");sc.classList.add("on");init()};
  const ACT=[()=>show(ACC.e,`<h3><span style="color:${ACC.e};line-height:0">${PH("plus-circle")}</span>${tx("Add expense","أضف مصروف")}</h3><button class="pmsg">${PH("receipt")}<span>${tx("Paste latest bank message","الصق آخر رسالة من البنك")}</span></button><div class="amt"><span>${RS}</span><input id="amt" inputmode="decimal" placeholder="0"></div><div class="chips">${LOG_CATS.filter(k=>BY[k]).slice(0,10).map((k,i)=>`<button data-k="${k}" class="${i?"":"sel"}">${nm(k)}</button>`).join("")}</div><input class="txt" id="nt" placeholder="${tx("Note (optional)","ملاحظة (اختياري)")}"><button class="go" id="sv" disabled>${tx("Save","حفظ")}</button>`,()=>{
    const a=document.getElementById("amt"),b=document.getElementById("sv");setTimeout(()=>a.focus(),350);a.oninput=()=>{b.disabled=!(+a.value>0)};
@@ -396,16 +428,64 @@ function start(m){
        await put("bills",billId,{store,date:r.date,total:r.total||0,name:String(f.name||"Bill").slice(0,100),added:ok,createdAt:Date.now()});
        close();toast(tx(`Saved ${ok} prices from ${store||"the bill"}`,`انحفظ ${ok} سعر من ${store||"الفاتورة"}`));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}}
     catch(e){out.innerHTML=`<div class="empty">${e&&e.code=="rate_limited"?tx("Too many requests. Wait a minute and try again.","طلبات كثيرة. انتظر دقيقة وجرّب."):tx("Couldn't read this bill. Try again.","ما قدرت أقرأ الفاتورة. جرّب مرة ثانية.")}</div>`;sh.querySelector(".pick").style.display=""}})}),
-  ()=>show(AMB,`<h3><span style="color:#B45309;line-height:0">${PH("fire")}</span>${tx("New hunt","صيد جديد")}</h3><input class="txt" id="hq" placeholder="${tx("What are you looking for?","وش تدور؟")}"><div class="chips">${(m.hunt.terms||[]).slice(0,6).map(t=>`<span class="opt">${esc(clean(t))}</span>`).join("")}</div><button class="go" id="hs">${tx("Start hunting","ابدأ الصيد")}</button>`,()=>{
-   const q=document.getElementById("hq"),b=document.getElementById("hs");setTimeout(()=>q.focus(),350);
+  ()=>show(AMB,`<h3><span style="color:#B45309;line-height:0">${PH("fire")}</span>${tx("New hunt","صيد جديد")}</h3><input class="txt" id="hq" placeholder="${tx("What are you looking for?","وش تدور؟")}"><div class="chips hch"></div><button class="go" id="hs">${tx("Start hunting","ابدأ الصيد")}</button>`,()=>{
+   const q=document.getElementById("hq"),b=document.getElementById("hs"),hc=sh.querySelector(".hch");setTimeout(()=>q.focus(),350);
+   // past searches, newest first; tap fills the box, ✕ deletes it for good (Beshr 2026-11-24)
+   const drawH=()=>{hc.innerHTML=(m.hunt.terms||[]).slice().reverse().slice(0,8).map(t=>`<span class="opt hop"><bdi data-ht="${esc(t)}">${esc(t)}</bdi><button data-hx="${esc(t)}" aria-label="${tx("Delete","احذف")}">${PH("x")}</button></span>`).join("")};drawH();
+   hc.onclick=async ev=>{const x=ev.target.closest("[data-hx]"),t=ev.target.closest("[data-ht]");
+    if(x){const v=x.dataset.hx,h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(y=>y!=v);m.hunt=h;x.parentElement.animate([{opacity:1},{opacity:0,transform:"scale(.9)"}],{duration:160}).onfinish=drawH;
+     try{await put("settings","hunt",h);window._huntDirty=1}catch(e){toast(tx("Couldn't save","ما انحفظ"))}return}
+    if(t){q.value=t.dataset.ht;q.focus()}};
    b.onclick=async()=>{const v=norm(q.value);if(!v)return;b.disabled=true;const h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(x=>x.toLowerCase()!=v.toLowerCase()).concat(v);h.requestedAt=Date.now();try{await put("settings","hunt",h);close();toast(tx("Hunt saved. Results come at the next check.","انحفظ. النتائج بالفحص الجاي."));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}})];
  document.querySelectorAll(".abar .ab").forEach((b,i)=>b.onclick=()=>{if(!OK)ACT[i]()});
- // ---- search (your own data) ----
- document.querySelector(".srch").onclick=()=>{if(OK)return;show(ACC.w,`<h3><span style="color:${ACC.w};line-height:0">${PH("magnifying-glass")}</span>${tx("Search","بحث")}</h3><input class="txt" id="sq" placeholder="${tx("Milk, coffee, PS5…","حليب، قهوة، PS5…")}"><div class="res3" id="sres" style="max-height:52vh;overflow:auto"></div>`,()=>{
-  const q=document.getElementById("sq"),out=document.getElementById("sres");setTimeout(()=>q.focus(),350);
-  q.oninput=()=>{const v=q.value.trim().toLowerCase();if(v.length<2){out.innerHTML="";return}
+ // ---- search or ask (Beshr 2026-11-24): a question about his money goes to the AI with his numbers; item search stays below as a fallback ----
+ const askData=()=>{const t=new Date(),d=n=>{const x=new Date(t);x.setDate(x.getDate()-n);return ymd(x)},sum=a=>Math.round(a.reduce((s,x)=>s+x.amount,0)*100)/100;
+  const L=[`Today: ${m.today} (${t.toLocaleDateString("en-GB",{weekday:"long"})}). Now ${t.toTimeString().slice(0,5)}.`,
+   `Salary: ${m.income} on day ${m.payday} of each month; next salary ${ymd(m.next)} (${m.toPay} days).`,
+   m.balance!=null?`Balance now (cash + bank): ${Math.round(m.balance)}.`:"Balance: not set.",
+   `Spent today: ${m.todaySum} (${m.todayEx.length} costs). Yesterday: ${sum(m.ex.filter(x=>x.date==d(1)))}. Last 7 days by day (oldest first): ${m.days7.join(", ")}. Usual daily living spend (30-day average): ${Math.round(m.usual)}.`,
+   `This month (${m.mon}) spent so far: ${sum(m.monthEx)}.`,
+   "This month by category: name | spent | monthly plan | left:",
+   ...m.items.map(i=>{const sp=m.spent[i.k]||0,pl=m.planOf(i.k);return sp||pl?`${nm(i.k)} (${i.g}) | ${Math.round(sp)} | ${pl||"-"} | ${pl?Math.round(pl-sp):"-"}`:""}).filter(Boolean),
+   `Total monthly plan: ${m.items.reduce((a,i)=>a+m.planOf(i.k),0)}.`,
+   m.debts.length?"Debts: "+m.debts.map(x=>`${x.name} total ${x.total}, paid ${x.paid}`).join("; "):"",
+   m.goals.length?"Goals: "+m.goals.map(x=>`${x.name} target ${x.target}, saved ${x.saved}`).join("; "):"",
+   "Income records (last 90 days): "+(m.inc.filter(x=>x.date>=d(90)).map(x=>`${x.date} ${x.amount} ${x.type||x.note}`).join("; ")||"none"),
+   "Costs (last 90 days, newest first): date | amount | category | note:",
+   ...m.ex.filter(x=>x.date>=d(90)).slice(0,400).map(x=>`${x.date} | ${x.amount} | ${nm(x.cat)} | ${x.note.slice(0,40)}`),
+   "Shopping list: "+(m.list.map(g=>`${g.item} ${g.size} x${m.shopQty[g.k]||1}, cheapest ${g.best.price} at ${g.best.store}`).join("; ")||"empty"),
+   "Item prices he saved (item | size | cheapest store price | other stores):",
+   ...m.G2.slice(0,150).map(g=>`${g.item} | ${g.size} | ${g.best.store} ${g.best.price} | ${g.stores.slice(1,4).map(x=>x.store+" "+x.price).join(", ")}`),
+   "Forsa deals he kept: "+(m.deals.filter(x=>x.status=="saved").slice(0,20).map(x=>`${x.name} ${x.price} (market ${x.market})`).join("; ")||"none")];
+  return L.filter(Boolean).join("\n")};
+ async function askAI(q){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"session_expired"};
+  const prompt=`You are the assistant inside Beshr's personal wallet app (Jeddah, Saudi Arabia). All amounts are Saudi riyals. Answer his question using ONLY the data below.
+Rules: reply in the same language as the question (Arabic question = simple Saudi-friendly Arabic). Be short: 1 to 3 sentences, the number first. Write amounts like "⃁120" (Western digits). Plain text only, no markdown, no lists unless he asks for a list. Do the maths yourself from the rows. "Left this month" means plan minus spent for the month (and mention the balance if useful). For "tomorrow" or the future, estimate from his usual daily spend and say it is an estimate. If the data can't answer it, say so in one sentence and say what to add.
+
+DATA
+${askData()}
+
+QUESTION
+${q}`;
+  const res=await fetch(SB_URL+"/functions/v1/ai",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token,apikey:SB_KEY},body:JSON.stringify({messages:[{role:"user",content:prompt}],tier:"default"})});
+  const j=await res.json().catch(()=>({}));if(!res.ok||j.error)throw {code:(j.error&&j.error.code)||"upstream_error"};
+  return (j.content||[]).filter(b=>b.type=="text").map(b=>b.text).join("").trim()}
+ const openSearch=ask=>{if(OK)return;const sug=[tx("How much did I spend today?","كم صرفت اليوم؟"),tx("What's left this month?","كم باقي لي هالشهر؟"),tx("What did I spend most on?","على وش صرفت أكثر؟"),tx("How much will I spend tomorrow?","كم بصرف بكرة؟")];
+  show(ACC.w,`<h3><span style="color:${BLUE};line-height:0">${PH("sparkle")}</span>${tx("Search or ask","ابحث أو اسأل")}</h3><form id="sqf" class="sqf" action="#"><input class="txt" id="sq" enterkeyhint="send" autocomplete="off" placeholder="${tx("Ask about your money, or search items","اسأل عن فلوسك، أو دوّر غرض")}"><button class="sqgo" aria-label="${tx("Ask","اسأل")}">${PH("sparkle")}</button></form><div id="sans"></div><div class="res3" id="sres" style="max-height:46vh;overflow:auto"></div>`,()=>{
+  const q=document.getElementById("sq"),out=document.getElementById("sres"),ans=document.getElementById("sans");setTimeout(()=>q.focus(),350);let seq=0;
+  const chips=()=>{out.innerHTML=`<div class="chips asug">${sug.map(x=>`<button type="button" data-sug="${esc(x)}">${esc(x)}</button>`).join("")}</div>`};
+  const ask=async v=>{v=norm(v);if(!v)return;const my=++seq;q.blur();ans.innerHTML=`<div class="aans"><div class="aq">${esc(v)}</div><span class="think"><i></i>${tx("Thinking","أفكر")}</span></div>`;
+   try{const t=await askAI(v);if(my!=seq)return;ans.innerHTML=`<div class="aans"><div class="aq">${esc(v)}</div><p dir="auto">${esc(t).replace(/⃁\s?([\d.,]+)/g,(_,n)=>M(n)).replace(/\n+/g,"<br>")}</p></div>`}
+   catch(e){if(my!=seq)return;ans.innerHTML=`<div class="aans"><div class="aq">${esc(v)}</div><p class="ds">${e&&e.code=="rate_limited"?tx("Too many questions. Wait a minute and try again.","أسئلة كثيرة. انتظر دقيقة وجرّب."):e&&e.code=="session_expired"?tx("Sign in again, then ask.","سجّل دخولك مرة ثانية واسأل."):tx("Couldn't get an answer. Try again.","ما قدرت أجاوب. جرّب مرة ثانية.")}</p></div>`}};
+  document.getElementById("sqf").onsubmit=ev=>{ev.preventDefault();ask(q.value)};
+  out.onclick=ev=>{const c=ev.target.closest("[data-sug]");if(c){q.value=c.dataset.sug;ask(c.dataset.sug)}};
+  q.oninput=()=>{const v=q.value.trim().toLowerCase();if(!v){chips();return}if(v.length<2){out.innerHTML="";return}
    const it=m.G2.filter(g=>g.item.toLowerCase().includes(v)).slice(0,6),ex=m.ex.filter(x=>x.note.toLowerCase().includes(v)||nm(x.cat).toLowerCase().includes(v)).slice(0,6),dl=m.deals.filter(d=>d.title.toLowerCase().includes(v)).slice(0,6);
-   out.innerHTML=(it.length?`<h5>${tx("Items","الأغراض")}</h5>`+rows(it.map(g=>[`${esc(g.item)} <small class="ds">${esc(g.best.store)}</small>`,M(g.best.price.toFixed(g.best.price%1?2:0)),GR])):"")+(ex.length?`<h5>${tx("Costs","المصاريف")}</h5>`+rows(ex.map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):"")+(dl.length?`<h5>${tx("Deals","الصفقات")}</h5>`+rows(dl.map(d=>[esc(d.name),d.price?M(d.price):"",AMB])):"")||`<div class="empty">${tx("Nothing found","ما لقيت شي")}</div>`}})};
+   const askRow=`<button type="button" class="askrow" data-sug="${esc(q.value.trim())}">${PH("sparkle")}<span>${tx("Ask","اسأل")}: <b dir="auto">${esc(q.value.trim())}</b></span></button>`;
+   const found=(it.length?`<h5>${tx("Items","الأغراض")}</h5>`+rows(it.map(g=>[`${esc(g.item)} <small class="ds">${esc(g.best.store)}</small>`,M(g.best.price.toFixed(g.best.price%1?2:0)),GR])):"")+(ex.length?`<h5>${tx("Costs","المصاريف")}</h5>`+rows(ex.map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):"")+(dl.length?`<h5>${tx("Deals","الصفقات")}</h5>`+rows(dl.map(d=>[esc(d.name),d.price?M(d.price):"",AMB])):"");
+   out.innerHTML=askRow+found};
+  chips()})};
+ document.querySelector(".srch").onclick=()=>openSearch();
  // ---- Store category window (Beshr 2026-11-24: like a grocery app: categories, item tiles, small store name, lowest vs highest price) ----
  { const CATS=catsOf(m);app.insertAdjacentHTML("beforeend",`<div id="cw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="cwc"></div><div class="cwseg"></div><div class="cwtabs"></div><div class="cwbody"></div><button class="cwlist" hidden></button></div>`);
   const cw=document.getElementById("cw"),body=cw.querySelector(".cwbody"),tabs=cw.querySelector(".cwtabs"),chips=cw.querySelector(".cwc"),seg=cw.querySelector(".cwseg");let who="m";
