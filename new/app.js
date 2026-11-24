@@ -140,7 +140,10 @@ function famSheetHTML(g){const ps=g.map(d=>d.price).filter(Boolean),lo=Math.min(
 // Beshr 2026-11-24 (later): keep it simple. By category only, one row per item: name, market price, current price. Tap = open the ad.
 function addedRows(list){return list.slice().sort(byScore).map(d=>{const v=dVerdict(d);
   return `<a class="afr sm" href="${esc(dLink(d))}" target="_blank" rel="noopener">${d.image?`<img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer">`:`<i class="aph">${PH("fire")}</i>`}<span class="afn"><b dir="auto">${esc(d.name)}</b><small>${d.market?`<s>${M(d.market)}</s>${d.pct?` <em>▼${d.pct}%</em>`:""}`:""}${dCond(d)[1]?` · <em class="bad">${dCond(d)[0]}</em>`:""}</small></span><span class="afr2"><b class="afp">${d.price?M(d.price):""}</b>${v?`<small style="color:${v.c}">${v.t}${v.conf==tx("High confidence","ثقة عالية")?" ✓":""}</small>`:""}</span></a>`}).join("")}
-function addedHTML(list){if(!list.length)return "";AFAM={};famOf(list).forEach(g=>AFAM[dFam(g[0]).toLowerCase()]=g);const cats={};list.forEach(d=>{const c=dCat(d);(cats[c]=cats[c]||[]).push(d)});
+// Added (Beshr 2026-11-24): New / Used toggle first, then categories, then rows
+function addedHTML(all,k){if(!all.length)return "";const nU=all.filter(d=>dKind(d)=="used").length,nN=all.length-nU;k=k||(nU?"used":"new");const list=all.filter(d=>dKind(d)==k);
+ return `<div class="akw" data-kind="${k}"><div class="cwseg akind">${[["used",tx("Used","مستعمل"),nU],["new",tx("New","جديد"),nN]].map(([x,n,c])=>`<button data-ak="${x}" class="${x==k?"on":""}">${n} · ${c}</button>`).join("")}</div>${list.length?addedCats(list):`<div class="empty">${k=="new"?tx("New items you add show here.","الأغراض الجديدة اللي تضيفها تطلع هنا."):tx("Used deals you add show here.","الصفقات المستعملة اللي تضيفها تطلع هنا.")}</div>`}</div>`}
+function addedCats(list){AFAM={};famOf(list).forEach(g=>AFAM[dFam(g[0]).toLowerCase()]=g);const cats={};list.forEach(d=>{const c=dCat(d);(cats[c]=cats[c]||[]).push(d)});
  const cl=Object.entries(cats).sort((a,b)=>b[1].length-a[1].length),cn=c=>DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):(c=="other"?tx("Other","أخرى"):esc(c.charAt(0).toUpperCase()+c.slice(1)));
  return `<div class="achips"><button class="on" data-acat="">${tx("All","الكل")} <i>${list.length}</i></button>${cl.map(([c,ds])=>`<button data-acat="${esc(c)}">${cn(c)} <i>${ds.length}</i></button>`).join("")}</div><div class="arows">${addedRows(list)}</div>`}
 // Expenses ring for one month (mon = "YYYY-MM"); left = "left for living" (this month only)
@@ -260,8 +263,8 @@ function build(m){
   ""];
  // forsa page
  // forsa page (Beshr 2026-11-24): a calm list first, sorted by his hunt words; a button opens the swipe (Tinder) mode for that tab; kept deals have an Open button
- const FK0=m.deals.some(d=>dKind(d)=="used")||!m.deals.length?"used":"new",FT=fTabs(m,FK0),keptL=m.deals.filter(d=>d.status=="saved"&&dKind(d)==FK0);
- const F=[`<div class="sec"><div class="cwseg fkind" style="margin:0">${["used","new"].map(k=>`<button data-fk="${k}" class="${k==FK0?"on":""}">${FKN()[k]}</button>`).join("")}</div></div>`,sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span></button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
+ const FT=fTabs(m),keptL=m.deals.filter(d=>d.status=="saved");
+ const F=[sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span></button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
   sec(tx("Added","المضافة")+` · <span class="keptn">${keptL.length}</span>`,`<div class="kept">${addedHTML(keptL)}</div>${keptL.length?"":`<div class="empty kempty">${tx("Deals you swipe right show here, each with an Open button.","الصفقات اللي تسحبها يمين تطلع هنا، ومعها زر افتح.")}</div>`}`)];
  return {w:W,e:E,s:S,f:F}}
 // ---------- home cards ----------
@@ -319,7 +322,7 @@ function start(m){
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
  try{document.documentElement.style.setProperty("--fire",PHurl("fire"))}catch(e){}
- { const fc=document.querySelector('.card[data-k="f"]');let FK=(fc.querySelector(".fkind .on")||{dataset:{fk:"used"}}).dataset.fk,FT=fTabs(m,FK),ti=0,q=[];
+ { const fc=document.querySelector('.card[data-k="f"]');let FT=fTabs(m),ti=0,q=[];
   app.insertAdjacentHTML("beforeend",`<div id="fw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Skip","تخطَّ")}">${PH("x")}</button><button class="sk" aria-label="${tx("Add","أضف")}">${PH("heart")}</button></div><p class="swh">${tx("Swipe right to add, left to skip","اسحب يمين للإضافة، يسار للتخطي")}</p></div></div>`);
   const fw=document.getElementById("fw"),deck=fw.querySelector(".deck"),kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn"),go=fc.querySelector(".fgo");
   const left=()=>{fw.querySelector(".cwn").textContent=tx(`${q.length} left`,`باقي ${q.length}`)};
@@ -328,10 +331,7 @@ function start(m){
   fc.querySelector(".ftabs").addEventListener("click",ev=>{const b=ev.target.closest("[data-ft]");if(b){ev.stopPropagation();tab(+b.dataset.ft)}});
   fc.querySelector(".fnew").onclick=ev=>{ev.stopPropagation();ACT[2]()};
   // New / Used switch: hunt tabs, swipe deck and Added list all follow it
-  const showKept=()=>{const l=m.deals.filter(x=>x.status=="saved"&&dKind(x)==FK);kn.textContent=l.length;kept.innerHTML=l.length?addedHTML(l):`<div class="empty">${FK=="new"?tx("New items from authorized sellers you add show here.","الأغراض الجديدة من الوكلاء اللي تضيفها تطلع هنا."):tx("Used deals you add show here.","الصفقات المستعملة اللي تضيفها تطلع هنا.")}</div>`};
-  fc.querySelector(".fkind").addEventListener("click",ev=>{const b=ev.target.closest("[data-fk]");if(!b)return;ev.stopPropagation();FK=b.dataset.fk;fc.querySelectorAll(".fkind [data-fk]").forEach(x=>x.classList.toggle("on",x==b));
-   FT=fTabs(m,FK);const ft=fc.querySelector(".ftabs"),nb=ft.querySelector(".fnew");ft.querySelectorAll("[data-ft]").forEach(x=>x.remove());nb.insertAdjacentHTML("beforebegin",FT.map((t,i)=>`<button data-ft="${i}">${t.n} <span>${t.list.length}</span></button>`).join(""));
-   const ke=fc.querySelector(".kempty");if(ke)ke.remove();tab(0);showKept();fc.querySelectorAll(".ftabs,.kept").forEach(x=>x.animate([{opacity:.3},{opacity:1}],{duration:220}))},true);
+  const showKept=()=>{const l=m.deals.filter(x=>x.status=="saved");kn.textContent=l.length;const cur=kept.querySelector(".akw");kept.innerHTML=addedHTML(l,cur&&cur.dataset.kind)};
   const face=d=>{const r=d.raw||{},comps=+r.comps||0,save=d.market>d.price?d.market-d.price:0,paid=+r.paid||0,
     hint=paid&&d.price<paid?tx(`You paid ${RS}${fmt(paid)}${r.paidStore?" at "+esc(r.paidStore):""}. This is ${RS}${fmt(paid-d.price)} less.`,`دفعت ${RS}${fmt(paid)}${r.paidStore?" في "+esc(r.paidStore):""}. هذا أقل بـ ${RS}${fmt(paid-d.price)}.`)
      :d.pct>=25&&dKind(d)=="used"?tx(`Rare price: ${d.pct}% under the usual${comps?`, checked against ${comps} similar ads`:""}.`,`سعر نادر: أقل ${d.pct}٪ من المعتاد${comps?`، مقارنة بـ ${comps} إعلان مشابه`:""}.`)
@@ -339,7 +339,7 @@ function start(m){
      :d.pct>0?tx(`Good price${comps?` next to ${comps} similar ads`:""}. Check the condition before you buy.`,`سعر حلو${comps?` مقارنة بـ ${comps} إعلان مشابه`:""}. تأكد من الحالة قبل الشراء.`)
      :d.offer?esc(d.offer):tx("New find from your hunt.","لقطة جديدة من بحثك.");
    const pic=d.image?`<div class="dkim" style="--bg:url('${esc(d.image)}')"><img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"></div>`:`<div class="dkim noimg"></div>`;
-   return `<div class="dk">${pic}<div class="dkb"><div class="dkr"><b class="dkn">${esc(d.name)}</b>${d.pct?`<span class="dkpc">▼ ${d.pct}%</span>`:""}</div><div class="vrow dkv"><i class="cnd kind">${dKind(d)=="new"?tx("New","جديد"):tx("Used","مستعمل")}${d.source?" · "+esc(d.source):""}</i>${dKind(d)=="used"?`<i class="cnd${dCond(d)[1]?" bad":""}">${dCond(d)[0]}</i>`:""}${d.city?`<i class="cnd src">${esc(d.city)}</i>`:""}</div>
+   return `<div class="dk">${pic}<i class="dkkind ${dKind(d)}">${dKind(d)=="new"?tx("New","جديد"):tx("Used","مستعمل")}</i><div class="dkb"><div class="dkr"><b class="dkn">${esc(d.name)}</b>${d.pct?`<span class="dkpc">▼ ${d.pct}%</span>`:""}</div><div class="vrow dkv">${d.source?`<i class="cnd src">${esc(d.source)}</i>`:""}${dKind(d)=="used"?`<i class="cnd${dCond(d)[1]?" bad":""}">${dCond(d)[0]}</i>`:""}${d.city?`<i class="cnd src">${esc(d.city)}</i>`:""}</div>
     <div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.market&&d.price?`<div class="dkbar"><i style="width:${Math.max(8,Math.min(100,d.price/d.market*100))}%"></i></div><div class="dkl"><span>${tx("Price","السعر")}</span>${save?`<b>${tx("Save","توفّر")} ${M(save)}</b>`:""}<span>${tx("Market","السوق")}</span></div>`:""}
     ${vChip(d)?`<div class="vrow" style="margin-top:8px">${vChip(d)}</div>`:""}<p class="dkh">${PH("sparkle")}<span>${hint}</span></p></div><i class="stamp keep">${tx("ADD","أضف")}</i><i class="stamp drop">${tx("SKIP","تخطَّ")}</i></div>`};
   const draw=()=>{deck.innerHTML=q.length?q.slice(0,3).map(face).reverse().join(""):`<div class="empty dkend">${tx("All caught up. New deals come with the next hunt.","خلصت الصفقات. الجديدة تجي مع البحث الجاي.")}</div>`;
@@ -470,8 +470,9 @@ function start(m){
   document.querySelectorAll(`#cw .ptadd[data-add="${CSS.escape(k)}"]`).forEach(x=>{x.classList.remove("on");x.textContent="+"});
   window._saveShop(tx("Removed from list","انشال من القائمة"))},true); }
  // ---- Forsa Added: slide category chips, tap a product -> its offers lowest to highest ----
- { const fc=document.querySelector('.card[data-k="f"]');fc&&fc.addEventListener("click",ev=>{const c=ev.target.closest("[data-acat]"),r=ev.target.closest("[data-fam]");if(!(c||r)||!OK)return;ev.stopPropagation();ev.preventDefault();
-  if(c){const box=c.closest(".kept"),k=c.dataset.acat,all=m.deals.filter(x=>x.status=="saved");box.querySelectorAll("[data-acat]").forEach(b=>b.classList.toggle("on",b==c));
+ { const fc=document.querySelector('.card[data-k="f"]');fc&&fc.addEventListener("click",ev=>{const ak=ev.target.closest("[data-ak]");if(ak&&OK){ev.stopPropagation();const box=ak.closest(".kept");box.innerHTML=addedHTML(m.deals.filter(x=>x.status=="saved"),ak.dataset.ak);box.animate([{opacity:.4},{opacity:1}],{duration:200});return}
+  const c=ev.target.closest("[data-acat]"),r=ev.target.closest("[data-fam]");if(!(c||r)||!OK)return;ev.stopPropagation();ev.preventDefault();
+  if(c){const box=c.closest(".kept"),k=c.dataset.acat,kd=(c.closest(".akw")||{dataset:{}}).dataset.kind,all=m.deals.filter(x=>x.status=="saved"&&(!kd||dKind(x)==kd));box.querySelectorAll("[data-acat]").forEach(b=>b.classList.toggle("on",b==c));
    c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});const rw=box.querySelector(".arows");rw.innerHTML=addedRows(k?all.filter(d=>dCat(d)==k):all);rw.animate([{opacity:.3},{opacity:1}],{duration:220});return}
   const g=AFAM[r.dataset.fam];if(!g)return;show(AMB,`<h3><span style="color:${AMB};line-height:0">${PH("fire")}</span><span dir="auto">${esc(dFam(g[0]))}</span> <small class="ds" style="font-size:13px;font-weight:500">${g.length>1?tx(`${g.length} offers · lowest first`,`${g.length} عروض · الأرخص أول`):""}</small></h3><div class="res">${famSheetHTML(g)}</div>`,()=>{})},true); }
  // ---- Wallet budget rows: pencil beside each item -> change its monthly amount ----

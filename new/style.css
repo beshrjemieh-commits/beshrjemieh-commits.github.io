@@ -326,3 +326,7 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .slq{gap:1px;padding:1px;border-radius:8px}.slq button{width:20px;height:20px;border-radius:6px;font-size:13px}.slq b{min-width:14px;font-size:12px}
 .slclr{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;height:38px;border:0;border-radius:12px;background:#FEF2F2;color:#DC2626;font:500 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}.slclr svg{width:16px;height:16px}
 .slclr.undo{background:#EFF6FF;color:#2563EB}
+.dk .dkkind{position:absolute;top:12px;inset-inline-start:12px;z-index:3;font-style:normal;font-size:12px;font-weight:600;padding:4px 10px;border-radius:10px;background:#0F2A4AE6;color:#fff;letter-spacing:.02em}
+.dk .dkkind.new{background:#2563EBE6}
+[dir=rtl] .dk .dkkind{inset-inline-start:auto;left:auto;right:12px}
+.akind{margin:2px 0 8px}
