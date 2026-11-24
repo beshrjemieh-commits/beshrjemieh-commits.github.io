@@ -74,7 +74,7 @@ function readSms(raw){const t=AR_D(raw).replace(/\r/g,"").trim();if(!t)return []
 // ?sms=<text> from the iPhone Shortcut: kept until the app has its data, then logged automatically (with Undo)
 let SMS_LINK=null;try{const u=new URL(location.href),v=u.searchParams.get("sms");if(v!==null){u.searchParams.delete("sms");history.replaceState(null,"",u.pathname+u.search+u.hash);SMS_LINK=v}}catch(e){}
 async function load(){
- const C=["expenses","income","debts","goals","prices","products","deals","settings"];let rows=[],from=0;
+ const C=["expenses","income","debts","goals","prices","products","deals","settings","smsraw"];let rows=[],from=0;
  for(;;){const {data,error}=await sb.from("app_docs").select("coll,id,data").in("coll",C).range(from,from+999);if(error)throw error;rows=rows.concat(data);if(data.length<1000)break;from+=1000}
  const by={};C.forEach(c=>by[c]=[]);rows.forEach(r=>by[r.coll].push(Object.assign({id:r.id},r.data||{})));
  const set=Object.fromEntries(by.settings.map(x=>[x.id,x]));
@@ -113,7 +113,7 @@ function model(R){
  const mineK=new Set(G2.map(g=>(g.item+"|"+g.size).toLowerCase())),ob=new Map();
  (R.community||[]).forEach(c=>{const it=norm(c.item),sz=norm(c.size),st=norm(c.store),pr=+c.price||0;if(!it||!(pr>0)||/\((shared|online)\)/i.test(st))return;const k=(it+"|"+sz).toLowerCase();if(mineK.has(k))return;const o=ob.get(k);if(!o||pr<o.price)ob.set(k,{k,item:it,size:sz,store:st,price:pr,people:+c.people||1,date:String(c.last_date||"")})});
  const others=[...ob.values()].map(o=>Object.assign(o,{grp:grpOf([o.store],o.item)})).sort((a,b)=>a.item.localeCompare(b.item));
- return {planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,shopQty:Object.assign({},(set.shopping||{}).qty||{}),deals,hunt,debts,goals,today,mon,community:R.community}}
+ return {smsQ:by.expenses.filter(x=>x.src=="sms"&&!x.aiDone),smsRaw:by.smsraw||[],planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,shopQty:Object.assign({},(set.shopping||{}).qty||{}),deals,hunt,debts,goals,today,mon,community:R.community}}
 // ---------- page pieces ----------
 const sec=(h,b)=>`<div class="sec"><h4>${h}</h4>${b}</div>`;
 const tiles=a=>`<div class="tiles">${a.map(([l,v,c])=>`<div class="tile"><small>${l}</small><b style="${c?"color:"+c:""}">${v}</b></div>`).join("")}</div>`;
@@ -128,6 +128,24 @@ async function fileBlock(f){if(f.type=="application/pdf"){const b=await new Prom
  const im=await new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=()=>{URL.revokeObjectURL(u);no({code:"image_rejected"})};i.src=u});
  const k=Math.min(1,Math.sqrt(1.6e6/(im.naturalWidth*im.naturalHeight))),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));c.getContext("2d").drawImage(im,0,0,c.width,c.height);const u=c.toDataURL("image/jpeg",.88);
  return {type:"image",source:{type:"base64",media_type:"image/jpeg",data:u.slice(u.indexOf(",")+1)}}}
+// one JSON answer from the "ai" Edge Function (Claude)
+async function aiJSON(prompt,tier){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"session_expired"};
+ const res=await fetch(SB_URL+"/functions/v1/ai",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token,apikey:SB_KEY},body:JSON.stringify({messages:[{role:"user",content:prompt}],tier:tier||"quick",json:true})});
+ const j=await res.json().catch(()=>({}));if(!res.ok||j.error)throw {code:(j.error&&j.error.code)||"upstream_error"};
+ const t=(j.content||[]).filter(b=>b.type=="text").map(b=>b.text).join("").replace(/^[^{]*/,"").replace(/[^}]*$/,"");return JSON.parse(t||"{}")}
+// AI reads bank messages (Beshr 2026-11-24: "autodetected by AI" like the old app): amount, shop and category, learning from his own past costs
+async function aiReadSms(list,ex){const cats=LOG_CATS.filter(k=>BY[k]).map(k=>`${k} = ${(BY[k]||{}).s||k}`).join("\n"),seen={};
+ ex.forEach(x=>{const n=norm(x.note).toLowerCase();if(n.length>2&&!seen[n]&&x.cat!="flex")seen[n]=x.cat});const hist=Object.entries(seen).slice(0,60).map(([n,c])=>`${n} -> ${c}`).join("\n");
+ const o=await aiJSON(`These are bank SMS messages from Saudi Arabia (Arabic or English). For each one, read the payment.
+Return ONLY JSON: {"items":[{"i":<index>,"skip":<true if it is not money he spent: money coming in, salary, refund, OTP, ad, or no amount>,"amount":<number in SAR>,"shop":"<short shop name, as written>","cat":"<one key from the list>"}]}
+Categories:
+${cats}
+His own past costs (shop -> category), follow these when the shop matches:
+${hist||"none"}
+Use "flex" only if nothing fits.
+Messages:
+${list.map((t,i)=>`[${i}] ${String(t).slice(0,500)}`).join("\n\n")}`,"quick");
+ return Array.isArray(o.items)?o.items:[]}
 async function readBill(f){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"session_expired"};
  const prompt=`This is a supermarket or shop receipt from Saudi Arabia (text may be Arabic, English or both). Read it and return ONLY JSON in this shape:
 {"store": "shop name in English if possible", "date": "YYYY-MM-DD or empty", "total": number or null, "items": [{"item": "product name, English if possible, keep the brand", "size": "pack size like 2 L, 500 g, 12 pcs, or empty", "price": number}]}
@@ -409,9 +427,17 @@ function start(m,soft){
   deck.addEventListener("pointerup",up);deck.addEventListener("pointercancel",up);setTimeout(()=>tab(0)); }
  // ---- writes ----
  const toast=window._toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
+ // bank messages saved by the Shortcut get checked by AI once (category, and shop/amount when the quick rules missed them)
+ window._smsAI=async()=>{if(window._smsBusy)return;const q=m.smsQ.slice(0,20),r=m.smsRaw.slice(0,20);if(!q.length&&!r.length)return;window._smsBusy=1;
+  try{const texts=q.map(x=>x.raw||`${x.note} SAR ${x.amount}`).concat(r.map(x=>x.msg||""));const out=await aiReadSms(texts,m.ex);let changed=0;
+   for(const it of out){const i=+it.i;if(!(i>=0&&i<texts.length))continue;const cat=LOG_CATS.includes(it.cat)?it.cat:"flex";
+    if(i<q.length){const x=q[i],d=Object.assign({},x);delete d.id;if(it.skip&&x.cat=="flex"&&!(x.amount>0)){continue}d.aiDone=true;if(cat!="flex")d.cat=cat;if(it.shop)d.note=String(it.shop).slice(0,60);await put("expenses",x.id,d);changed++}
+    else{const x=r[i-q.length];if(!it.skip&&+it.amount>0)await put("expenses","sms-ai-"+x.id,{date:x.date||ymd(new Date()),amount:Math.round(+it.amount*100)/100,cat,note:String(it.shop||"Bank SMS").slice(0,60),createdAt:Date.now(),src:"sms",aiDone:true,raw:String(x.msg||"").slice(0,300)});await del("smsraw",x.id);changed++}}
+   q.forEach(x=>{if(!out.some(it=>+it.i==q.indexOf(x))){const d=Object.assign({},x);delete d.id;d.aiDone=true;put("expenses",x.id,d).catch(()=>{})}});
+   if(changed)reload()}catch(e){}window._smsBusy=0};
  window._smsLog=async raw=>{const its=readSms(raw);if(!its.length){toast(tx("No payment found in the bank message","ما لقيت مبلغ دفع في رسالة البنك"));return}
   let seen=[];try{seen=JSON.parse(localStorage.getItem("w-smsseen")||"[]")}catch(e){}const key=String(raw).replace(/\s+/g," ").trim().slice(0,200);if(seen.includes(key)){toast(tx("Already logged","مسجّل من قبل"));return}
-  const ids=[];try{for(const it of its){const id=newId();ids.push(id);await put("expenses",id,{date:ymd(new Date()),amount:it.amount,cat:it.cat,note:it.note,createdAt:Date.now(),src:"sms"})}}catch(e){toast(tx("Couldn't save the expense","ما انحفظ المصروف"));return}
+  const ids=[];try{for(const it of its){const id=newId();ids.push(id);await put("expenses",id,{date:ymd(new Date()),amount:it.amount,cat:it.cat,note:it.note,createdAt:Date.now(),src:"sms",raw:String(raw).slice(0,300)})}}catch(e){toast(tx("Couldn't save the expense","ما انحفظ المصروف"));return}
   try{seen.push(key);localStorage.setItem("w-smsseen",JSON.stringify(seen.slice(-30)))}catch(e){}
   const tot=its.reduce((x,y)=>x+y.amount,0);reload();setTimeout(()=>{const ap=document.getElementById("app");ap.insertAdjacentHTML("beforeend",`<button class="smsbar">${PH("receipt")}<span>${tx(`Logged ${RS}${p2(tot)}`,`انسجّل ${RS}${p2(tot)}`)} · ${esc(its[0].note).slice(0,22)}</span><b>${tx("Undo","تراجع")}</b></button>`);const bar=ap.querySelector(".smsbar");const kill=setTimeout(()=>bar.remove(),8000);
    bar.onclick=async()=>{clearTimeout(kill);bar.remove();try{for(const id of ids)await del("expenses",id);seen=seen.filter(x=>x!=key);localStorage.setItem("w-smsseen",JSON.stringify(seen))}catch(e){toast(tx("Couldn't undo","ما قدرت أتراجع"));return}toast(tx("Removed","انحذف"));reload()}},1200)};
@@ -431,8 +457,9 @@ function start(m,soft){
    const a=document.getElementById("amt"),b=document.getElementById("sv");setTimeout(()=>a.focus(),350);a.oninput=()=>{b.disabled=!(+a.value>0)};
    // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note
    // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note; if iPhone won't share the clipboard, a box to paste into appears
-   const fill=t=>{const it=readSms(t)[0];if(!it){toast(tx("Couldn't find a payment in that message","ما لقيت مبلغ دفع في الرسالة"));return}
-    a.value=it.amount;b.disabled=false;document.getElementById("nt").value=it.note;const btn=sh.querySelector(`.chips button[data-k="${it.cat}"]`);if(btn){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));btn.classList.add("sel")}toast(tx("Filled from your message","انعبى من رسالتك"))};
+   const fill=t=>{const it=readSms(t)[0]||{amount:"",note:"",cat:"flex"};if(!it.amount)toast(tx("Reading it with AI…","أقرأها بالذكاء الاصطناعي…"));
+    a.value=it.amount;b.disabled=!(+a.value>0);document.getElementById("nt").value=it.note;const btn=sh.querySelector(`.chips button[data-k="${it.cat}"]`);if(btn){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));btn.classList.add("sel")}if(it.amount)toast(tx("Filled from your message","انعبى من رسالتك"));
+    aiReadSms([t],m.ex).then(o=>{const r=o[0];if(!r||r.skip||!sh.classList.contains("on"))return;if(+r.amount>0&&!a.value){a.value=r.amount;b.disabled=false}if(r.shop)document.getElementById("nt").value=String(r.shop).slice(0,60);const bb=LOG_CATS.includes(r.cat)&&r.cat!="flex"&&sh.querySelector(`.chips button[data-k="${r.cat}"]`);if(bb){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));bb.classList.add("sel")}}).catch(()=>{})};
    sh.querySelector(".pmsg").onclick=async()=>{let t="";try{t=await navigator.clipboard.readText()}catch(e){}t=String(t||"").trim();if(t){fill(t);return}
     const pm=sh.querySelector(".pmsg");if(sh.querySelector("#pbox"))return;pm.insertAdjacentHTML("afterend",`<textarea id="pbox" class="txt pbox" rows="3" placeholder="${tx("Touch and hold here, then tap Paste","اضغط مطولاً هنا ثم اختر لصق")}"></textarea>`);const pb=sh.querySelector("#pbox");pb.focus();pb.oninput=()=>{if(pb.value.trim()){fill(pb.value);pb.remove()}}};
    sh.querySelectorAll(".chips button").forEach(x=>x.onclick=()=>{sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));x.classList.add("sel")});
@@ -659,7 +686,7 @@ function saveCache(R,uid){uid=uid||CUID;try{const t=JSON.stringify({uid,R,at:Dat
 function softApply(R){const sh=document.getElementById("sheet");if(sh&&sh.classList.contains("on")){setTimeout(()=>softApply(R),1000);return}
  try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
  start(model(R),1)}
-const smsGo=()=>{if(SMS_LINK!=null&&window._smsLog){const t=SMS_LINK;SMS_LINK=null;setTimeout(()=>window._smsLog(t),300)}};
+const smsGo=()=>{if(SMS_LINK!=null&&window._smsLog){const t=SMS_LINK;SMS_LINK=null;setTimeout(()=>window._smsLog(t),300)}setTimeout(()=>window._smsAI&&window._smsAI(),1500)};
 // ---------- boot ----------
 // Visible height. iPhone Home Screen apps can report the full screen height while the page starts below the status bar,
 // which pushed the bottom of the app (quick bar, sheets) off screen (Beshr 2026-11-24). Take the smallest height and remove the status bar in that case.
