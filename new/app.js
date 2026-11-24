@@ -661,13 +661,26 @@ ${q}`;
  document.getElementById("gear").onclick=()=>{if(OK)return;show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("gear-six")}</span>${tx("Settings","الإعدادات")}</h3>
    <div class="setl">${PH("translate")}<span>${tx("Language","اللغة")}</span></div><div class="cwseg" style="margin:0 0 16px"><button data-l="en" class="${AR?"":"on"}">English</button><button data-l="ar" class="${AR?"on":""}">العربية</button></div>
    <button class="setb" id="ssms">${PH("receipt")}<span>${tx("Bank messages (automatic)","رسائل البنك (تلقائي)")}</span></button>
+   <button class="setb" id="sguide">${PH("credit-card")}<span>${tx("Connect bank messages (Shortcut)","ربط رسائل البنك (اختصار)")}</span></button>
+   <button class="setb" id="stour">${PH("info")}<span>${tx("How to use the app","طريقة استخدام التطبيق")}</span></button>
+   <button class="setb" id="sq">${PH("list")}<span>${tx("First-time questions","أسئلة البداية")}</span></button>
    <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
    <button class="setb" id="sout">${PH("sign-out")}<span>${tx("Sign out","تسجيل الخروج")}</span></button>
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
    document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
    document.getElementById("ssms").onclick=()=>{close();setTimeout(smsSetup,350)};
+   document.getElementById("sguide").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en"}),350)};
+   document.getElementById("stour").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),400)};
+   document.getElementById("sq").onclick=()=>{close();setTimeout(()=>wobSetup(true),350)};
    document.getElementById("sout").onclick=async()=>{try{localStorage.removeItem("w-cache");await sb.auth.signOut()}catch(e){}location.reload()}})};
+ // ---- first-time questions, then the tour (new accounts: no salary and no setup saved yet) ----
+ const wobSetup=preview=>{if(!window.WOB||document.querySelector(".wob"))return;window._wobShown=1;
+  WOB.setup({lang:AR?"ar":"en",preview,salary:m.income,payday:m.payday,pools:wobPools(m),onLang:l=>{try{localStorage.setItem("w-lang",l)}catch(e){}},
+   save:a=>wobSave(m,a),skip:()=>put("settings","profile",Object.assign({},m.prof,{setup:{at:Date.now(),skipped:true}})),
+   done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"){try{localStorage.setItem("w-tour-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
+ if(!soft&&!window._wobShown&&!m.income&&!m.prof.setup)setTimeout(()=>wobSetup(false),250);
+ try{if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),700)}}catch(e){}
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}
@@ -681,6 +694,29 @@ ${q}`;
    box.innerHTML=ringFor(m,mon,dPl?Math.max(0,dPl-dSp):null);box.animate([{opacity:.2},{opacity:1}],{duration:260})},true); }
 
 }
+// ---------- first-time questions: real examples to ask about, and saving the answers ----------
+// flash sale = the biggest real price gap between two shops (his prices + other shoppers'); Forsa = the best used and best new deal (same product when there is one)
+function wobPools(m){const by=new Map();[...m.G2.flatMap(g=>g.stores.map(s=>({item:g.item,size:g.size,store:s.store,price:s.price,photo:g.photo}))),...(m.community||[]).map(c=>({item:norm(c.item),size:norm(c.size),store:norm(c.store),price:+c.price,people:+c.people||1,photo:m.photos[keyOf(c)]||""}))]
+  .forEach(x=>{if(!x.item||!(x.price>0)||/\((online|shared)\)/i.test(x.store))return;const k=keyOf(x);if(!by.has(k))by.set(k,[]);const a=by.get(k);if(!a.some(y=>y.store.toLowerCase()==x.store.toLowerCase()))a.push(x)});
+ const flash=[...by.values()].filter(a=>a.length>1).map(a=>{a.sort((x,y)=>x.price-y.price);const lo=a[0],hi=a.at(-1);return {item:lo.item,size:lo.size,store:lo.store,price:lo.price,was:hi.price,hiStore:hi.store,photo:lo.photo||hi.photo,people:lo.people||1,gap:1-lo.price/hi.price}})
+  .filter(x=>x.gap>=.08&&x.gap<.8).sort((a,b)=>b.gap-a.gap).slice(0,8);
+ const ok=m.deals.filter(d=>d.price>0&&d.market>d.price&&!d.offer),U=ok.filter(d=>dKind(d)=="used").sort(byScore),N=ok.filter(d=>dKind(d)=="new").sort(byScore),forsa=[];
+ const side=(d,k)=>({name:d.name,title:d.title.slice(0,60),source:d.source,city:d.city,price:d.price,market:d.market,was:d.market,photo:d.image});
+ U.slice(0,6).forEach(u=>{const f=dFam(u).toLowerCase(),n=N.find(x=>dFam(x).toLowerCase()==f);if(n)forsa.push({name:u.name,used:side(u),new:side(n)})});
+ if(!forsa.length&&U[0]&&N[0])forsa.push({name:U[0].name,used:side(U[0]),new:side(N[0])});
+ return {flash,forsa}}
+async function wobSave(m,a){const r=Math.round,now=Date.now();
+ const items=JSON.parse(JSON.stringify(m.planRaw||{})),setP=(k,v)=>{const c=items[k]||{now:0,plan:0};items[k]={now:+c.now||0,plan:r(v)}};
+ const cards=JSON.parse(JSON.stringify((await (async()=>{try{const {data}=await sb.from("app_docs").select("coll,id,data").eq("coll","settings").eq("id","cards");return data&&data[0]&&data[0].data}catch(e){return null}})())||{}));
+ cards.added=cards.added||[];cards.hidden=cards.hidden||[];cards.names=cards.names||{};
+ a.bills.forEach((b,i)=>{if(b.k=="custom"){const k="c"+(now+i).toString(36),n=String(b.name||tx("Bill","فاتورة")).slice(0,40);cards.added.push({k,n,s:n,g:"Must pay",daily:false,plan:r(b.amt)});setP(k,b.amt)}else{setP(b.k,b.amt);cards.hidden=cards.hidden.filter(h=>h!=b.k)}});
+ const gt=a.goals.reduce((x,g)=>x+g.give,0);if(gt>0)setP("goals",gt);
+ await put("settings","plan",{items});if(cards.added.length||cards.hidden.length)await put("settings","cards",cards);
+ for(const [i,g] of a.goals.entries()){const by=new Date();by.setMonth(by.getMonth()+g.months);await put("goals",newId(),{name:String(g.name).slice(0,60),target:r(g.target),saved:0,months:g.months,by:ymd(by),createdAt:now+i})}
+ if(a.flash){const f=a.flash,p={item:f.item,size:f.size||"",store:f.store,price:f.price,date:ymd(new Date()),createdAt:now,src:"setup"};await put("prices",newId(),p);const k=keyOf(p);
+  await put("settings","shopping",{keys:m.shopKeys.filter(x=>x!=k).concat(k),qty:Object.assign({},m.shopQty,{[k]:1})})}
+ if(a.forsa){const h=Object.assign({},m.hunt),t=String(a.forsa.name).slice(0,60);h.terms=(h.terms||[]).filter(x=>String(x).toLowerCase()!=t.toLowerCase()).concat(t);h.requestedAt=now;h.kind=a.forsa.kind;await put("settings","hunt",h)}
+ await put("settings","profile",Object.assign({},m.prof,{income:r(a.salary),payday:a.payday,setup:{at:now,knew:a.knew}}))}
 // ---------- data kept on the phone (so the app opens without a loading screen) ----------
 let CUID="";
 function readCache(uid){try{const c=JSON.parse(localStorage.getItem("w-cache")||"null");if(c&&c.uid==uid&&c.R&&c.R.by){CUID=uid;return c.R}}catch(e){}CUID=uid;return null}
@@ -689,6 +725,7 @@ function saveCache(R,uid){uid=uid||CUID;try{const t=JSON.stringify({uid,R,at:Dat
 function softApply(R){const sh=document.getElementById("sheet");if(sh&&sh.classList.contains("on")){setTimeout(()=>softApply(R),1000);return}
  try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
  start(model(R),1)}
+window._wobRefresh=async()=>{const R=await load();saveCache(R);start(model(R),1)};
 const smsGo=()=>{if(SMS_LINK!=null&&window._smsLog){const t=SMS_LINK;SMS_LINK=null;setTimeout(()=>window._smsLog(t),300)}setTimeout(()=>window._smsAI&&window._smsAI(),1500)};
 // ---------- boot ----------
 // Visible height. iPhone Home Screen apps can report the full screen height while the page starts below the status bar,
@@ -702,7 +739,7 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
  if(!b&&navigator.standalone&&screen.height>=812)b=34;document.documentElement.style.setProperty("--sab",b+"px")})();
 (function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
-(async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Sign in on your wallet app first, then come back here.","سجّل دخولك في تطبيق المحفظة أول، بعدين ارجع هنا.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the wallet app","افتح تطبيق المحفظة")}</a>`);return}
+(async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Welcome to Smart Wallet.","أهلاً في المحفظة الذكية.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html?signin=new">${tx("Sign in or create an account","سجّل دخولك أو أنشئ حساب")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
  const uid=data.session.user&&data.session.user.id,c=readCache(uid);
  if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}window.__spReady=1;smsGo();return}
