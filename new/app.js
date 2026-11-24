@@ -100,7 +100,7 @@ function model(R){
  const mineK=new Set(G2.map(g=>(g.item+"|"+g.size).toLowerCase())),ob=new Map();
  (R.community||[]).forEach(c=>{const it=norm(c.item),sz=norm(c.size),st=norm(c.store),pr=+c.price||0;if(!it||!(pr>0)||/\((shared|online)\)/i.test(st))return;const k=(it+"|"+sz).toLowerCase();if(mineK.has(k))return;const o=ob.get(k);if(!o||pr<o.price)ob.set(k,{k,item:it,size:sz,store:st,price:pr,people:+c.people||1,date:String(c.last_date||"")})});
  const others=[...ob.values()].map(o=>Object.assign(o,{grp:grpOf([o.store],o.item)})).sort((a,b)=>a.item.localeCompare(b.item));
- return {photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,deals,hunt,debts,goals,today,mon,community:R.community}}
+ return {planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,deals,hunt,debts,goals,today,mon,community:R.community}}
 // ---------- page pieces ----------
 const sec=(h,b)=>`<div class="sec"><h4>${h}</h4>${b}</div>`;
 const tiles=a=>`<div class="tiles">${a.map(([l,v,c])=>`<div class="tile"><small>${l}</small><b style="${c?"color:"+c:""}">${v}</b></div>`).join("")}</div>`;
@@ -186,7 +186,7 @@ function build(m){
  const GR4=[[tx("Must pay","الالتزامات"),m.items.filter(i=>i.g=="Must pay").map(i=>i.k)],[tx("Living","المعيشة"),m.items.filter(i=>i.g=="Living"||i.g=="Personal").map(i=>i.k)],[tx("Saving","الادخار"),m.items.filter(i=>i.g=="Saving"&&i.k!="debt").map(i=>i.k)],[tx("Debt","الديون"),["debt"]]];
  const catEntries=k=>m.monthEx.filter(x=>x.cat==k);
  const budget=GR4.map(([n,ks],gi)=>{const pl=groupSum(ks),sp=spentOf(ks);
-  let l2=r2(ks.filter(k=>m.planOf(k)>0||(m.spent[k]||0)>0).map(k=>[nm(k),M(m.planOf(k)),m.planOf(k)?(m.spent[k]||0)/m.planOf(k):null]));
+  let l2=r2(ks.filter(k=>gi==0||m.planOf(k)>0||(m.spent[k]||0)>0).map(k=>[`<span class="pen">${nm(k)}<button class="pedit" data-pe="${k}" aria-label="${tx("Edit","تعديل")}">${PH("pencil-simple")}</button></span>`,M(m.planOf(k)),m.planOf(k)?(m.spent[k]||0)/m.planOf(k):null]));
   let l3=ks.map(k=>{const es=catEntries(k);return es.length?[nm(k),es.slice(0,4).map(x=>`${when(x.date)} · ${M(x.amount)}${x.note?" · "+esc(x.note):""}`).join("<br>")+(es.length>4?`<br>${tx("and","و")} ${es.length-4} ${tx("more","غيرها")}`:"")]:null}).filter(Boolean);
   if(gi==2&&m.goals.length){l2+=r2(m.goals.map(g=>[esc(g.name),M(g.saved),g.target?g.saved/g.target:null]));l3=l3.concat(m.goals.map(g=>[esc(g.name),tx(`${M(g.saved)} of ${M(g.target)}`,`${M(g.saved)} من ${M(g.target)}`)]))}
   if(gi==3&&m.debts.length){l2+=r2(m.debts.map(d=>[esc(d.name),M(Math.max(0,d.total-d.paid)),d.total?d.paid/d.total:null,GR]));const T=m.debts.reduce((a,d)=>a+d.total,0),P=m.debts.reduce((a,d)=>a+d.paid,0);l3=l3.concat([[tx("Total debt","مجموع الديون"),M(T)],[tx("Paid so far","سددت لين الحين"),M(P)],[tx("Left","الباقي"),M(T-P)]])}
@@ -255,7 +255,7 @@ function start(m){
  const hr=new Date().getHours(),greet=hr<12?tx("Good morning","صباح الخير"):hr<18?tx("Good afternoon","مساء الخير"):tx("Good evening","مساء الخير");
  const dstr=new Date().toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{weekday:"long",day:"numeric",month:"long"});
  const bandH=TOPS[0]+HH[0]-34,wave=`<svg viewBox="0 0 786 40" preserveAspectRatio="none"><path d="M0,20 C98,0 295,0 393,20 C491,40 688,40 786,20 L786,40 L0,40Z" fill="#16365E"/></svg>`;
- app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="edit" aria-label="${tx("Edit home","ترتيب الرئيسية")}">${PH("pencil-simple")}</button><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
+ app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
   +order.map((k,i)=>{const c=C[k];return `<div class="card c-${k}" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><span class="ctab">${PH(c.ic)}</span><div class="k">${c.t}<span class="tm">${c.line}</span></div><div class="big" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis">${c.v}</div><div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
   +`<div class="abar" style="background:none;box-shadow:none;height:84px">${[["plus-circle",tx("Add expense","أضف مصروف"),BLUE],["camera",tx("Add bill","أضف فاتورة"),BLUE],["fire",tx("New hunt","صيد جديد"),BLUE]].map(([i,l,c])=>`<div class="ab" role="button" tabindex="0" style="gap:6px"><span style="width:52px;height:52px;border-radius:26px;background:#fff;display:grid;place-items:center;color:${c};line-height:0;box-shadow:0 8px 20px -8px rgba(0,0,0,.45)">${PH(i)}</span>${l}</div>`).join("")}</div>`
   +(HK?`<div id="chip" style="position:absolute;left:0;right:0;margin:auto;width:max-content;max-width:330px;top:${TOPS[order.indexOf(HK)]+HH[order.indexOf(HK)]-14}px;z-index:15;background:${HK=="f"?"#FEF3C7":"#EEF2F7"};color:${HK=="f"?"#92400E":NAVY};font-size:13px;font-weight:600;padding:6px 12px;border-radius:14px;white-space:nowrap">${PH("sparkle")} ${C.H[HK]}</div>`:"")
@@ -411,16 +411,23 @@ function start(m){
     <div class="res" style="max-height:44vh;overflow-y:auto">${rows(es.map(x=>[`${when(x.date)}${k=="_other"?" · "+nm(x.cat):""}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)]))}</div>`,()=>{})},true); }
 
  // ---- top bar: Edit (arrange Home) and Settings (language, sign out) ----
- document.getElementById("edit").onclick=()=>{if(OK)return;const names={w:tx("Wallet","المحفظة"),e:tx("Expenses","المصاريف"),s:tx("Store","المتجر"),f:tx("Forsa","فرصة")};let o=order.slice();
+ const arrange=()=>{if(OK)return;const names={w:tx("Wallet","المحفظة"),e:tx("Expenses","المصاريف"),s:tx("Store","المتجر"),f:tx("Forsa","فرصة")};let o=order.slice();
   const draw=()=>{const l=sh.querySelector(".ord");l.innerHTML=o.map((k,i)=>`<div class="ordr"><span>${names[k]}</span><button data-up="${i}" ${i?"":"disabled"} aria-label="${tx("Up","فوق")}">${PH("caret-up")}</button><button data-dn="${i}" ${i<3?"":"disabled"} aria-label="${tx("Down","تحت")}">${PH("caret-down")}</button></div>`).join("")};
   show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("pencil-simple")}</span>${tx("Arrange Home","ترتيب الرئيسية")}</h3><div class="ord"></div><button class="go" id="osv">${tx("Save","حفظ")}</button>`,()=>{draw();
    sh.querySelector(".ord").onclick=ev=>{const b=ev.target.closest("button");if(!b)return;const i=+(b.dataset.up??b.dataset.dn),j=b.dataset.up!=null?i-1:i+1;[o[i],o[j]]=[o[j],o[i]];draw()};
    document.getElementById("osv").onclick=()=>{try{localStorage.setItem("s-order",JSON.stringify(o))}catch(e){}close();location.reload()}})};
+ // ---- Wallet budget rows: pencil beside each item -> change its monthly amount ----
+ { const wc=document.querySelector('.card[data-k="w"]');wc&&wc.addEventListener("click",ev=>{const b=ev.target.closest("[data-pe]");if(!b)return;ev.stopPropagation();ev.preventDefault();const k=b.dataset.pe,cur=m.planOf(k);
+  show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("pencil-simple")}</span>${nm(k)}</h3><p class="ds" style="margin:0 0 12px">${tx("Monthly amount","المبلغ الشهري")}</p><input id="pev" class="inp" type="number" inputmode="decimal" min="0" value="${cur||""}" placeholder="0" style="width:100%;font-size:22px;padding:12px 14px;border:1px solid #E2E8F0;border-radius:14px;box-sizing:border-box;font-family:inherit"><button class="go" id="pesv">${tx("Save","حفظ")}</button>`,()=>{const i=document.getElementById("pev");setTimeout(()=>i.focus(),250);
+   document.getElementById("pesv").onclick=async()=>{const v=Math.max(0,+i.value||0),its=JSON.parse(JSON.stringify(m.planRaw||{}));its[k]=Object.assign({},its[k]||{},{plan:v});
+    try{await put("settings","plan",{items:its});close();toast(tx("Saved","تم الحفظ"));setTimeout(reload,500)}catch(e){toast(tx("Could not save, try again","ما انحفظ، جرب مرة ثانية"))}}})},true); }
  document.getElementById("gear").onclick=()=>{if(OK)return;show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("gear-six")}</span>${tx("Settings","الإعدادات")}</h3>
    <div class="setl">${PH("translate")}<span>${tx("Language","اللغة")}</span></div><div class="cwseg" style="margin:0 0 16px"><button data-l="en" class="${AR?"":"on"}">English</button><button data-l="ar" class="${AR?"on":""}">العربية</button></div>
+   <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
    <button class="setb" id="sout">${PH("sign-out")}<span>${tx("Sign out","تسجيل الخروج")}</span></button>
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
+   document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
    document.getElementById("sout").onclick=async()=>{try{await sb.auth.signOut()}catch(e){}location.reload()}})};
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");

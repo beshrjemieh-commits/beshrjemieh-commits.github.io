@@ -282,3 +282,6 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .mnav{display:flex;align-items:center;gap:6px;margin-bottom:4px}.mnav h4{flex:1;text-align:center;margin:0!important}
 .mnav button{display:flex;align-items:center;gap:2px;height:34px;padding:0 10px;border:0;border-radius:17px;background:#F1F5F9;color:#2563EB;font:500 13px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer;min-width:96px}
 .mnav .mnext{justify-content:flex-end}.mnav button:disabled{visibility:hidden}.mnav .ph{width:16px;height:16px}.mnsp{min-width:96px}
+.pen{display:inline-flex;align-items:center;gap:6px}
+.pedit{border:0;background:#EFF4FB;color:#2563EB;width:28px;height:28px;border-radius:9px;display:inline-grid;place-items:center;padding:0;margin:-6px 0;cursor:pointer}
+.pedit svg{width:15px;height:15px}
