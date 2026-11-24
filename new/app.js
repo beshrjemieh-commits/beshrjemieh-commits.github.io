@@ -337,7 +337,9 @@ function cards(m){
  const diff=Math.round(m.usual-m.todayDaily);
  const e={t:tx("Expenses","المصاريف"),ic:"receipt",v:M(m.todaySum),line:m.usual>0&&diff>0?tx(`${RS}${fmt(diff)} under usual`,`أقل بـ ${RS}${fmt(diff)}`):tx("Today","اليوم"),chart:(p,o)=>K.bars(m.days7.map(v=>v||0.0001),ACC.e,p,o),hero:"bars"};
  const drop=m.G2.find(g=>g.drop),top=m.G2.filter(g=>g.last&&g.best&&g.last.price-g.best.price>=.5).sort((a,b)=>(b.last.price-b.best.price)-(a.last.price-a.best.price))[0]||m.G2[0];
- const s={t:tx("Store","المتجر"),ic:"shopping-cart",v:drop?esc(drop.best.store):top?esc(top.best.store):"—",line:drop?tx("Price dropped","السعر نزل"):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),
+ // Beshr 2026-11-25: no store name (e.g. "Panda") as the Store card's main text: show the basket (shopping list total at the cheapest prices), else the item count
+ const bk=(m.list||[]).filter(g=>g.best),bkT=p2(bk.reduce((a,g)=>a+g.best.price*Math.max(1,+(m.shopQty||{})[g.k]||1),0));
+ const s={t:tx("Store","المتجر"),ic:"shopping-cart",v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),esc(drop.item).slice(0,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),esc(top.item).slice(0,22),ACC.s,p):""};
  const tp=topPick(m.deals),d=tp||m.deals.slice().sort(byScore)[0],hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
