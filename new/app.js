@@ -60,6 +60,19 @@ const SB_URL="https://rvqjjbgeossfygaglohe.supabase.co",SB_KEY="sb_publishable_D
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,lock:async(n,t,fn)=>fn()}});
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 async function put(coll,id,data){const {error}=await sb.from("app_docs").upsert({coll,id,data,updated_at:new Date().toISOString()},{onConflict:"user_id,coll,id"});if(error)throw error}
+async function del(coll,id){const {error}=await sb.from("app_docs").delete().eq("coll",coll).eq("id",id);if(error)throw error}
+// ---------- bank SMS reader (same rules as the full app) ----------
+const AR_D=t=>String(t||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/٫/g,".").replace(/٬/g,",");
+const SMS_CAT=[["carcare",/(car wash|مغسلة|tire|tyre|كفرات|زيوت|oil change|ورشة|صيانة|قطع غيار|najm|نجم)/i],["fuel",/(aldrees|petromin|sasco|naft|نفط|الدريس|بترومين|ساسكو|محطة|fuel|petrol|بنزين)/i],["grocery",/(بقالة|baqala|bakala|grocery|تموينات|mini ?market|ميني ماركت)/i],["market",/(panda|بنده|tamimi|التميمي|danube|الدانوب|othaim|العثيم|lulu|لولو|carrefour|كارفور|farm|المزرعة|manuel|nesto|hyper|هايبر|supermarket|سوبرماركت|nana)/i],["shop",/(amazon|امازون|noon|نون|namshi|shein|centrepoint|zara|h&m|ikea|ايكيا|jarir|جرير|extra|اكسترا|mall|مول|apple store|nike|adidas|max fashion|redtag)/i],["smoke",/(tobacco|smoke|iqos|vape|دخان|تبغ|معسل|شيشة|سجائر|ايكوس)/i],["coffee",/(starbucks|coffee|caf[eé]|كافيه|قهوة|كوفي|dunkin|tim hortons|half million|هاف مليون|barns|بارنز|dose|brew|roaster|costa)/i],["food",/(jahez|hunger|talabat|mrsool|keeta|toyou|restaurant|مطعم|جاهز|هنقر|مرسول|burger|برجر|pizza|kfc|mcdonald|albaik|البيك|herfy|هرفي|shawarma|شاورما|bakery|مخبز|baskin)/i],["fun",/(cinema|vox|muvi|amc|playstation|psn|steam|xbox|game|سينما|ترفيه|boulevard|webook|bowling)/i],["phone",/(mobily|موبايلي|stc|zain|زين|salam|virgin mobile)/i],["util",/(saudi electricity|الكهرباء|nwc|المياه|internet|انترنت)/i]];
+const smsCat=t=>{for(const [k,re] of SMS_CAT)if(re.test(t))return k;return "flex"};
+const smsIn=t=>/(حوالة واردة|إيداع|ايداع|استرداد|credit(ed)?\b|deposit|refund|incoming|received|راتب|salary)/i.test(t)&&!/(شراء|purchase|pos|سحب|withdraw|مدفوعات|payment)/i.test(t);
+const smsAmt=t=>{for(const re of [/(?:SAR|SR|ر\.?\s?س\.?|ريال|⃁)\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i,/([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:SAR|SR|ر\.?\s?س\.?|ريال)/i,/(?:مبلغ|المبلغ|بمبلغ|amount|amt)\s*[:：]?\s*(?:SAR|SR|ر\.?س\.?)?\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i]){const m=t.match(re);if(m){const v=parseFloat(m[1].replace(/,/g,""));if(v>0)return v}}return null};
+const smsWho=t=>{const m=t.match(/(?:لدى|من عند|في متجر|التاجر|merchant|\bat\b)\s*[:：]?\s*([^\n;:]{2,40})/i);return m?m[1].replace(/\s+(في|on|بتاريخ)\b.*$/i,"").trim():""};
+function readSms(raw){const t=AR_D(raw).replace(/\r/g,"").trim();if(!t)return [];let b=t.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
+ if(b.length==1){const p=t.split(/\n(?=(?:شراء|purchase|pos purchase|سحب|مدفوعات|payment|online purchase|عملية شراء|حوالة))/i);if(p.length>1)b=p.map(x=>x.trim()).filter(Boolean)}
+ return b.map(x=>{const a=smsAmt(x);if(!a||smsIn(x))return null;const w=smsWho(x);return {amount:Math.round(a*100)/100,note:(w||x.split("\n")[0]).slice(0,60),cat:smsCat(w+" "+x)}}).filter(Boolean)}
+// ?sms=<text> from the iPhone Shortcut: kept until the app has its data, then logged automatically (with Undo)
+let SMS_LINK=null;try{const u=new URL(location.href),v=u.searchParams.get("sms");if(v!==null){u.searchParams.delete("sms");history.replaceState(null,"",u.pathname+u.search+u.hash);SMS_LINK=v}}catch(e){}
 async function load(){
  const C=["expenses","income","debts","goals","prices","products","deals","settings"];let rows=[],from=0;
  for(;;){const {data,error}=await sb.from("app_docs").select("coll,id,data").in("coll",C).range(from,from+999);if(error)throw error;rows=rows.concat(data);if(data.length<1000)break;from+=1000}
@@ -396,6 +409,12 @@ function start(m,soft){
   deck.addEventListener("pointerup",up);deck.addEventListener("pointercancel",up);setTimeout(()=>tab(0)); }
  // ---- writes ----
  const toast=window._toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
+ window._smsLog=async raw=>{const its=readSms(raw);if(!its.length){toast(tx("No payment found in the bank message","ما لقيت مبلغ دفع في رسالة البنك"));return}
+  let seen=[];try{seen=JSON.parse(localStorage.getItem("w-smsseen")||"[]")}catch(e){}const key=String(raw).replace(/\s+/g," ").trim().slice(0,200);if(seen.includes(key)){toast(tx("Already logged","مسجّل من قبل"));return}
+  const ids=[];try{for(const it of its){const id=newId();ids.push(id);await put("expenses",id,{date:ymd(new Date()),amount:it.amount,cat:it.cat,note:it.note,createdAt:Date.now(),src:"sms"})}}catch(e){toast(tx("Couldn't save the expense","ما انحفظ المصروف"));return}
+  try{seen.push(key);localStorage.setItem("w-smsseen",JSON.stringify(seen.slice(-30)))}catch(e){}
+  const tot=its.reduce((x,y)=>x+y.amount,0);reload();setTimeout(()=>{const ap=document.getElementById("app");ap.insertAdjacentHTML("beforeend",`<button class="smsbar">${PH("receipt")}<span>${tx(`Logged ${RS}${p2(tot)}`,`انسجّل ${RS}${p2(tot)}`)} · ${esc(its[0].note).slice(0,22)}</span><b>${tx("Undo","تراجع")}</b></button>`);const bar=ap.querySelector(".smsbar");const kill=setTimeout(()=>bar.remove(),8000);
+   bar.onclick=async()=>{clearTimeout(kill);bar.remove();try{for(const id of ids)await del("expenses",id);seen=seen.filter(x=>x!=key);localStorage.setItem("w-smsseen",JSON.stringify(seen))}catch(e){toast(tx("Couldn't undo","ما قدرت أتراجع"));return}toast(tx("Removed","انحذف"));reload()}},1200)};
  const addCost=async(amount,cat,note)=>{const d=ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
  const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
   // fetch fresh data and redraw in place, keeping the same card/window open (no page reload, no loading screen)
@@ -411,11 +430,11 @@ function start(m,soft){
  const ACT=[()=>show(ACC.e,`<h3><span style="color:${ACC.e};line-height:0">${PH("plus-circle")}</span>${tx("Add expense","أضف مصروف")}</h3><button class="pmsg">${PH("receipt")}<span>${tx("Paste latest bank message","الصق آخر رسالة من البنك")}</span></button><div class="amt"><span>${RS}</span><input id="amt" inputmode="decimal" placeholder="0"></div><div class="chips">${LOG_CATS.filter(k=>BY[k]).slice(0,10).map((k,i)=>`<button data-k="${k}" class="${i?"":"sel"}">${nm(k)}</button>`).join("")}</div><input class="txt" id="nt" placeholder="${tx("Note (optional)","ملاحظة (اختياري)")}"><button class="go" id="sv" disabled>${tx("Save","حفظ")}</button>`,()=>{
    const a=document.getElementById("amt"),b=document.getElementById("sv");setTimeout(()=>a.focus(),350);a.oninput=()=>{b.disabled=!(+a.value>0)};
    // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note
-   sh.querySelector(".pmsg").onclick=async()=>{let t="";try{t=await navigator.clipboard.readText()}catch(e){}t=String(t||"").trim();
-    if(!t){toast(tx("Copy the bank message first, then tap here","انسخ رسالة البنك أول، بعدين اضغط هنا"));return}
-    const n=t.replace(/,/g,""),mm=n.match(/(?:SAR|ر\.?س|ريال|⃁|مبلغ|amount)[:\s]*([\d]+(?:\.\d+)?)/i)||n.match(/([\d]+(?:\.\d+)?)\s*(?:SAR|ر\.?س|ريال)/i)||n.match(/(\d+\.\d{2})/);
-    if(!mm){toast(tx("Couldn't find an amount in the copied text","ما لقيت مبلغ في النص المنسوخ"));return}
-    a.value=mm[1];b.disabled=!(+a.value>0);const at=t.match(/(?:\bat\b|\bfrom\b|لدى|من|في|merchant)\s*[:：]?\s*([^\n]{2,40})/i);document.getElementById("nt").value=(at?at[1]:t.split("\n")[0]).trim().slice(0,60);{const g=grpOf([document.getElementById("nt").value],""),want={groc:"grocery",cafe:"coffee",food:"food"}[g],btn=want&&sh.querySelector(`.chips button[data-k="${want}"]`);if(btn){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));btn.classList.add("sel")}}toast(tx("Filled from your message","انعبى من رسالتك"))};
+   // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note; if iPhone won't share the clipboard, a box to paste into appears
+   const fill=t=>{const it=readSms(t)[0];if(!it){toast(tx("Couldn't find a payment in that message","ما لقيت مبلغ دفع في الرسالة"));return}
+    a.value=it.amount;b.disabled=false;document.getElementById("nt").value=it.note;const btn=sh.querySelector(`.chips button[data-k="${it.cat}"]`);if(btn){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));btn.classList.add("sel")}toast(tx("Filled from your message","انعبى من رسالتك"))};
+   sh.querySelector(".pmsg").onclick=async()=>{let t="";try{t=await navigator.clipboard.readText()}catch(e){}t=String(t||"").trim();if(t){fill(t);return}
+    const pm=sh.querySelector(".pmsg");if(sh.querySelector("#pbox"))return;pm.insertAdjacentHTML("afterend",`<textarea id="pbox" class="txt pbox" rows="3" placeholder="${tx("Touch and hold here, then tap Paste","اضغط مطولاً هنا ثم اختر لصق")}"></textarea>`);const pb=sh.querySelector("#pbox");pb.focus();pb.oninput=()=>{if(pb.value.trim()){fill(pb.value);pb.remove()}}};
    sh.querySelectorAll(".chips button").forEach(x=>x.onclick=()=>{sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));x.classList.add("sel")});
    b.onclick=async()=>{b.disabled=true;try{await addCost(+a.value,sh.querySelector(".chips .sel").dataset.k,document.getElementById("nt").value);close();toast(tx("Saved","انحفظ"));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}}),
   // Beshr 2026-11-24: Add bill stays in this app: take a photo or upload a file, Claude reads it, he ticks the items to save
@@ -625,6 +644,7 @@ function saveCache(R,uid){uid=uid||CUID;try{const t=JSON.stringify({uid,R,at:Dat
 function softApply(R){const sh=document.getElementById("sheet");if(sh&&sh.classList.contains("on")){setTimeout(()=>softApply(R),1000);return}
  try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
  start(model(R),1)}
+const smsGo=()=>{if(SMS_LINK!=null&&window._smsLog){const t=SMS_LINK;SMS_LINK=null;setTimeout(()=>window._smsLog(t),300)}};
 // ---------- boot ----------
 // Visible height. iPhone Home Screen apps can report the full screen height while the page starts below the status bar,
 // which pushed the bottom of the app (quick bar, sheets) off screen (Beshr 2026-11-24). Take the smallest height and remove the status bar in that case.
@@ -640,8 +660,8 @@ const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend
 (async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Sign in on your wallet app first, then come back here.","سجّل دخولك في تطبيق المحفظة أول، بعدين ارجع هنا.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the wallet app","افتح تطبيق المحفظة")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
  const uid=data.session.user&&data.session.user.id,c=readCache(uid);
- if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}window.__spReady=1;return}
+ if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}window.__spReady=1;smsGo();return}
  gate(`<span class="think" style="justify-content:center"><i></i>${tx("Loading your data","أحمّل بياناتك")}</span>`);
- const R=await load();saveCache(R,uid);const m=model(R);document.getElementById("gate").remove();start(m);window.__spReady=1}
+ const R=await load();saveCache(R,uid);const m=model(R);document.getElementById("gate").remove();start(m);window.__spReady=1;smsGo()}
  catch(e){window.__spReady=1;gate(`${tx("Couldn't load your data. Check your connection and reload.","ما قدرت أحمّل بياناتك. تأكد من الاتصال وحدّث الصفحة.")}<br><small style="color:${G}">${esc(e&&e.message||e)}</small>`)}})();
 })();
