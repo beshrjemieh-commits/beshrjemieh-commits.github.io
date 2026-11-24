@@ -302,3 +302,13 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .afn small em{font-style:normal;color:#16A34A;font-weight:600}
 .dkv{margin:4px 0 2px}
 .fkind button{font-size:13px}
+.slist{margin-top:2px}
+.slr{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:.5px solid #F1F5F9}
+.slr img,.slr .slph{width:32px;height:32px;border-radius:8px;object-fit:contain;background:#F8FAFC;flex:none;display:grid;place-items:center;color:#94A3B8;font-style:normal}
+.slr .slph svg{width:16px;height:16px}
+.sln{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}.sln b{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden}.sln small{font-size:11px;color:#64748B}
+.slp{font-size:14px;font-weight:600;color:#16A34A}
+.slx{border:0;background:none;color:#94A3B8;width:32px;height:32px;display:grid;place-items:center;padding:0;cursor:pointer;margin-inline-end:-6px}.slx svg{width:16px;height:16px}
+.afr.sm{padding:6px 0;gap:8px}.afr.sm img,.afr.sm .aph{width:32px;height:32px;border-radius:8px}.afr.sm .afn b{font-size:14px;font-weight:500}.afr.sm .afn small{font-size:11px}
+.afr2{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}.afr2 small{font-size:11px;font-weight:600;white-space:nowrap}.afr.sm .afp{font-size:14px}
+.afn em.bad{color:#DC2626}
