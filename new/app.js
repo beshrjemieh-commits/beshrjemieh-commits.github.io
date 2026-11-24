@@ -173,6 +173,10 @@ function famSheetHTML(g){const ps=g.map(d=>d.price).filter(Boolean),lo=Math.min(
   (ps.length>1&&hi>lo?`<div class="arng"><i style="inset-inline-start:0;width:100%"></i>${g.filter(d=>d.price).map(d=>`<u style="inset-inline-start:${(d.price-lo)/(hi-lo)*100}%"></u>`).join("")}</div><div class="arl"><span>${M(lo)}</span><span>${tx(`${M(hi-lo)} difference`,`فرق ${M(hi-lo)}`)}</span><span>${M(hi)}</span></div>`:"")+`</div>`}
 // Beshr 2026-11-24 (later): keep it simple. By category only, one row per item: name, market price, current price. Tap = open the ad.
 // Added rows (Beshr 2026-11-24, option 1): one thin line per deal (photo, name, price, % off); swipe left or right to delete, with Undo
+// marquee (Beshr 2026-11-25): text too long for its box slides sideways and back so all of it can be read
+window._mqOff=el=>{const sp=el.querySelector(":scope>.mq");if(sp){el.innerHTML=sp.innerHTML;el.classList.remove("mqw")}};
+window._mq=el=>{window._mqOff(el);if(el.scrollWidth<=el.clientWidth+1)return;el.innerHTML=`<span class="mq">${el.innerHTML}</span>`;el.classList.add("mqw");const sp=el.firstChild,d=sp.scrollWidth-el.clientWidth;if(d<=1){window._mqOff(el);return}
+ const rtl=getComputedStyle(el).direction=="rtl";sp.style.setProperty("--mx",(rtl?d:-d)+"px");sp.style.animationDuration=Math.max(5,3+d/25)+"s"};
 // Added (Beshr 2026-11-25): iPhone Photos-style grid, 3 square tiles per row with price + % off on the photo; tap opens the ad, press and hold to delete (Undo)
 function addedRows(list){return `<div class="agrid">${list.slice().sort(byScore).map(d=>`<div class="asw agt" data-did="${esc(d.id)}"><a class="agl" href="${esc(dLink(d))}" target="_blank" rel="noopener" draggable="false">${d.image?`<img src="${esc(d.image)}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()">`:""}<i class="agf">${PH("fire")}</i>${d.pct?`<em class="agd">▼${d.pct}%</em>`:""}<span class="agb"><b class="agn" dir="auto">${esc(d.name)}</b><b class="agp">${d.price?M(d.price):""}</b></span></a></div>`).join("")}</div>`}
 // Added (Beshr 2026-11-25): small chips All / Used / New, then category chips, then rows; no count in the header
@@ -370,12 +374,15 @@ function start(m,soft){
  window._nextCharts=()=>{if(OK)return;try{localStorage.setItem("s-visit",(+localStorage.getItem("s-visit")||0)+1)}catch(e){}nextCharts(now());setTimeout(()=>window._fitCards&&window._fitCards(),60)};
  if(!window._visH){window._visH=1;let hid=0;document.addEventListener("visibilitychange",()=>{if(document.hidden)hid=1;else if(hid){hid=0;window._nextCharts&&window._nextCharts()}})}
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
- // Beshr 2026-11-25: text shrinks to fit its box (big name: one line if it fits at 18px+, else up to two lines; top-right line: 13px down to 10px)
- const fitBig=b=>{if(!b)return;const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();
-  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim())L=Math.min(L,r.left)});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min(170,L-br.left-10))+"px"}
+ // Beshr 2026-11-25: text fits its box: one line if it fits at 18px+, else two lines (16px+) with the 2nd line's bottom lined up with the chart/price beside it, else it slides sideways (marquee) so it can be read
+ const fitBig=b=>{if(!b)return;window._mqOff(b);b.style.transform="";const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();let bots=[];
+  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);if(!e.firstElementChild)bots.push(r.bottom)}});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min(170,L-br.left-10))+"px"}
   b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
   two=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="normal";b.style.lineHeight="1.15";return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=f*1.15*2+2};
-  for(let f=base;f>=18;f--)if(one(f))return;for(let f=Math.min(base,22);f>=13;f--)if(two(f))return;b.style.textOverflow="ellipsis"};
+  for(let f=base;f>=18;f--)if(one(f))return;
+  for(let f=Math.min(base,22);f>=16;f--)if(two(f)){const bb=b.getBoundingClientRect().bottom-f*.2;let best=null;bots.forEach(y=>{const d=y-bb;if(d>=-2&&d<=28&&(best==null||d>best))best=d});
+   if(best&&b.getBoundingClientRect().bottom+best<=cr.bottom-10)b.style.transform=`translateY(${Math.round(best)}px)`;return}
+  one(18);window._mq(b)};
  const fitTm=tm=>{if(!tm)return;const k=tm.parentElement;tm.style.fontSize="";for(let f=13;f>=10&&k.scrollWidth>k.clientWidth+1;f-=.5)tm.style.fontSize=f+"px"};
  window._fitCards=()=>document.querySelectorAll("#app .card").forEach(c=>{fitBig(c.querySelector(".big"));fitTm(c.querySelector(".tm"))});
  window._fitCards();if(document.fonts)document.fonts.ready.then(()=>window._fitCards&&window._fitCards());
@@ -425,7 +432,7 @@ function start(m,soft){
     <div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.market&&d.price?`<div class="dkbar"><i style="width:${Math.max(8,Math.min(100,d.price/d.market*100))}%"></i></div><div class="dkl"><span>${tx("Price","السعر")}</span>${save?`<b>${tx("Save","توفّر")} ${M(save)}</b>`:""}<span>${tx("Market","السوق")}</span></div>`:""}
     ${vChip(d)?`<div class="vrow" style="margin-top:8px">${vChip(d)}</div>`:""}<p class="dkh">${PH("sparkle")}<span>${hint}</span></p></div><i class="stamp keep">${tx("ADD","أضف")}</i><i class="stamp drop">${tx("SKIP","تخطَّ")}</i></div>`};
   const draw=()=>{deck.innerHTML=q.length?q.slice(0,3).map(face).reverse().join(""):`<div class="empty dkend">${dMode==2?"":tx("All caught up. New deals come with the next hunt.","خلصت الصفقات. الجديدة تجي مع البحث الجاي.")}</div>`;
-   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*12}px) scale(${1-i*.05})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=fw.querySelector(".swh").style.visibility=q.length?"":"hidden";left()};
+   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*12}px) scale(${1-i*.05})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=fw.querySelector(".swh").style.visibility=q.length?"":"hidden";left();deck.querySelectorAll(".dkn").forEach(n=>{n.style.whiteSpace="normal";const lh=parseFloat(getComputedStyle(n).lineHeight)||26;if(n.scrollHeight>lh*2+2||n.scrollWidth>n.clientWidth+1){n.style.whiteSpace="nowrap";window._mq(n)}})};
   const save=(d,st)=>{const raw=Object.assign({},d.raw);delete raw.id;delete raw.shared;raw.status=st;put("deals",d.id,raw).catch(()=>toast(tx("Couldn't save","ما انحفظ")))};
   const fling=(dir)=>{const el=[...deck.querySelectorAll(".dk")].pop(),d=q[0];if(!el||!d)return;const w=dir>0?1:-1;
    el.style.transition="transform .32s cubic-bezier(.3,.6,.2,1),opacity .32s";el.style.transform=`translate(${w*460}px,-30px) rotate(${w*22}deg)`;el.style.opacity="0";
