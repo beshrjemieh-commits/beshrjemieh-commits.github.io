@@ -100,7 +100,7 @@ function model(R){
  const mineK=new Set(G2.map(g=>(g.item+"|"+g.size).toLowerCase())),ob=new Map();
  (R.community||[]).forEach(c=>{const it=norm(c.item),sz=norm(c.size),st=norm(c.store),pr=+c.price||0;if(!it||!(pr>0)||/\((shared|online)\)/i.test(st))return;const k=(it+"|"+sz).toLowerCase();if(mineK.has(k))return;const o=ob.get(k);if(!o||pr<o.price)ob.set(k,{k,item:it,size:sz,store:st,price:pr,people:+c.people||1,date:String(c.last_date||"")})});
  const others=[...ob.values()].map(o=>Object.assign(o,{grp:grpOf([o.store],o.item)})).sort((a,b)=>a.item.localeCompare(b.item));
- return {photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,deals,hunt,debts,goals,today,mon,community:R.community}}
+ return {planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,deals,hunt,debts,goals,today,mon,community:R.community}}
 // ---------- page pieces ----------
 const sec=(h,b)=>`<div class="sec"><h4>${h}</h4>${b}</div>`;
 const tiles=a=>`<div class="tiles">${a.map(([l,v,c])=>`<div class="tile"><small>${l}</small><b style="${c?"color:"+c:""}">${v}</b></div>`).join("")}</div>`;
@@ -137,6 +137,19 @@ function addedHTML(list){if(!list.length)return "";const cats={};list.forEach(d=
    const ps=g.map(d=>d.price).filter(Boolean),lo=Math.min(...ps),hi=Math.max(...ps),best=g.slice().sort((a,b)=>(b.pct-a.pct)||(a.price-b.price))[0];
    return `<div class="afam"><div class="afh"><b>${esc(dFam(g[0]))}</b><span>${g.length}</span><em>${M(lo)} – ${M(hi)}</em></div>`+g.sort((a,b)=>a.price-b.price).map(d=>`<a class="arow${d==best?" best":""}" href="${esc(dLink(d))}" target="_blank" rel="noopener">${d.image?`<img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer">`:`<i class="aph">${PH("fire")}</i>`}<span class="ari"><b>${M(d.price)}${d.pct?` <small>▼${d.pct}%</small>`:""}</b><span class="atags">${dTags(d).map(t=>`<i>${t}</i>`).join("")}${d==best?`<i class="bt">${tx("Best value","أفضل قيمة")}</i>`:""}</span></span><span class="ago">${tx("Open","افتح")}</span></a>`).join("")+
     (hi>lo?`<div class="arng"><i style="inset-inline-start:0;width:100%"></i>${g.map(d=>`<u style="inset-inline-start:${(d.price-lo)/(hi-lo)*100}%"></u>`).join("")}</div><div class="arl"><span>${M(lo)}</span><span>${tx(`${M(hi-lo)} difference`,`فرق ${M(hi-lo)}`)}</span><span>${M(hi)}</span></div>`:"")+`</div>`}).join("")+`</div>`}).join("")}
+// Expenses ring for one month (mon = "YYYY-MM"); left = "left for living" (this month only)
+const monName=mon=>{const [y,mm]=mon.split("-").map(Number);return new Date(y,mm-1,15).toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{month:"long",year:new Date().getFullYear()==y?undefined:"numeric"})};
+const prevMon=mon=>{const [y,mm]=mon.split("-").map(Number),d=new Date(y,mm-2,15);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
+function monCats(m,mon){const sp={};m.ex.filter(x=>x.date.startsWith(mon)).forEach(x=>sp[x.cat]=(sp[x.cat]||0)+x.amount);return Object.entries(sp).sort((a,b)=>b[1]-a[1])}
+function ringFor(m,mon,left){const cur=mon==m.mon,cats=monCats(m,mon),tot=cats.reduce((a,x)=>a+x[1],0),[y,mm]=mon.split("-").map(Number),days=cur?new Date().getDate():new Date(y,mm,0).getDate(),
+  first=m.ex.reduce((a,x)=>x.date<a?x.date:a,m.mon+"-99").slice(0,7),pm=prevMon(mon),hasPrev=pm>=first;
+ const nav=`<div class="mnav"><button data-mnav="${pm}" ${hasPrev?"":"disabled"} aria-label="${tx("Earlier month","الشهر اللي قبل")}">${PH("caret-left")}<span>${hasPrev?monName(pm):""}</span></button><h4>${cur?tx("This month","هالشهر"):monName(mon)}</h4>${cur?`<span class="mnsp"></span>`:`<button data-mnav="${(()=>{const [a,b]=mon.split("-").map(Number),d=new Date(a,b,15);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")})()}" class="mnext"><span>${tx("Next","التالي")}</span>${PH("caret-right")}</button>`}</div>`;
+ if(!tot)return nav+`<div class="empty">${tx("No costs this month","ما فيه مصاريف هالشهر")}</div>`;
+ const top=cats.slice(0,6),rest=cats.slice(6),seg=top.map(([k,v])=>({k,n:nm(k),v})).concat(rest.length?[{k:"_other",n:tx("Other","أخرى"),v:rest.reduce((a,x)=>a+x[1],0)}]:[]),R=78,L=2*Math.PI*R;let acc=0;
+ const arcs=seg.map((x,i)=>{const len=x.v/tot*L,g=seg.length>1?Math.min(3,len/3):0,o=`<circle data-cat="${x.k}" data-mon="${mon}" r="${R}" cx="100" cy="100" fill="none" stroke="${DCOL[i]}" stroke-width="28" stroke-dasharray="${Math.max(.5,len-g)} ${L}" stroke-dashoffset="${-acc}" style="--l:${L}"/>`;acc+=len;return o}).join("");
+ return nav+`<div class="dnut"><svg viewBox="0 0 200 200" width="210" height="210" style="transform:rotate(-90deg)">${arcs}</svg><div class="dctr"><small>${tx("Spent","صرفت")}</small><b>${M(tot)}</b><small>${tx(`${M(tot/days)} a day`,`${M(tot/days)} باليوم`)}</small></div></div>
+  <div class="dleg">${seg.map((x,i)=>`<button data-cat="${x.k}" data-mon="${mon}"><i style="background:${DCOL[i]}"></i><span>${x.n}</span><b>${M(x.v)}</b><small>${Math.round(x.v/tot*100)}%</small></button>`).join("")}</div>
+  ${cur&&left!=null?`<div class="dleft">${tx("Left for living this month","باقي للمعيشة هالشهر")} <b style="color:${GR}">${M(left)}</b></div>`:""}`}
 // Forsa: deal link (listing, or a web search for it), tabs by hunt word, one row per deal
 const dLink=d=>d.url||"https://www.google.com/search?q="+encodeURIComponent(d.title);
 function fTabs(m){const und=m.deals.filter(d=>d.status!="saved"),T=[{n:tx("All","الكل"),list:und}];
@@ -173,7 +186,7 @@ function build(m){
  const GR4=[[tx("Must pay","الالتزامات"),m.items.filter(i=>i.g=="Must pay").map(i=>i.k)],[tx("Living","المعيشة"),m.items.filter(i=>i.g=="Living"||i.g=="Personal").map(i=>i.k)],[tx("Saving","الادخار"),m.items.filter(i=>i.g=="Saving"&&i.k!="debt").map(i=>i.k)],[tx("Debt","الديون"),["debt"]]];
  const catEntries=k=>m.monthEx.filter(x=>x.cat==k);
  const budget=GR4.map(([n,ks],gi)=>{const pl=groupSum(ks),sp=spentOf(ks);
-  let l2=r2(ks.filter(k=>m.planOf(k)>0||(m.spent[k]||0)>0).map(k=>[nm(k),M(m.planOf(k)),m.planOf(k)?(m.spent[k]||0)/m.planOf(k):null]));
+  let l2=r2(ks.filter(k=>gi==0||m.planOf(k)>0||(m.spent[k]||0)>0).map(k=>[`<span class="pen">${nm(k)}<button class="pedit" data-pe="${k}" aria-label="${tx("Edit","تعديل")}">${PH("pencil-simple")}</button></span>`,M(m.planOf(k)),m.planOf(k)?(m.spent[k]||0)/m.planOf(k):null]));
   let l3=ks.map(k=>{const es=catEntries(k);return es.length?[nm(k),es.slice(0,4).map(x=>`${when(x.date)} · ${M(x.amount)}${x.note?" · "+esc(x.note):""}`).join("<br>")+(es.length>4?`<br>${tx("and","و")} ${es.length-4} ${tx("more","غيرها")}`:"")]:null}).filter(Boolean);
   if(gi==2&&m.goals.length){l2+=r2(m.goals.map(g=>[esc(g.name),M(g.saved),g.target?g.saved/g.target:null]));l3=l3.concat(m.goals.map(g=>[esc(g.name),tx(`${M(g.saved)} of ${M(g.target)}`,`${M(g.saved)} من ${M(g.target)}`)]))}
   if(gi==3&&m.debts.length){l2+=r2(m.debts.map(d=>[esc(d.name),M(Math.max(0,d.total-d.paid)),d.total?d.paid/d.total:null,GR]));const T=m.debts.reduce((a,d)=>a+d.total,0),P=m.debts.reduce((a,d)=>a+d.paid,0);l3=l3.concat([[tx("Total debt","مجموع الديون"),M(T)],[tx("Paid so far","سددت لين الحين"),M(P)],[tx("Left","الباقي"),M(T-P)]])}
@@ -187,14 +200,15 @@ function build(m){
  const daily=m.items.filter(i=>i.g=="Living"||i.g=="Personal").map(i=>i.k),dPlan=groupSum(daily),dSpent=spentOf(daily),dom=new Date().getDate();
  const cats=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),totM=monOut||1;
  const E=[sec(tx("Today","اليوم"),m.todayEx.length?rows(m.todayEx.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):`<div class="empty">${tx("Nothing yet today","ما فيه شي اليوم")}</div>`),
-  sec(tx("Add a cost","أضف مصروف"),`<div class="xadd"><textarea class="sms" rows="1" placeholder="${tx("📋 Paste a bank message","📋 الصق رسالة البنك")}"></textarea><div style="display:flex;gap:8px;margin-top:8px"><input class="xa" inputmode="decimal" placeholder="${tx("Amount","المبلغ")}"><button class="xb">${tx("Add cost","أضف")}</button></div><input class="xa xn" style="margin-top:8px" placeholder="${tx("Note (optional)","ملاحظة (اختياري)")}"><div class="xc">${LOG_CATS.filter(k=>BY[k]).slice(0,10).map((k,i)=>`<button data-k="${k}" class="${i?"":"sel"}">${nm(k)}</button>`).join("")}</div></div>`),
   // Beshr 2026-11-24: one chart instead of rows: ring of this month's categories, centre = total spent (same number as the parts); tap a slice or name for the details
-  sec(tx("This month","هالشهر"),cats.length?(()=>{const top=cats.slice(0,6),rest=cats.slice(6),seg=top.map(([k,v])=>({k,n:nm(k),v})).concat(rest.length?[{k:"_other",n:tx("Other","أخرى"),v:rest.reduce((a,x)=>a+x[1],0)}]:[]),R=78,L=2*Math.PI*R;let acc=0;
-   const arcs=seg.map((x,i)=>{const len=x.v/totM*L,g=seg.length>1?Math.min(3,len/3):0,o=`<circle data-cat="${x.k}" r="${R}" cx="100" cy="100" fill="none" stroke="${DCOL[i]}" stroke-width="28" stroke-dasharray="${Math.max(.5,len-g)} ${L}" stroke-dashoffset="${-acc}" style="--l:${L}"/>`;acc+=len;return o}).join("");
-   return `<div class="dnut"><svg viewBox="0 0 200 200" width="210" height="210" style="transform:rotate(-90deg)">${arcs}</svg><div class="dctr"><small>${tx("Spent","صرفت")}</small><b>${M(monOut)}</b><small>${tx(`${M(monOut/dom)} a day`,`${M(monOut/dom)} باليوم`)}</small></div></div>
-    <div class="dleg">${seg.map((x,i)=>`<button data-cat="${x.k}"><i style="background:${DCOL[i]}"></i><span>${x.n}</span><b>${M(x.v)}</b><small>${Math.round(x.v/totM*100)}%</small></button>`).join("")}</div>
-    ${dPlan?`<div class="dleft">${tx("Left for living this month","باقي للمعيشة هالشهر")} <b style="color:${GR}">${M(Math.max(0,dPlan-dSpent))}</b></div>`:""}`})():`<div class="empty">${tx("No costs this month yet","ما فيه مصاريف هالشهر")}</div>`),
-  sec(tx("Entries","السجل"),rows(m.ex.slice(0,15).map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])))];
+  // Beshr 2026-11-24: ring for this month, arrows step back to earlier months by name
+  `<div class="sec ringsec">${ringFor(m,m.mon,dPlan?Math.max(0,dPlan-dSpent):null)}</div>`,
+  // Beshr 2026-11-24: entries as a chart: last 14 days, one stacked bar per day (category colours as in the ring); tap a day for its costs
+  sec(tx("Last 14 days","آخر 14 يوم"),(()=>{const days=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return ymd(d)}),rank=k=>{const i=cats.findIndex(x=>x[0]==k);return i<0||i>5?6:i};
+   const per=days.map(d=>{const es=m.ex.filter(x=>x.date==d);return {d,es,t:es.reduce((a,x)=>a+x.amount,0)}}),mx=Math.max(1,...per.map(x=>x.t)),tot=per.reduce((a,x)=>a+x.t,0),big=per.slice().sort((a,b)=>b.t-a.t)[0];
+   if(!tot)return `<div class="empty">${tx("No costs in the last 14 days","ما فيه مصاريف آخر 14 يوم")}</div>`;
+   return `<div class="ebars" dir="ltr">${per.map((x,i)=>{const by={};x.es.forEach(e=>{const r=rank(e.cat);by[r]=(by[r]||0)+e.amount});return `<button class="eb${i==13?" today":""}" data-day="${x.d}" ${x.t?"":"disabled"}><span class="ebs" style="height:${Math.max(x.t?6:2,x.t/mx*110)}px">${Object.keys(by).sort((p,q)=>p-q).map(r=>`<i style="flex:${by[r]};background:${DCOL[r]}"></i>`).join("")}</span><small>${i%2==1||i==13?+x.d.slice(8):""}</small></button>`}).join("")}</div>
+    <div class="eleg"><span>${tx("14 days","14 يوم")} <b>${M(tot)}</b></span><span>${tx("Biggest","الأعلى")} <b>${M(big.t)}</b> · ${when(big.d)}</span></div>`})())];
  // store page
  const itemDig=g=>{const comm=(m.community||[]).filter(c=>String(c.item||"").toLowerCase()==g.item.toLowerCase()&&+c.price>0).sort((a,b)=>a.price-b.price)[0],inList=m.shopKeys.includes(g.k);
   return dig(hd(`<span>${esc(g.item)}</span><small class="ds">${esc([g.size,g.best.store].filter(Boolean).join(" · "))}</small>`,M(g.best.price.toFixed(g.best.price%1?2:0)),GR,g.photo),
@@ -241,7 +255,7 @@ function start(m){
  const hr=new Date().getHours(),greet=hr<12?tx("Good morning","صباح الخير"):hr<18?tx("Good afternoon","مساء الخير"):tx("Good evening","مساء الخير");
  const dstr=new Date().toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{weekday:"long",day:"numeric",month:"long"});
  const bandH=TOPS[0]+HH[0]-34,wave=`<svg viewBox="0 0 786 40" preserveAspectRatio="none"><path d="M0,20 C98,0 295,0 393,20 C491,40 688,40 786,20 L786,40 L0,40Z" fill="#16365E"/></svg>`;
- app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="edit" aria-label="${tx("Edit home","ترتيب الرئيسية")}">${PH("pencil-simple")}</button><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
+ app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
   +order.map((k,i)=>{const c=C[k];return `<div class="card c-${k}" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><span class="ctab">${PH(c.ic)}</span><div class="k">${c.t}<span class="tm">${c.line}</span></div><div class="big" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis">${c.v}</div><div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
   +`<div class="abar" style="background:none;box-shadow:none;height:84px">${[["plus-circle",tx("Add expense","أضف مصروف"),BLUE],["camera",tx("Add bill","أضف فاتورة"),BLUE],["fire",tx("New hunt","صيد جديد"),BLUE]].map(([i,l,c])=>`<div class="ab" role="button" tabindex="0" style="gap:6px"><span style="width:52px;height:52px;border-radius:26px;background:#fff;display:grid;place-items:center;color:${c};line-height:0;box-shadow:0 8px 20px -8px rgba(0,0,0,.45)">${PH(i)}</span>${l}</div>`).join("")}</div>`
   +(HK?`<div id="chip" style="position:absolute;left:0;right:0;margin:auto;width:max-content;max-width:330px;top:${TOPS[order.indexOf(HK)]+HH[order.indexOf(HK)]-14}px;z-index:15;background:${HK=="f"?"#FEF3C7":"#EEF2F7"};color:${HK=="f"?"#92400E":NAVY};font-size:13px;font-weight:600;padding:6px 12px;border-radius:14px;white-space:nowrap">${PH("sparkle")} ${C.H[HK]}</div>`:"")
@@ -267,7 +281,7 @@ function start(m){
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
-  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg"))return;
+  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav"))return;
   if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
@@ -311,10 +325,10 @@ function start(m){
  const toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
  const addCost=async(amount,cat,note)=>{const d=ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
  const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}setTimeout(()=>location.reload(),900)};
- { const c=document.querySelector('.card[data-k="e"]'),x=c.querySelector(".xadd");
+ { const c=document.querySelector('.card[data-k="e"]'),x=c.querySelector(".xadd");if(x){
    x.querySelectorAll(".xc button").forEach(b=>b.onclick=()=>{x.querySelectorAll(".xc button").forEach(y=>y.classList.remove("sel"));b.classList.add("sel")});
    const sm=x.querySelector(".sms"),a=x.querySelector(".xa");sm.addEventListener("input",()=>{const mm=sm.value.replace(/,/g,"").match(/(\d+(?:\.\d+)?)\s*(?:SAR|ر\.س|ريال)?/i);if(mm)a.value=mm[1]});
-   x.querySelector(".xb").onclick=async()=>{const v=+a.value;if(!(v>0))return;try{await addCost(v,x.querySelector(".xc .sel").dataset.k,x.querySelector(".xn").value||sm.value.slice(0,60));toast(tx("Added","انضاف"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}}; }
+   x.querySelector(".xb").onclick=async()=>{const v=+a.value;if(!(v>0))return;try{await addCost(v,x.querySelector(".xc .sel").dataset.k,x.querySelector(".xn").value||sm.value.slice(0,60));toast(tx("Added","انضاف"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}};} }
  const wire=root=>{root.querySelectorAll(".tbtn[data-oadd]").forEach(b=>b.onclick=async()=>{const o=m.others.find(x=>x.k==b.dataset.oadd);if(!o)return;b.disabled=true;try{await put("prices",newId(),{item:o.item.slice(0,80),price:Math.round(o.price*100)/100,store:(o.store||"Store not set").slice(0,50)+" (shared)",size:o.size.slice(0,40),date:o.date||ymd(new Date()),createdAt:Date.now()});toast(tx("Added to My items","انضاف لأغراضك"));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}});
  root.querySelectorAll(".tbtn[data-list]").forEach(b=>b.onclick=async()=>{const k=b.dataset.list,keys=m.shopKeys.includes(k)?m.shopKeys.filter(x=>x!=k):m.shopKeys.concat(k);try{await put("settings","shopping",{keys});toast(tx("List updated","انحدثت القائمة"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}});};wire(document);
  const sh=document.getElementById("sheet"),sc=document.getElementById("scrim"),close=()=>{sh.classList.remove("on");sc.classList.remove("on")};sc.onclick=close;
@@ -389,28 +403,43 @@ function start(m){
  }
 
  // ---- Expenses: tap a slice or a name -> details sheet ----
- { const ec=document.querySelector('.card[data-k="e"]'),cs=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),tot=cs.reduce((a,x)=>a+x[1],0)||1;
-  ec.addEventListener("click",ev=>{const t=ev.target.closest("[data-cat]");if(!t||!OK)return;ev.stopPropagation();const k=t.dataset.cat,ks=k=="_other"?cs.slice(6).map(x=>x[0]):[k],es=m.monthEx.filter(x=>ks.includes(x.cat)).sort((a,b)=>b.date.localeCompare(a.date)),v=es.reduce((a,x)=>a+x.amount,0),pl=ks.reduce((a,q)=>a+m.planOf(q),0),i=cs.findIndex(x=>x[0]==k),col=DCOL[k=="_other"?6:i]||NAVY;
+ { const ec=document.querySelector('.card[data-k="e"]');
+  ec.addEventListener("click",ev=>{const t=ev.target.closest("[data-cat]");if(!t||!OK)return;ev.stopPropagation();const mon=t.dataset.mon||m.mon,cs=monCats(m,mon),tot=cs.reduce((a,x)=>a+x[1],0)||1,k=t.dataset.cat,ks=k=="_other"?cs.slice(6).map(x=>x[0]):[k],es=m.ex.filter(x=>x.date.startsWith(mon)&&ks.includes(x.cat)).sort((a,b)=>b.date.localeCompare(a.date)),v=es.reduce((a,x)=>a+x.amount,0),pl=ks.reduce((a,q)=>a+m.planOf(q),0),i=cs.findIndex(x=>x[0]==k),col=DCOL[k=="_other"?6:i]||NAVY;
    show(col,`<h3><i style="width:14px;height:14px;border-radius:4px;background:${col};display:inline-block"></i>${k=="_other"?tx("Other","أخرى"):nm(k)}</h3>
     <div class="ptr"><div><small>${tx("Spent","صرفت")}</small><b>${M(v)}</b><small>${Math.round(v/tot*100)}% ${tx("of the month","من الشهر")}</small></div>${pl?`<div><small>${tx("Plan","الخطة")}</small><b>${M(pl)}</b><small style="color:${v>pl?"#DC2626":GR}">${v>pl?tx(`${M(v-pl)} over`,`زايد ${M(v-pl)}`):tx(`${M(pl-v)} left`,`باقي ${M(pl-v)}`)}</small></div>`:`<div><small>${tx("Costs","المصاريف")}</small><b>${es.length}</b><small>${tx(`about ${M(v/Math.max(1,es.length))} each`,`تقريباً ${M(v/Math.max(1,es.length))} للواحد`)}</small></div>`}</div>
     ${pl?`<div class="dkbar" style="margin:2px 0 12px"><i style="width:${Math.min(100,v/pl*100)}%;background:${v>pl?"#DC2626":col}"></i></div>`:""}
     <div class="res" style="max-height:44vh;overflow-y:auto">${rows(es.map(x=>[`${when(x.date)}${k=="_other"?" · "+nm(x.cat):""}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)]))}</div>`,()=>{})},true); }
 
  // ---- top bar: Edit (arrange Home) and Settings (language, sign out) ----
- document.getElementById("edit").onclick=()=>{if(OK)return;const names={w:tx("Wallet","المحفظة"),e:tx("Expenses","المصاريف"),s:tx("Store","المتجر"),f:tx("Forsa","فرصة")};let o=order.slice();
+ const arrange=()=>{if(OK)return;const names={w:tx("Wallet","المحفظة"),e:tx("Expenses","المصاريف"),s:tx("Store","المتجر"),f:tx("Forsa","فرصة")};let o=order.slice();
   const draw=()=>{const l=sh.querySelector(".ord");l.innerHTML=o.map((k,i)=>`<div class="ordr"><span>${names[k]}</span><button data-up="${i}" ${i?"":"disabled"} aria-label="${tx("Up","فوق")}">${PH("caret-up")}</button><button data-dn="${i}" ${i<3?"":"disabled"} aria-label="${tx("Down","تحت")}">${PH("caret-down")}</button></div>`).join("")};
   show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("pencil-simple")}</span>${tx("Arrange Home","ترتيب الرئيسية")}</h3><div class="ord"></div><button class="go" id="osv">${tx("Save","حفظ")}</button>`,()=>{draw();
    sh.querySelector(".ord").onclick=ev=>{const b=ev.target.closest("button");if(!b)return;const i=+(b.dataset.up??b.dataset.dn),j=b.dataset.up!=null?i-1:i+1;[o[i],o[j]]=[o[j],o[i]];draw()};
    document.getElementById("osv").onclick=()=>{try{localStorage.setItem("s-order",JSON.stringify(o))}catch(e){}close();location.reload()}})};
+ // ---- Wallet budget rows: pencil beside each item -> change its monthly amount ----
+ { const wc=document.querySelector('.card[data-k="w"]');wc&&wc.addEventListener("click",ev=>{const b=ev.target.closest("[data-pe]");if(!b)return;ev.stopPropagation();ev.preventDefault();const k=b.dataset.pe,cur=m.planOf(k);
+  show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("pencil-simple")}</span>${nm(k)}</h3><p class="ds" style="margin:0 0 12px">${tx("Monthly amount","المبلغ الشهري")}</p><input id="pev" class="inp" type="number" inputmode="decimal" min="0" value="${cur||""}" placeholder="0" style="width:100%;font-size:22px;padding:12px 14px;border:1px solid #E2E8F0;border-radius:14px;box-sizing:border-box;font-family:inherit"><button class="go" id="pesv">${tx("Save","حفظ")}</button>`,()=>{const i=document.getElementById("pev");setTimeout(()=>i.focus(),250);
+   document.getElementById("pesv").onclick=async()=>{const v=Math.max(0,+i.value||0),its=JSON.parse(JSON.stringify(m.planRaw||{}));its[k]=Object.assign({},its[k]||{},{plan:v});
+    try{await put("settings","plan",{items:its});close();toast(tx("Saved","تم الحفظ"));setTimeout(reload,500)}catch(e){toast(tx("Could not save, try again","ما انحفظ، جرب مرة ثانية"))}}})},true); }
  document.getElementById("gear").onclick=()=>{if(OK)return;show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("gear-six")}</span>${tx("Settings","الإعدادات")}</h3>
    <div class="setl">${PH("translate")}<span>${tx("Language","اللغة")}</span></div><div class="cwseg" style="margin:0 0 16px"><button data-l="en" class="${AR?"":"on"}">English</button><button data-l="ar" class="${AR?"on":""}">العربية</button></div>
+   <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
    <button class="setb" id="sout">${PH("sign-out")}<span>${tx("Sign out","تسجيل الخروج")}</span></button>
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
+   document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
    document.getElementById("sout").onclick=async()=>{try{await sb.auth.signOut()}catch(e){}location.reload()}})};
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}
+
+ // ---- Expenses: tap a day bar -> that day's costs ----
+ { const ec=document.querySelector('.card[data-k="e"]');ec.addEventListener("click",ev=>{const b=ev.target.closest("[data-day]");if(!b||!OK)return;ev.stopPropagation();const d=b.dataset.day,es=m.ex.filter(x=>x.date==d),t=es.reduce((a,x)=>a+x.amount,0);
+  show(NAVY,`<h3>${when(d)} <small class="ds" style="font-size:14px;color:${G};font-weight:500">${M(t)}</small></h3><div class="res" style="max-height:50vh;overflow-y:auto">${rows(es.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)]))}</div>`,()=>{})},true); }
+
+ { const ec=document.querySelector('.card[data-k="e"]');ec.addEventListener("click",ev=>{const b=ev.target.closest("[data-mnav]");if(!b||!OK)return;ev.stopPropagation();const box=ec.querySelector(".ringsec"),mon=b.dataset.mnav,
+   dPl=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k),0),dSp=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+(m.spent[i.k]||0),0);
+   box.innerHTML=ringFor(m,mon,dPl?Math.max(0,dPl-dSp):null);box.animate([{opacity:.2},{opacity:1}],{duration:260})},true); }
 
 }
 // ---------- boot ----------
