@@ -335,3 +335,23 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .pedit{width:22px;height:22px;border-radius:7px;margin:-4px 0}.pedit svg{width:12px;height:12px}
 .slr{display:grid;grid-template-columns:32px 1fr auto 60px 28px;align-items:center;column-gap:8px}
 .slr .slp{text-align:end}.slr .slx{margin-inline-end:-4px;width:28px}
+.ptadd.on{width:auto;display:flex;align-items:center;gap:2px;padding:0 2px;background:#2563EB;color:#fff;font-size:15px;line-height:28px}
+.ptadd.on b{width:24px;height:28px;display:grid;place-items:center;font-weight:600;font-size:17px;cursor:pointer}
+.ptadd.on span{min-width:14px;text-align:center;font-size:14px;font-weight:600}
+/* product page (grocery-app style) */
+.pph{height:190px;margin:-4px -16px 10px;background:#F8FAFC;display:grid;place-items:center;color:#94A3B8}.pph img{max-width:70%;max-height:170px;object-fit:contain}.pph svg{width:64px;height:64px}
+#sheet h3.ppn{margin:0 0 2px;font-size:20px}.pps{font-size:13px;color:#64748B}
+.ppp{display:flex;align-items:baseline;gap:8px;margin:8px 0 12px}.ppp b{font-size:24px;color:#16A34A;font-weight:600}.ppp s{color:#94A3B8;font-size:15px}.ppp span{font-size:13px;color:#64748B}
+.pph4{margin:16px 0 8px;font-size:15px;font-weight:600}
+.simr{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 8px;padding:0 16px}.simr::-webkit-scrollbar{display:none}
+.simt{flex:none;width:104px;border:1px solid #E2E8F0;background:#fff;border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:3px;text-align:start;font:inherit;color:#0F172A;cursor:pointer}
+.simi{height:70px;display:grid;place-items:center;background:#F8FAFC;border-radius:8px;color:#94A3B8}.simi img{max-width:90%;max-height:64px;object-fit:contain}.simi svg{width:28px;height:28px}
+.simn{font-size:12px;line-height:1.25;height:30px;overflow:hidden}.simt b{font-size:13px;color:#16A34A;font-weight:600}
+#pbar{position:sticky;bottom:var(--sab,0px);background:#fff;padding-top:8px;box-shadow:0 -12px 12px 2px #fff,0 40px 0 40px #fff;z-index:2}
+.pqbar{display:flex;align-items:center;justify-content:space-between;height:50px}
+.pqs{display:flex;align-items:center;gap:4px;background:#F1F5F9;border-radius:14px;padding:4px}
+.pqs button{width:40px;height:40px;border:0;border-radius:10px;background:#fff;color:#2563EB;font:600 20px/1 "IBM Plex Sans",sans-serif;display:grid;place-items:center;cursor:pointer}.pqs button svg{width:18px;height:18px;color:#DC2626}
+.pqs b{min-width:28px;text-align:center;font-size:16px}.pqp{font-size:20px;font-weight:600}
+.cwlist{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + var(--sab,0px));z-index:5;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px;border:0;border-radius:22px;background:#0F2A4A;color:#fff;font:500 15px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;box-shadow:0 8px 20px -6px rgba(15,42,74,.5);cursor:pointer}
+.cwlist svg{width:20px;height:20px}.cwlist b{background:#fff;color:#0F2A4A;border-radius:10px;padding:0 7px;font-size:13px}
+.cwlist[hidden]{display:none}
