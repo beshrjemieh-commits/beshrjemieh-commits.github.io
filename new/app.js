@@ -161,10 +161,9 @@ function build(m){
   sec(tx("Stores","المتاجر"),[...cheapCount.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([s,n])=>dig(hd(esc(s),tx(`${n} cheapest`,`${n} الأرخص`)),r2(m.G2.filter(g=>g.best&&g.best.store==s).slice(0,6).map(g=>[esc(g.item),M(g.best.price.toFixed(g.best.price%1?2:0)),null])),"")).join(""))];
  // forsa page
  // forsa page (Beshr 2026-11-24): a calm list first, sorted by his hunt words; a button opens the swipe (Tinder) mode for that tab; kept deals have an Open button
- const FT=fTabs(m),undec=m.deals.filter(d=>d.status!="saved"),keptL=m.deals.filter(d=>d.status=="saved");
+ const FT=fTabs(m),keptL=m.deals.filter(d=>d.status=="saved");
  const F=[sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span></button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
-  sec(tx("To check","للمراجعة")+` · <span class="fln">${undec.length}</span>`,`<div class="flist">${undec.slice(0,60).map(d=>dealRow(d,0)).join("")}</div>`),
-  sec(tx("Kept","المحفوظة")+` · <span class="keptn">${keptL.length}</span>`,`<div class="kept">${keptL.slice(0,30).map(d=>dealRow(d,1)).join("")||""}</div>`)];
+  sec(tx("Added","المضافة")+` · <span class="keptn">${keptL.length}</span>`,`<div class="kept">${keptL.slice(0,30).map(d=>dealRow(d,1)).join("")}</div>${keptL.length?"":`<div class="empty kempty">${tx("Deals you swipe right show here, each with an Open button.","الصفقات اللي تسحبها يمين تطلع هنا، ومعها زر افتح.")}</div>`}`)];
  return {w:W,e:E,s:S,f:F}}
 // ---------- home cards ----------
 function cards(m){
@@ -220,22 +219,31 @@ function start(m){
   if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
+ try{document.documentElement.style.setProperty("--fire",PHurl("fire"))}catch(e){}
  { const fc=document.querySelector('.card[data-k="f"]'),FT=fTabs(m);let ti=0,q=[];
-  app.insertAdjacentHTML("beforeend",`<div id="fw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Remove","احذف")}">${PH("x")}</button><button class="sk" aria-label="${tx("Keep","احتفظ")}">${PH("heart")}</button></div><p class="swh">${tx("Swipe right to keep, left to remove","اسحب يمين للاحتفاظ، يسار للحذف")}</p></div></div>`);
-  const fw=document.getElementById("fw"),deck=fw.querySelector(".deck"),list=fc.querySelector(".flist"),kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn"),ln=fc.querySelector(".fln"),go=fc.querySelector(".fgo");
+  app.insertAdjacentHTML("beforeend",`<div id="fw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Skip","تخطَّ")}">${PH("x")}</button><button class="sk" aria-label="${tx("Add","أضف")}">${PH("heart")}</button></div><p class="swh">${tx("Swipe right to add, left to skip","اسحب يمين للإضافة، يسار للتخطي")}</p></div></div>`);
+  const fw=document.getElementById("fw"),deck=fw.querySelector(".deck"),kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn"),go=fc.querySelector(".fgo");
   const left=()=>{fw.querySelector(".cwn").textContent=tx(`${q.length} left`,`باقي ${q.length}`)};
   const tab=i=>{ti=i;const ids=new Set(FT[i].list.filter(d=>d.status!="saved"&&d.status!="hidden").map(d=>d.id));fc.querySelectorAll(".ftabs [data-ft]").forEach(b=>b.classList.toggle("on",+b.dataset.ft==i));
-   list.querySelectorAll(".drow").forEach(r=>r.style.display=ids.has(r.dataset.did)?"":"none");go.querySelector(".fgot").textContent=ids.size?(ids.size==1?tx("Swipe 1 deal","اسحب صفقة واحدة"):tx(`Swipe ${ids.size} deals`,`اسحب ${ids.size} صفقات`)):tx("All caught up","خلصت الصفقات");go.disabled=!ids.size};
+   go.querySelector(".fgot").textContent=ids.size?(ids.size==1?tx("Swipe 1 deal","اسحب صفقة واحدة"):tx(`Swipe ${ids.size} deals`,`اسحب ${ids.size} صفقات`)):tx("All caught up","خلصت الصفقات");go.disabled=!ids.size};
   fc.querySelector(".ftabs").addEventListener("click",ev=>{const b=ev.target.closest("[data-ft]");if(b){ev.stopPropagation();tab(+b.dataset.ft)}});
   fc.querySelector(".fnew").onclick=ev=>{ev.stopPropagation();ACT[2]()};
-  const face=d=>`<div class="dk">${d.image?`<div class="dkim"><img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML='<div class=dkph>${PH("fire").replace(/"/g,"&quot;")}</div>'"></div>`:`<div class="dkim"><div class="dkph">${PH("fire")}</div></div>`}<div class="dkb"><b class="dkn">${esc(d.name)}</b><div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.pct?`<div class="dkt">▼ ${d.pct}% ${tx("below market","أقل من السوق")}</div>`:""}<small>${esc([d.source,d.city].filter(Boolean).join(" · "))}</small></div><i class="stamp keep">${tx("KEEP","احتفظ")}</i><i class="stamp drop">${tx("REMOVE","احذف")}</i></div>`;
+  const face=d=>{const r=d.raw||{},comps=+r.comps||0,save=d.market>d.price?d.market-d.price:0,paid=+r.paid||0,
+    hint=paid&&d.price<paid?tx(`You paid ${RS}${fmt(paid)}${r.paidStore?" at "+esc(r.paidStore):""}. This is ${RS}${fmt(paid-d.price)} less.`,`دفعت ${RS}${fmt(paid)}${r.paidStore?" في "+esc(r.paidStore):""}. هذا أقل بـ ${RS}${fmt(paid-d.price)}.`)
+     :d.pct>=25?tx(`Rare price: ${d.pct}% under the usual${comps?`, checked against ${comps} similar ads`:""}.`,`سعر نادر: أقل ${d.pct}٪ من المعتاد${comps?`، مقارنة بـ ${comps} إعلان مشابه`:""}.`)
+     :d.pct>0?tx(`Good price${comps?` next to ${comps} similar ads`:""}. Check the condition before you buy.`,`سعر حلو${comps?` مقارنة بـ ${comps} إعلان مشابه`:""}. تأكد من الحالة قبل الشراء.`)
+     :d.offer?esc(d.offer):tx("New find from your hunt.","لقطة جديدة من بحثك.");
+   const pic=d.image?`<div class="dkim" style="--bg:url('${esc(d.image)}')"><img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"></div>`:`<div class="dkim noimg"></div>`;
+   return `<div class="dk">${pic}<div class="dkb"><div class="dkr"><b class="dkn">${esc(d.name)}</b>${d.pct?`<span class="dkpc">▼ ${d.pct}%</span>`:""}</div><small class="dks">${esc([d.source,d.city].filter(Boolean).join(" · "))}</small>
+    <div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.market&&d.price?`<div class="dkbar"><i style="width:${Math.max(8,Math.min(100,d.price/d.market*100))}%"></i></div><div class="dkl"><span>${tx("Price","السعر")}</span>${save?`<b>${tx("Save","توفّر")} ${M(save)}</b>`:""}<span>${tx("Market","السوق")}</span></div>`:""}
+    <p class="dkh">${PH("sparkle")}<span>${hint}</span></p></div><i class="stamp keep">${tx("ADD","أضف")}</i><i class="stamp drop">${tx("SKIP","تخطَّ")}</i></div>`};
   const draw=()=>{deck.innerHTML=q.length?q.slice(0,3).map(face).reverse().join(""):`<div class="empty dkend">${tx("All caught up. New deals come with the next hunt.","خلصت الصفقات. الجديدة تجي مع البحث الجاي.")}</div>`;
-   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*10}px) scale(${1-i*.04})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=q.length?"":"hidden";left()};
+   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*12}px) scale(${1-i*.05})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=fw.querySelector(".swh").style.visibility=q.length?"":"hidden";left()};
   const save=(d,st)=>{const raw=Object.assign({},d.raw);delete raw.id;delete raw.shared;raw.status=st;put("deals",d.id,raw).catch(()=>toast(tx("Couldn't save","ما انحفظ")))};
   const fling=(dir)=>{const el=[...deck.querySelectorAll(".dk")].pop(),d=q[0];if(!el||!d)return;const w=dir>0?1:-1;
    el.style.transition="transform .32s cubic-bezier(.3,.6,.2,1),opacity .32s";el.style.transform=`translate(${w*460}px,-30px) rotate(${w*22}deg)`;el.style.opacity="0";
-   q.shift();d.status=w>0?"saved":"hidden";save(d,d.status);const row=list.querySelector(`.drow[data-did="${CSS.escape(d.id)}"]`);if(row)row.remove();ln.textContent=list.querySelectorAll(".drow").length;
-   if(w>0){kn.textContent=+kn.textContent+1;kept.insertAdjacentHTML("afterbegin",dealRow(d,1))}
+   q.shift();d.status=w>0?"saved":"hidden";save(d,d.status);
+   if(w>0){const ke=fc.querySelector(".kempty");if(ke)ke.remove();kn.textContent=+kn.textContent+1;kept.insertAdjacentHTML("afterbegin",dealRow(d,1))}
    FT.forEach((t,i)=>{const b=fc.querySelector(`.ftabs [data-ft="${i}"] span`);if(b)b.textContent=t.list.filter(x=>x.status!="saved"&&x.status!="hidden").length});
    try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}setTimeout(()=>{draw();deck.querySelectorAll(".dk").forEach(x=>{x.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)"})},300)};
   fw.querySelector(".sk").onclick=()=>fling(1);fw.querySelector(".sx").onclick=()=>fling(-1);

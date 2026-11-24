@@ -196,3 +196,21 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .swh{text-align:center;color:#92400E;font-size:13px;margin:10px 0 0}
 #cw,#fw{visibility:hidden;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s .38s}
 #cw.on,#fw.on{visibility:visible;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s}
+/* Forsa swipe window: one big centred card (2026-11-24) */
+#fw .swp{flex:1;min-height:0;padding:8px 16px 18px}
+#fw .deck{flex:1;min-height:0;height:auto;position:relative}
+#fw .dk{border-radius:24px;border:0;box-shadow:0 24px 44px -22px rgba(120,53,15,.55),0 0 0 1px #FDE68A}
+#fw .dkim{flex:1 1 auto;min-height:0;height:auto;position:relative;overflow:hidden;padding:0;border:0;background:#FEF3C7}
+#fw .dkim::before{content:"";position:absolute;inset:-20px;background:var(--bg) center/cover;filter:blur(22px) saturate(1.1);opacity:.55}
+#fw .dkim img{position:relative;width:100%;height:100%;object-fit:contain;padding:14px;border-radius:0}
+#fw .dkim.noimg::after{content:"";position:absolute;inset:0;background:#F59E0B;-webkit-mask:var(--fire) center/72px no-repeat;mask:var(--fire) center/72px no-repeat;opacity:.8}
+#fw .dkb{flex:none;padding:14px 18px 16px;gap:6px}
+.dkr{display:flex;align-items:center;gap:8px;justify-content:space-between}.dkr .dkn{font-size:22px;line-height:1.2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dkpc{flex:none;background:#DCFCE7;color:#15803D;font-size:13px;font-weight:600;border-radius:10px;padding:3px 8px}
+.dks{color:#64748B;font-size:13px;margin-top:-2px}
+#fw .dkp{font-size:30px;margin-top:2px}#fw .dkp s{font-size:16px}
+.dkbar{height:8px;border-radius:4px;background:#E2E8F0;overflow:hidden}.dkbar i{display:block;height:100%;border-radius:4px;background:#F59E0B}
+.dkl{display:flex;justify-content:space-between;font-size:12px;color:#64748B}.dkl b{color:#15803D;font-weight:600}
+.dkh{display:flex;gap:8px;align-items:flex-start;margin:4px 0 0;padding:10px 12px;border-radius:12px;background:#FFFBEB;color:#78350F;font-size:14px;line-height:1.4}.dkh .ph{flex:none;width:18px;height:18px;color:#F59E0B;margin-top:1px}
+#fw .swb{margin:18px 0 0}#fw .swb button{width:64px;height:64px;border-radius:32px}
+#fw .swh{margin:8px 0 0}
