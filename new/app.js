@@ -363,11 +363,20 @@ function start(m,soft){
  const cardEls=[...document.querySelectorAll(".card")];
  // chart rotation (Beshr 2026-11-24): a different chart each time the app opens or he comes back to it; nothing changes on taps or a timer
  const CUR={},CHG={};order.forEach((k,i)=>{const n=C[k].pool.length;CUR[k]=(vis+i)%n;CHG[k]=0});
- const nextCharts=t=>order.forEach(k=>{if(C[k].pool.length<2)return;CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"})});
+ const nextCharts=t=>order.forEach(k=>{if(C[k].pool.length<2)return;CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;fitTm(tm);tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"})});
  // Beshr 2026-11-25: charts change only when he leaves the app and comes back (not on taps or page close)
- window._nextCharts=()=>{if(OK)return;try{localStorage.setItem("s-visit",(+localStorage.getItem("s-visit")||0)+1)}catch(e){}nextCharts(now())};
+ window._nextCharts=()=>{if(OK)return;try{localStorage.setItem("s-visit",(+localStorage.getItem("s-visit")||0)+1)}catch(e){}nextCharts(now());setTimeout(()=>window._fitCards&&window._fitCards(),60)};
  if(!window._visH){window._visH=1;let hid=0;document.addEventListener("visibilitychange",()=>{if(document.hidden)hid=1;else if(hid){hid=0;window._nextCharts&&window._nextCharts()}})}
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
+ // Beshr 2026-11-25: text shrinks to fit its box (big name: one line if it fits at 18px+, else up to two lines; top-right line: 13px down to 10px)
+ const fitBig=b=>{if(!b)return;const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();
+  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim())L=Math.min(L,r.left)});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min(170,L-br.left-10))+"px"}
+  b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
+  two=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="normal";b.style.lineHeight="1.15";return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=f*1.15*2+2};
+  for(let f=base;f>=18;f--)if(one(f))return;for(let f=Math.min(base,22);f>=13;f--)if(two(f))return;b.style.textOverflow="ellipsis"};
+ const fitTm=tm=>{if(!tm)return;const k=tm.parentElement;tm.style.fontSize="";for(let f=13;f>=10&&k.scrollWidth>k.clientWidth+1;f-=.5)tm.style.fontSize=f+"px"};
+ window._fitCards=()=>document.querySelectorAll("#app .card").forEach(c=>{fitBig(c.querySelector(".big"));fitTm(c.querySelector(".tm"))});
+ window._fitCards();if(document.fonts)document.fonts.ready.then(()=>window._fitCards&&window._fitCards());
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
