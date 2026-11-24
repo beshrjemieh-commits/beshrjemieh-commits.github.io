@@ -131,6 +131,53 @@ const CSS=`
 .wob .tw{transition:opacity .2s}
 .wob .tw.out{opacity:0}
 
+.wob .fcard{padding:12px 0 14px;overflow:hidden}
+.wob .fcard .ck{margin-inline-start:48px;padding-inline-end:14px}
+.wob .fcard.done .fsp path{animation:none;stroke-dashoffset:0}
+.wob .fpad{padding:0 14px}
+.wob .fhero{position:relative;margin:12px 0;background:radial-gradient(120% 90% at 50% 30%,#FFFFFF 0%,#EEF2F7 70%,#E2E8F0 100%)}
+.wob .fimg{position:absolute;inset:12px 0;display:grid;place-items:center}
+.wob .fimg img{max-height:100%;max-width:70%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(15,42,74,.18))}
+.wob .fico{font-size:84px;color:#94A3B8;line-height:0}
+.wob .ftag{position:absolute;top:12px;inset-inline-end:14px;width:60px;height:60px;border-radius:50%;background:${AMB};color:#fff;display:grid;place-items:center;transform:rotate(-10deg);box-shadow:0 8px 18px -8px rgba(180,83,9,.7)}
+.wob .ftag b{font-size:17px;font-weight:600}
+.wob .ftime{position:absolute;bottom:10px;inset-inline-start:14px;display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:13px;background:rgba(255,255,255,.92);font-size:12px;color:${G};box-shadow:0 2px 8px rgba(15,42,74,.12)}
+.wob .ftime b{color:${NAVY};font-weight:600}
+.wob .ftime.solo{position:static;margin:12px 0 10px;background:#FEF3C7;color:#92400E;box-shadow:none}
+.wob .ftime.solo b{color:#92400E}
+.wob .fpr{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.wob .fnm{font-size:17px;font-weight:600;color:${NAVY};line-height:1.3}
+.wob .fsz{display:block;font-size:13px;color:${G};margin-top:2px}
+.wob .fpp{text-align:end;flex:none}
+.wob .fold{display:block;font-size:14px;color:#94A3B8}
+.wob .fnew{display:block;font-size:32px;font-weight:600;color:${GR};line-height:1.1}
+.wob .fsave{display:inline-flex;align-items:center;gap:5px;margin-top:10px;height:28px;padding:0 10px;border-radius:14px;background:#DCFCE7;color:#166534;font-size:13px;font-weight:600}
+.wob .fduel{margin-top:12px;display:grid;gap:6px}
+.wob .fdr{display:grid;grid-template-columns:76px 1fr auto;align-items:center;gap:8px;font-size:13px;color:${G}}
+.wob .fdr b{font-weight:500;color:${G};min-width:52px;text-align:end}
+.wob .fdr.w .fdn,.wob .fdr.w b{color:#0F172A;font-weight:600}
+.wob .fdn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wob .fdb{height:8px;border-radius:4px;background:#F1F5F9;overflow:hidden}
+.wob .fdb i{display:block;height:100%;width:0;border-radius:4px;background:#CBD5E1;transition:width .8s cubic-bezier(.3,.7,.2,1)}
+.wob .fdr.w .fdb i{background:${GR}}
+.wob .fyr{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;background:#F8FAFC;font-size:14px;color:#334155;line-height:1.4}
+.wob .fyr b{color:${GR};font-weight:600}
+.wob svg.fsp{width:56px;height:22px;flex:none;fill:none}
+.wob .fsp path{fill:none;stroke:${GR};stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:90;stroke-dashoffset:90;animation:wobdraw 1s .5s ease-out forwards}
+@keyframes wobdraw{to{stroke-dashoffset:0}}
+.wob .fsoc{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:${G}}
+.wob .fav{display:flex}
+.wob .fav i{width:22px;height:22px;border-radius:11px;border:2px solid #fff;background:hsl(var(--h) 45% 78%);margin-inline-start:-6px}
+.wob .fav i:first-child{margin-inline-start:0}
+.wob .fbtns{display:flex;gap:8px;padding:14px 14px 0}
+.wob .fadd{flex:1;height:48px;border:0;border-radius:12px;background:${BLUE};color:#fff;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:background .25s}
+.wob .fadd svg{width:18px;height:18px}
+.wob .fadd.on{background:${GR}}
+.wob .fck{width:16px;height:16px;position:relative}
+.wob .fck::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.wob .fno{flex:none;height:48px;padding:0 14px;border:1px solid #E2E8F0;border-radius:12px;background:#fff;color:${G};font-size:14px;cursor:pointer}
+.wob .fno.on{border-color:${BLUE};color:${BLUE}}
+
 /* ---- tour ---- */
 #wtour{position:fixed;inset:0;z-index:9100;font-family:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased}
 #wtour[dir=rtl]{font-family:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",sans-serif}
@@ -214,11 +261,44 @@ const GOAL={trip:["A trip","سفرة",4600,6],emergency:["A safety cushion","م�
 const ord=n=>AR?`يوم ${n}`:n+(n%10==1&&n!=11?"st":n%10==2&&n!=12?"nd":n%10==3&&n!=13?"rd":"th");
 const monAt=m=>{const d=new Date();d.setMonth(d.getMonth()+m);return d.toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{month:"short",year:"numeric"})};
 
+
+/* Store flash-sale card. Variants (for the options video): A price drop, B shop duel, C yearly saving, D shoppers, E daily timer, F photo hero, G blend (default) */
+const pad2=n=>String(n).padStart(2,"0");
+const untilMidnight=()=>{const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.max(0,(m-n)/1000|0);return T(`${s/3600|0}h ${pad2(s/60%60|0)}m`,`${s/3600|0}س ${pad2(s/60%60|0)}د`)};
+function flashHTML(f,ans,v){
+ if(!f)return `<div class="cd"><div class="q">${T("No sale to show right now.","ما فيه تخفيض نعرضه الحين.")}</div></div>`;
+ const pc=Math.round((1-f.price/f.was)*100),save=Math.round((f.was-f.price)*100)/100,year=Math.round(save*52),ppl=Math.max(1,+f.people||1);
+ const has=k=>v=="G"?"AFBCE".includes(k):v==k;
+ const photo=h=>`<div class="fhero" style="height:${h}px"><div class="fimg">${f.photo?`<img src="${esc(f.photo)}" alt="">`:`<span class="fico">${PH("basket")}</span>`}</div>
+   <span class="ftag"><b dir="ltr">−${pc}%</b></span>${has("E")?`<span class="ftime">${PH("calendar-blank")} ${T("New pick in","اختيار جديد بعد")} <b class="fcd">${untilMidnight()}</b></span>`:""}</div>`;
+ const price=`<div class="fpr"><div><div class="fnm">${esc(f.item)}</div><small class="fsz">${f.size?`<bdi dir="ltr">${esc(f.size)}</bdi> · `:""}${esc(f.store)}</small></div>
+   <div class="fpp"><s class="fold">${M(f.was)}</s><b class="fnew" data-from="${f.was}" data-to="${f.price}">${M(f.price)}</b></div></div>
+   <div class="fsave">${PH("tag")} ${T(`You save ${M(save)}`,`توفّر ${M(save)}`)}</div>`;
+ const duel=f.hiStore?`<div class="fduel">${[[f.store,f.price,1],[f.hiStore,f.was,0]].map(([st,pr,win])=>`<div class="fdr${win?" w":""}"><span class="fdn">${esc(st)}</span><span class="fdb"><i data-w="${Math.round(pr/f.was*100)}%"></i></span><b>${M(pr)}</b></div>`).join("")}</div>`:"";
+ const yr=`<div class="fyr"><svg viewBox="0 0 80 28" class="fsp"><path d="M2 26 L20 21 L38 17 L56 10 L78 3"/></svg><span>${T(`Buy it weekly and keep <b>${M(year)}</b> a year`,`لو تشتريه كل أسبوع توفّر <b>${M(year)}</b> بالسنة`)}</span></div>`;
+ const soc=`<div class="fsoc"><span class="fav">${[...Array(Math.min(4,ppl))].map((_,i)=>`<i style="--h:${[210,32,152,262][i]}"></i>`).join("")}</span>${T(`${ppl} ${ppl>1?"shoppers":"shopper"} paid this price`,`${ppl} متسوق دفعوا هالسعر`)}</div>`;
+ let body="";
+ if(v=="G")body=photo(150)+`<div class="fpad">${price}${duel}${yr}</div>`;
+ else if(v=="F")body=photo(190)+`<div class="fpad">${price}</div>`;
+ else if(v=="A")body=`<div class="fpad" style="margin-top:12px">${price}</div>`;
+ else if(v=="B")body=`<div class="fpad" style="margin-top:12px"><div class="fnm">${esc(f.item)}</div><small class="fsz"><bdi dir="ltr">${esc(f.size||"")}</bdi></small>${duel}<div class="fsave">${PH("tag")} ${T(`${pc}% cheaper at ${esc(f.store)}`,`أرخص ${pc}% عند ${esc(f.store)}`)}</div></div>`;
+ else if(v=="C")body=`<div class="fpad" style="margin-top:12px">${price}${yr}</div>`;
+ else if(v=="D")body=`<div class="fpad" style="margin-top:12px">${price}${soc}</div>`;
+ else if(v=="E")body=`<div class="fpad"><div class="ftime solo">${PH("calendar-blank")} ${T("Today only · new pick in","اليوم بس · اختيار جديد بعد")} <b class="fcd">${untilMidnight()}</b></div>${price}</div>`;
+ return `<div class="cd tab fcard${ans?" done":""}"><span class="ctb">${PH("shopping-cart")}</span><div class="ck">${T("Store","المتجر")}<span class="bdg">${PH("fire")} ${T("Flash sale","تخفيض سريع")}</span></div>${body}
+  <div class="fbtns"><button class="fadd${ans=="yes"?" on":""}" data-fa="yes">${ans=="yes"?`<span class="fck"></span>${T("Added to your list","انضاف لقائمتك")}`:`${PH("plus-circle")} ${T("Add to my shopping list","أضفه لقائمة التسوق")}`}</button>
+  <button class="fno${ans=="no"?" on":""}" data-fa="no">${T("Not for me","ما يناسبني")}</button></div></div>
+  <div class="say">${ans=="yes"?T(`<b>Store</b> will always point you to the cheapest shop for it.`,`<b>المتجر</b> بيوريك دايماً أرخص محل له.`):ans=="no"?T("No problem. Store learns what you like from your receipts.","ولا يهمك. المتجر يتعلم اللي تحبه من فواتيرك."):""}</div>`}
+function flashAnim(root){const el=root.querySelector(".fnew");if(!el)return;const bars=root.querySelectorAll(".fdb i");
+ if(el.dataset.done||root.querySelector(".fadd.on,.fno.on")){bars.forEach(i=>{i.style.transition="none";i.style.width=i.dataset.w});return}
+ el.dataset.done=1;const a=+el.dataset.from,b=+el.dataset.to,t0=performance.now();
+ (function f(t){const p=Math.min(1,(t-t0-250)/900);if(p<0)return requestAnimationFrame(f);const e=1-Math.pow(1-p,3);el.innerHTML=M(Math.round((a+(b-a)*e)*100)/100);if(p<1)requestAnimationFrame(f);else el.innerHTML=M(b)})(t0);
+ bars.forEach((i,k)=>setTimeout(()=>i.style.width=i.dataset.w,350+k*150))}
 function setup(ctx){
  css();AR=ctx.lang=="ar";
  const pools=ctx.pools||{},pick=a=>a&&a.length?a[Math.floor(Math.random()*a.length)]:null;
  const S={i:0,knew:null,salary:ctx.salary?String(ctx.salary):"",payday:ctx.payday||27,bills:["rent","util","phone","market"].map(k=>({k,amt:BILL[k][3],name:""})),addB:false,
-  goals:[{k:"trip",target:4600,months:6,name:""}],addG:false,flash:pick(pools.flash),fAns:null,forsa:pick(pools.forsa),dAns:null};
+  goals:[{k:"trip",target:4600,months:6,name:""}],addG:false,flash:(a=>a&&a.length?a[Math.floor(Date.now()/864e5)%a.length]:null)(pools.flash),fAns:null,forsa:pick(pools.forsa),dAns:null};
  const N=7,root=document.createElement("div");root.className="wob";root.dir=AR?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");
  root.innerHTML=`<div class="top"><div class="wbar"><button class="bk" aria-label="${T("Back","رجوع")}">${PH("caret-left")}</button><div class="seg">${"<i></i>".repeat(N-1)}</div><button class="lg">${AR?"English":"العربية"}</button></div><div class="tw"><div class="kk"></div><h1></h1><p class="ld"></p></div><div class="wwv">${WAVE}</div></div><div class="body"><div class="stage"></div></div><div class="foot"><button class="cta"></button><button class="wlnk"></button></div>`;
  document.body.appendChild(root);requestAnimationFrame(()=>root.classList.add("on"));
@@ -242,14 +322,8 @@ function setup(ctx){
     <label class="wamt" style="margin-top:12px"><b>${RS}</b><input data-gt="${i}" inputmode="numeric" value="${g.target?fm(g.target):""}" placeholder="0" style="font-size:30px"></label>
     <div class="gl"><span>${T("When","متى")}</span><input type="range" min="1" max="36" value="${g.months}" data-gm="${i}" aria-label="${T("How many months","كم شهر")}"><b id="wgm${i}">${T(`in ${g.months} months · ${monAt(g.months)}`,`بعد ${g.months} شهر · ${monAt(g.months)}`)}</b></div></div>`).join("")
     +(S.addG?`<div class="cd"><div class="pills">${Object.keys(GOAL).filter(k=>k=="other"||!S.goals.some(g=>g.k==k)).map(k=>`<button class="pill" data-pg="${k}">${GOAL[k][AR?1:0]}</button>`).join("")}</div></div>`:S.goals.length<4?`<button class="add" style="color:#BFD2E6" data-ag="1">+ ${T("Add a goal","أضف هدف")}</button>`:"")},
-  {kk:T("4 of 6 · Quick one","٤ من ٦ · سؤال سريع"),h:T("Flash sale near you","تخفيض سريع قريب منك"),ld:T("A real price other shoppers saw this week.","سعر حقيقي شافه متسوقين هالأسبوع."),cta:T("Continue","متابعة"),ok:()=>S.fAns!=null||!S.flash,
-   html:()=>{const f=S.flash;if(!f)return `<div class="cd"><div class="q">${T("No sale to show right now.","ما فيه تخفيض نعرضه الحين.")}</div></div>`;const pc=Math.round((1-f.price/f.was)*100);
-    return `<div class="cd tab"><span class="ctb">${PH("shopping-cart")}</span><div class="ck">${T("Store","المتجر")}<span class="bdg">${PH("fire")} ${T("Flash sale","تخفيض سريع")}</span></div>
-    <div class="pr"><span class="wph">${f.photo?`<img src="${esc(f.photo)}" alt="">`:PH("basket")}</span><span class="pn"><b>${esc(f.item)}</b><small>${esc(f.size||"")}${f.size?" · ":""}${esc(f.store)}</small><span class="pp"><s>${M(f.was)}</s><b>${M(f.price)}</b><span class="bdg g">−${pc}%</span></span></span></div>
-    <div class="tk"><i></i>${f.hiStore?T(`${esc(f.hiStore)} sells it for ${M(f.was)}`,`${esc(f.hiStore)} يبيعه بـ ${M(f.was)}`):T("Ends soon","ينتهي قريب")}</div>
-    <div class="q" style="margin-top:14px">${T("Would you buy it?","تشتريه؟")}</div>
-    <button class="op${S.fAns=="yes"?" on":""}" data-fa="yes">${T("Yes, add it to my shopping list","إيه، أضفه لقائمة التسوق")}</button><button class="op${S.fAns=="no"?" on":""}" data-fa="no">${T("Not for me","ما يناسبني")}</button></div>
-    <div class="say">${S.fAns=="yes"?T(`Added. <b>Store</b> will always show you the cheapest shop for it.`,`انضاف. <b>المتجر</b> بيوريك دايماً أرخص محل له.`):S.fAns=="no"?T("No problem. Store learns what you like from your receipts.","ولا يهمك. المتجر يتعلم اللي تحبه من فواتيرك."):""}</div>`}},
+  {kk:T("4 of 6 · Quick one","٤ من ٦ · سؤال سريع"),h:T("Today’s flash sale","تخفيض اليوم السريع"),ld:T("Real prices shoppers paid this week.","أسعار حقيقية دفعها متسوقين هالأسبوع."),cta:T("Continue","متابعة"),ok:()=>S.fAns!=null||!S.flash,
+   html:()=>flashHTML(S.flash,S.fAns,ctx.fv||window.__FSV||"G")},
   {kk:T("5 of 6 · Forsa","٥ من ٦ · فرصة"),h:T("Used or new?","مستعمل ولا جديد؟"),ld:T("Forsa hunts both. Which one would you grab?","فرصة تدور على الاثنين. أيهم تاخذ؟"),cta:T("Continue","متابعة"),ok:()=>S.dAns!=null||!S.forsa,
    html:()=>{const p=S.forsa;if(!p)return "";const hn=S.dAns=="new"?(p.new.name||p.name):(p.used.name||p.name);const u=p.used,n=p.new,pu=Math.round((1-u.price/u.market)*100),pn=Math.round((1-n.price/n.was)*100);
     const card=(k,d,badge,pc,line)=>`<button class="wdk${S.dAns==k||S.dAns=="both"?" on":""}" data-da="${k}"><span class="bdg ${k=="used"?"u":"n"}">${badge}</span><span class="tick"></span><span class="wph">${d.photo?`<img src="${esc(d.photo)}" alt="">`:PH("device-mobile")}</span><div class="wnm">${esc(d.title||d.name||p.name)}</div><div class="src">${esc(d.source)}${d.city?" · "+esc(d.city):""}</div><div class="pp"><b>${M(d.price)}</b><s>${M(k=="used"?d.market:d.was)}</s></div><div class="pc">${line(pc)}</div></button>`;
@@ -269,7 +343,7 @@ function setup(ctx){
  let busy=false;
  function paint(dir){const v=V[S.i];$(".seg").querySelectorAll("i").forEach((s,k)=>s.classList.toggle("on",k<S.i));$(".bk").hidden=S.i==0;
   const fill=()=>{$(".kk").textContent=v.kk;$("h1").textContent=v.h;$(".ld").textContent=v.ld;$(".ld").style.display=v.ld?"":"none";stage.innerHTML=v.html();$(".cta").textContent=v.cta;
-   $(".wlnk").textContent=ctx.preview?T("Close","إغلاق"):S.i==V.length-1?T("Open my wallet","افتح محفظتي"):T("Skip for now","تخطّ الحين");okBtn();if(S.i==V.length-1)anim()};
+   $(".wlnk").textContent=ctx.preview?T("Close","إغلاق"):S.i==V.length-1?T("Open my wallet","افتح محفظتي"):T("Skip for now","تخطّ الحين");okBtn();if(S.i==V.length-1)anim();flashAnim(root);clearInterval(S.cdT);if(root.querySelector(".fcd"))S.cdT=setInterval(()=>root.querySelectorAll(".fcd").forEach(e=>e.textContent=untilMidnight()),30000)};
   if(!dir){fill();return}
   const tw=$(".tw");tw.classList.add("out");stage.classList.add("out");setTimeout(()=>{fill();$(".body").scrollTop=0;stage.classList.remove("out");stage.classList.add("in");if(dir<0){stage.style.transform=getComputedStyle(stage).transform}
    requestAnimationFrame(()=>requestAnimationFrame(()=>{stage.classList.remove("in");stage.style.transform="";tw.classList.remove("out")}))},200)}

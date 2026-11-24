@@ -696,9 +696,9 @@ ${q}`;
 }
 // ---------- first-time questions: real examples to ask about, and saving the answers ----------
 // flash sale = the biggest real price gap between two shops (his prices + other shoppers'); Forsa = the best used and best new deal (same product when there is one)
-function wobPools(m){const by=new Map();[...m.G2.flatMap(g=>g.stores.map(s=>({item:g.item,size:g.size,store:s.store,price:s.price,photo:g.photo}))),...(m.community||[]).map(c=>({item:norm(c.item),size:norm(c.size),store:norm(c.store),price:+c.price,photo:m.photos[keyOf(c)]||""}))]
+function wobPools(m){const by=new Map();[...m.G2.flatMap(g=>g.stores.map(s=>({item:g.item,size:g.size,store:s.store,price:s.price,photo:g.photo}))),...(m.community||[]).map(c=>({item:norm(c.item),size:norm(c.size),store:norm(c.store),price:+c.price,people:+c.people||1,photo:m.photos[keyOf(c)]||""}))]
   .forEach(x=>{if(!x.item||!(x.price>0)||/\((online|shared)\)/i.test(x.store))return;const k=keyOf(x);if(!by.has(k))by.set(k,[]);const a=by.get(k);if(!a.some(y=>y.store.toLowerCase()==x.store.toLowerCase()))a.push(x)});
- const flash=[...by.values()].filter(a=>a.length>1).map(a=>{a.sort((x,y)=>x.price-y.price);const lo=a[0],hi=a.at(-1);return {item:lo.item,size:lo.size,store:lo.store,price:lo.price,was:hi.price,hiStore:hi.store,photo:lo.photo||hi.photo,gap:1-lo.price/hi.price}})
+ const flash=[...by.values()].filter(a=>a.length>1).map(a=>{a.sort((x,y)=>x.price-y.price);const lo=a[0],hi=a.at(-1);return {item:lo.item,size:lo.size,store:lo.store,price:lo.price,was:hi.price,hiStore:hi.store,photo:lo.photo||hi.photo,people:lo.people||1,gap:1-lo.price/hi.price}})
   .filter(x=>x.gap>=.08&&x.gap<.7).sort((a,b)=>b.gap-a.gap).slice(0,8);
  const ok=m.deals.filter(d=>d.price>0&&d.market>d.price&&!d.offer),U=ok.filter(d=>dKind(d)=="used").sort(byScore),N=ok.filter(d=>dKind(d)=="new").sort(byScore),forsa=[];
  const side=(d,k)=>({name:d.name,title:d.title.slice(0,60),source:d.source,city:d.city,price:d.price,market:d.market,was:d.market,photo:d.image});
