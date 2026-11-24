@@ -247,7 +247,7 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .gaph{margin-top:14px;background:linear-gradient(135deg,#F0FDF4,#fff);border:1px solid #BBF7D0;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
 .gaph small{font-size:13px;color:#166534;font-weight:600}.gaph b{font-size:30px;font-weight:600;color:#15803D}.gaph span{font-size:13px;color:#475569}.gaph em{font-style:normal;font-size:13px;color:#14532D;margin-top:6px;padding-top:6px;border-top:1px dashed #BBF7D0}
 /* the sheet's main button stays pinned and visible while the sheet scrolls; extra room at the bottom edge */
-#sheet{padding-bottom:calc(36px + var(--sab,env(safe-area-inset-bottom)))}
+#sheet{padding-bottom:calc(16px + var(--sab,env(safe-area-inset-bottom)))}
 #sheet .go{position:sticky;bottom:0;z-index:2;box-shadow:0 -14px 14px 2px #fff,0 14px 0 14px #fff}
 /* top bar: Edit + Settings icons */
 .tg button{width:36px;height:36px;padding:0;border-radius:18px;display:grid;place-items:center;font-size:19px;line-height:0;color:#0F2A4A}
@@ -286,7 +286,7 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .pedit{border:0;background:#EFF4FB;color:#2563EB;width:28px;height:28px;border-radius:9px;display:inline-grid;place-items:center;padding:0;margin:-6px 0;cursor:pointer}
 .pedit svg{width:15px;height:15px}
 .abar{bottom:max(28px,calc(10px + var(--sab,0px)))}
-#sheet .go{bottom:var(--sab,0px);box-shadow:0 -14px 14px 2px #fff,0 40px 0 40px #fff}
+#sheet .go{bottom:0;box-shadow:0 40px 0 40px #fff;margin-top:12px}
 .achips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:4px -16px 8px;padding:2px 16px}.achips::-webkit-scrollbar{display:none}
 .achips button{flex:none;border:0;background:#F1F5F9;color:#0F172A;border-radius:16px;padding:7px 12px;font:500 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px}
 .achips button i{font-style:normal;font-size:12px;color:#64748B}.achips button.on{background:#0F2A4A;color:#fff}.achips button.on i{color:#ffffffb0}
