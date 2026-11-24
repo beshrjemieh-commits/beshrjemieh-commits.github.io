@@ -137,9 +137,9 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .r span.pimg:first-child,.r .pimg{flex:0 0 36px}
 .ds{unicode-bidi:plaintext}[dir=rtl] .ds{text-align:right}
 /* Forsa swipe deck (Beshr 2026-11-24) */
-.swp{touch-action:pan-y}.deck{position:relative;height:340px;margin-top:4px}
+.swp{touch-action:pan-y;flex:1;padding:16px 16px 0;display:flex;flex-direction:column}.deck{position:relative;height:330px}
 .dk{position:absolute;inset:0;background:#fff;border:1px solid #FDE68A;border-radius:20px;overflow:hidden;box-shadow:0 14px 30px -18px rgba(120,53,15,.45);display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;cursor:grab}
-.dk img,.dkph{width:100%;height:190px;object-fit:cover;background:#FFFBEB;flex:none;pointer-events:none}.dkph{display:grid;place-items:center;color:#F59E0B;font-size:56px}
+.dkim{height:170px;flex:none;background:#fff;border-bottom:1px solid #FEF3C7;display:grid;place-items:center;padding:10px;pointer-events:none}.dkim img{width:100%;height:100%;min-height:0;object-fit:contain;border-radius:8px}.dkph{display:grid;place-items:center;color:#F59E0B;font-size:56px;width:100%;height:100%;background:#FFFBEB;border-radius:10px}
 .dkb{padding:12px 16px;display:grid;gap:4px}.dkn{font-size:20px;font-weight:600;color:#0F172A}.dkp{font-size:22px;font-weight:600;color:#B45309}.dkp s{font-size:15px;color:#64748B;font-weight:400}
 .dkt{font-size:14px;font-weight:600;color:#16A34A}.dkb small{color:#64748B;font-size:13px}
 .stamp{position:absolute;top:18px;padding:4px 10px;border:3px solid;border-radius:10px;font:700 20px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;font-style:normal;opacity:0;pointer-events:none;background:#ffffffd9}
@@ -173,10 +173,26 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pt{border:0;background:#fff;border-radius:12px;box-shadow:0 0 0 .5px #E2E8F0;padding:6px 6px 8px;display:flex;flex-direction:column;align-items:stretch;gap:2px;text-align:start;font:inherit;color:#0F172A;cursor:pointer;min-width:0}
 .pti{aspect-ratio:1;border-radius:9px;background:#F1F5F9;display:grid;place-items:center;color:#94A3B8;font-size:30px;line-height:0;overflow:hidden;margin-bottom:4px}
-.pti img{width:100%;height:100%;object-fit:cover}
+.pti img{width:100%;height:100%;object-fit:contain;background:#fff;padding:6px;box-sizing:border-box}
 .ptn{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
 .pts{font-size:11px;color:#64748B;min-height:14px}
 .ptp{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}.ptp b{font-size:15px;font-weight:600;color:#16A34A}.ptp s{font-size:11px;color:#94A3B8}
 .ptst{font-size:11px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ptr{display:flex;gap:8px;margin-bottom:10px}.ptr>div{flex:1;background:#F8FAFC;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .ptr small{font-size:12px;color:#64748B}.ptr b{font-size:22px;font-weight:600}
+
+/* Forsa: hunt tabs, list rows with Open, swipe window */
+.ftabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}.ftabs::-webkit-scrollbar{display:none}
+.ftabs button{flex:none;height:36px;padding:0 14px;border-radius:18px;border:1px solid #FDE68A;background:#fff;font:500 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;color:#78350F;cursor:pointer;display:flex;align-items:center;gap:6px}
+.ftabs button span{font-size:12px;color:#B45309;background:#FEF3C7;border-radius:9px;padding:1px 7px}
+.ftabs button.on{background:#F59E0B;border-color:#F59E0B;color:#fff}.ftabs button.on span{background:#ffffff40;color:#fff}
+.ftabs .fnew{border-style:dashed;color:#2563EB;border-color:#BFDBFE}.ftabs .fnew .ph{width:18px;height:18px}
+.fgo{width:100%;height:52px;margin-top:12px;border:0;border-radius:14px;background:#0F2A4A;color:#fff;font:600 16px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.fgo .ph{width:22px;height:22px;color:#F59E0B}.fgo:disabled{opacity:.45}
+.fopen{display:inline-block;padding:6px 14px;border-radius:14px;background:#EFF6FF;color:#2563EB;font-size:14px;font-weight:600;text-decoration:none}
+.drow .pimg{object-fit:contain;background:#fff;box-shadow:0 0 0 .5px #E2E8F0}
+#fw{position:absolute;inset:0;background:#FFFBEB;z-index:40;display:flex;flex-direction:column;transform:translateY(104%);transition:transform .4s cubic-bezier(.3,.6,.2,1)}
+#fw.on{transform:none}#fw .cwh{background:#FFFBEB}
+.swh{text-align:center;color:#92400E;font-size:13px;margin:10px 0 0}
+#cw,#fw{visibility:hidden;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s .38s}
+#cw.on,#fw.on{visibility:visible;transition:transform .38s cubic-bezier(.3,.6,.2,1),visibility 0s}

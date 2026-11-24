@@ -99,7 +99,7 @@ function model(R){
  const mineK=new Set(G2.map(g=>(g.item+"|"+g.size).toLowerCase())),ob=new Map();
  (R.community||[]).forEach(c=>{const it=norm(c.item),sz=norm(c.size),st=norm(c.store),pr=+c.price||0;if(!it||!(pr>0)||/\((shared|online)\)/i.test(st))return;const k=(it+"|"+sz).toLowerCase();if(mineK.has(k))return;const o=ob.get(k);if(!o||pr<o.price)ob.set(k,{k,item:it,size:sz,store:st,price:pr,people:+c.people||1,date:String(c.last_date||"")})});
  const others=[...ob.values()].map(o=>Object.assign(o,{grp:grpOf([o.store],o.item)})).sort((a,b)=>a.item.localeCompare(b.item));
- return {others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,deals,hunt,debts,goals,today,mon,community:R.community}}
+ return {photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,deals,hunt,debts,goals,today,mon,community:R.community}}
 // ---------- page pieces ----------
 const sec=(h,b)=>`<div class="sec"><h4>${h}</h4>${b}</div>`;
 const tiles=a=>`<div class="tiles">${a.map(([l,v,c])=>`<div class="tile"><small>${l}</small><b style="${c?"color:"+c:""}">${v}</b></div>`).join("")}</div>`;
@@ -109,12 +109,19 @@ const r2=a=>a.map(([n,v,p,c])=>`<div class="r2"><span>${n}</span>${p!=null?`<spa
 const r3=a=>a.map(([n,v])=>`<div class="r3"><b>${n}</b><span>${v}</span></div>`).join("");
 const hd=(n,v,c,img)=>`${img!=null?(img?`<img class="pimg" src="${esc(img)}" alt="" loading="lazy">`:`<span class="pimg">${PH("shopping-cart")}</span>`):""}<span class="nm">${n}</span><b style="${c?"color:"+c:""}">${v}</b>`;
 const when=d=>{const t=ymd(new Date()),y=new Date();y.setDate(y.getDate()-1);return d==t?tx("Today","اليوم"):d==ymd(y)?tx("Yesterday","أمس"):d.slice(5).replace("-","/")};
+// Forsa: deal link (listing, or a web search for it), tabs by hunt word, one row per deal
+const dLink=d=>d.url||"https://www.google.com/search?q="+encodeURIComponent(d.title);
+function fTabs(m){const und=m.deals.filter(d=>d.status!="saved"),T=[{n:tx("All","الكل"),list:und}];
+ (m.hunt.terms||[]).slice(0,12).forEach(t=>{const w=norm(t).toLowerCase().split(" ").filter(x=>x.length>1);if(!w.length)return;const l=und.filter(d=>{const h=(d.title+" "+d.category).toLowerCase();return w.every(x=>h.includes(x))});if(l.length)T.push({n:esc(clean(t)),list:l})});return T}
+const dealRow=(d,kept)=>`<div class="drow" data-did="${esc(d.id)}">`+dig(hd(`<span>${esc(d.name)}</span><small class="ds">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}${d.pct?` · ▼${d.pct}%`:""}</small>`,`<a class="fopen" href="${esc(dLink(d))}" target="_blank" rel="noopener">${tx("Open","افتح")}</a>`,"",d.image),
+ r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,AMB]:null,d.offer?[esc(d.offer),"",null]:null,[tx("Where","وين"),esc([d.source,d.city].filter(Boolean).join(" · ")),null]].filter(Boolean)),
+ r3([[tx("Full title","العنوان كامل"),esc(d.title)]].concat(d.code?[[tx("Code","الكود"),esc(d.code)]]:[]).concat(d.ends?[[tx("Ends","ينتهي"),esc(d.ends)]]:[])))+`</div>`;
 // Store categories: my items and other shoppers' items per group, each with lowest and highest known price
 const p2=v=>v.toFixed(v%1?2:0),GIC={groc:"basket",cafe:"coffee",food:"fork-knife",elec:"device-mobile",home:"couch",other:"package"};
 function catsOf(m){if(m._cats)return m._cats;const cb=new Map();(m.community||[]).forEach(c=>{const k=norm(c.item).toLowerCase(),pr=+c.price;if(!k||!(pr>0))return;if(!cb.has(k))cb.set(k,[]);cb.get(k).push({store:norm(c.store).replace(/\s*\((shared|online)\)/i,""),price:pr})});
  const rg=(item,own)=>{const seen=new Set(),a=own.concat(cb.get(item.toLowerCase())||[]).filter(x=>x.price>0).sort((x,y)=>x.price-y.price).filter(x=>{const k=x.store.toLowerCase()+"|"+x.price;if(seen.has(k))return false;seen.add(k);return true});return {lo:a[0],hi:a.at(-1),all:a}};
  const mine=m.G2.map(g=>Object.assign({t:"m",k:g.k,item:g.item,size:g.size,photo:g.photo,grp:g.grp,g},rg(g.item,g.stores.map(r=>({store:r.store.replace(/\s*\((shared|online)\)/i,""),price:r.price}))))),
-  oth=m.others.map(o=>Object.assign({t:"o",k:o.k,item:o.item,size:o.size,photo:"",grp:o.grp,o},rg(o.item,[{store:o.store,price:o.price}])));
+  oth=m.others.map(o=>Object.assign({t:"o",k:o.k,item:o.item,size:o.size,photo:(m.photos||{})[o.k]||"",grp:o.grp,o},rg(o.item,[{store:o.store,price:o.price}])));
  return m._cats=PG.map(([k])=>({k,mine:mine.filter(x=>x.grp==k),oth:oth.filter(x=>x.grp==k)})).filter(c=>c.mine.length+c.oth.length)}
 function build(m){
  const groupSum=(ks)=>ks.reduce((a,k)=>a+m.planOf(k),0),spentOf=ks=>ks.reduce((a,k)=>a+(m.spent[k]||0),0);
@@ -153,12 +160,11 @@ function build(m){
   sec(tx("Categories","الأقسام"),CATS.length?`<div class="ctiles">${CATS.map(c=>`<button class="ctile" data-cat="${c.k}"><span class="ci">${PH(GIC[c.k])}</span><b>${grpName(c.k)}</b><small>${tx(`${c.mine.length+c.oth.length} items`,`${c.mine.length+c.oth.length} غرض`)}</small></button>`).join("")}</div>`:`<div class="empty">${tx("No prices yet","ما فيه أسعار")}</div>`),
   sec(tx("Stores","المتاجر"),[...cheapCount.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([s,n])=>dig(hd(esc(s),tx(`${n} cheapest`,`${n} الأرخص`)),r2(m.G2.filter(g=>g.best&&g.best.store==s).slice(0,6).map(g=>[esc(g.item),M(g.best.price.toFixed(g.best.price%1?2:0)),null])),"")).join(""))];
  // forsa page
- const F=[(m.hunt.terms||[]).length?sec(tx("You're hunting","تدور على"),`<div class="hchips">${m.hunt.terms.slice(0,12).map(t=>`<span>${esc(clean(t))}</span>`).join("")}</div>`):"",
-  // Beshr 2026-11-24: deals come one at a time like Tinder: swipe right to keep, left to remove
-  sec(tx("Swipe to keep or remove","اسحب للاحتفاظ أو الحذف"),`<div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Remove","احذف")}">${PH("x")}</button><button class="sk" aria-label="${tx("Keep","احتفظ")}">${PH("heart")}</button></div></div>`),
-  sec(tx("Kept","المحفوظة")+` · <span class="keptn">${m.deals.filter(d=>d.status=="saved").length}</span>`,`<div class="kept">`+m.deals.filter(d=>d.status=="saved").slice(0,30).map(d=>dig(hd(`<span>${esc(d.name)}</span><small class="ds">${esc([d.source,d.city].filter(Boolean).join(" · "))}</small>`,d.price?M(d.price):"",AMB,d.image),
-   r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,AMB]:null,d.offer?[esc(d.offer),"",null]:null].filter(Boolean)),
-   r3([[tx("Full title","العنوان كامل"),esc(d.title)]].concat(d.code?[[tx("Code","الكود"),esc(d.code)]]:[]).concat(d.ends?[[tx("Ends","ينتهي"),esc(d.ends)]]:[]))+(d.url?`<div class="r3"><a class="lnk" href="${esc(d.url)}" target="_blank" rel="noopener">${tx("Open listing","افتح الإعلان")} ›</a></div>`:""))).join("")+`</div>`)];
+ // forsa page (Beshr 2026-11-24): a calm list first, sorted by his hunt words; a button opens the swipe (Tinder) mode for that tab; kept deals have an Open button
+ const FT=fTabs(m),undec=m.deals.filter(d=>d.status!="saved"),keptL=m.deals.filter(d=>d.status=="saved");
+ const F=[sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span></button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
+  sec(tx("To check","للمراجعة")+` · <span class="fln">${undec.length}</span>`,`<div class="flist">${undec.slice(0,60).map(d=>dealRow(d,0)).join("")}</div>`),
+  sec(tx("Kept","المحفوظة")+` · <span class="keptn">${keptL.length}</span>`,`<div class="kept">${keptL.slice(0,30).map(d=>dealRow(d,1)).join("")||""}</div>`)];
  return {w:W,e:E,s:S,f:F}}
 // ---------- home cards ----------
 function cards(m){
@@ -196,10 +202,11 @@ function start(m){
    if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);c.style.left=c.style.right=lerp(16,-off,op)+"px"};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
    else{c.style.opacity=closing&&OK?1-cl(op/0.12):1-cl(op/0.45)}
    c.style.overflowY=f&&op>=1&&!closing?"auto":"hidden";
+   {const fo=f&&FP?1-cl(op/0.4):1;c.querySelector(".big").style.opacity=fo;c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
    const isB=C[k].hero=="bars",isD=C[k].hero=="dots",W=f?lerp(172,isB?329:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(173,16,op):173,Y=f?lerp(48,98,op):48;
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez(t/0.7);vz.innerHTML=isB?C[k].chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${C[k].chart(p)}</div>`;
-   pg.style.top=lerp(h0,isB?232:isD?200:186,f?op:0)+"px";
+   pg.style.top=lerp(h0,FP?44:isB?232:isD?200:186,f?op:0)+"px";
    pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=1;
   const ch=document.getElementById("chip");if(ch){const hc=document.querySelector(`.card[data-k="${HK}"]`),A=HK=="f"?AMB:BLUE,u=t-0.5,v=Math.max(0,u-0.4),g=ez(u/0.4)*(0.7+0.3*Math.cos(2*Math.PI*v/1.2)*Math.exp(-v/1.2)),al=n=>Math.round(Math.min(255,Math.max(0,n*g))).toString(16).padStart(2,"0");
@@ -209,26 +216,37 @@ function start(m){
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
-  if(ev.target.closest(".xadd,.tbtn,a,.swp"))return;
+  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo"))return;
   if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
- // ---- Forsa swipe deck ----
- { const fc=document.querySelector('.card[data-k="f"]'),deck=fc.querySelector(".deck");let q=m.deals.filter(d=>d.status!="saved");
-  const face=d=>`<div class="dk">${d.image?`<img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:`<div class="dkph">${PH("fire")}</div>`}<div class="dkb"><b class="dkn">${esc(d.name)}</b><div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.pct?`<div class="dkt">▼ ${d.pct}% ${tx("below market","أقل من السوق")}</div>`:""}<small>${esc([d.source,d.city].filter(Boolean).join(" · "))}</small></div><i class="stamp keep">${tx("KEEP","احتفظ")}</i><i class="stamp drop">${tx("REMOVE","احذف")}</i></div>`;
+ // ---- Forsa: list + swipe mode ----
+ { const fc=document.querySelector('.card[data-k="f"]'),FT=fTabs(m);let ti=0,q=[];
+  app.insertAdjacentHTML("beforeend",`<div id="fw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Remove","احذف")}">${PH("x")}</button><button class="sk" aria-label="${tx("Keep","احتفظ")}">${PH("heart")}</button></div><p class="swh">${tx("Swipe right to keep, left to remove","اسحب يمين للاحتفاظ، يسار للحذف")}</p></div></div>`);
+  const fw=document.getElementById("fw"),deck=fw.querySelector(".deck"),list=fc.querySelector(".flist"),kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn"),ln=fc.querySelector(".fln"),go=fc.querySelector(".fgo");
+  const left=()=>{fw.querySelector(".cwn").textContent=tx(`${q.length} left`,`باقي ${q.length}`)};
+  const tab=i=>{ti=i;const ids=new Set(FT[i].list.filter(d=>d.status!="saved"&&d.status!="hidden").map(d=>d.id));fc.querySelectorAll(".ftabs [data-ft]").forEach(b=>b.classList.toggle("on",+b.dataset.ft==i));
+   list.querySelectorAll(".drow").forEach(r=>r.style.display=ids.has(r.dataset.did)?"":"none");go.querySelector(".fgot").textContent=ids.size?(ids.size==1?tx("Swipe 1 deal","اسحب صفقة واحدة"):tx(`Swipe ${ids.size} deals`,`اسحب ${ids.size} صفقات`)):tx("All caught up","خلصت الصفقات");go.disabled=!ids.size};
+  fc.querySelector(".ftabs").addEventListener("click",ev=>{const b=ev.target.closest("[data-ft]");if(b){ev.stopPropagation();tab(+b.dataset.ft)}});
+  fc.querySelector(".fnew").onclick=ev=>{ev.stopPropagation();ACT[2]()};
+  const face=d=>`<div class="dk">${d.image?`<div class="dkim"><img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML='<div class=dkph>${PH("fire").replace(/"/g,"&quot;")}</div>'"></div>`:`<div class="dkim"><div class="dkph">${PH("fire")}</div></div>`}<div class="dkb"><b class="dkn">${esc(d.name)}</b><div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.pct?`<div class="dkt">▼ ${d.pct}% ${tx("below market","أقل من السوق")}</div>`:""}<small>${esc([d.source,d.city].filter(Boolean).join(" · "))}</small></div><i class="stamp keep">${tx("KEEP","احتفظ")}</i><i class="stamp drop">${tx("REMOVE","احذف")}</i></div>`;
   const draw=()=>{deck.innerHTML=q.length?q.slice(0,3).map(face).reverse().join(""):`<div class="empty dkend">${tx("All caught up. New deals come with the next hunt.","خلصت الصفقات. الجديدة تجي مع البحث الجاي.")}</div>`;
-   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*10}px) scale(${1-i*.04})`;el.style.zIndex=10-i});fc.querySelector(".swb").style.visibility=q.length?"":"hidden"};
+   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*10}px) scale(${1-i*.04})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=q.length?"":"hidden";left()};
   const save=(d,st)=>{const raw=Object.assign({},d.raw);delete raw.id;delete raw.shared;raw.status=st;put("deals",d.id,raw).catch(()=>toast(tx("Couldn't save","ما انحفظ")))};
-  const kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn");
   const fling=(dir)=>{const el=[...deck.querySelectorAll(".dk")].pop(),d=q[0];if(!el||!d)return;const w=dir>0?1:-1;
    el.style.transition="transform .32s cubic-bezier(.3,.6,.2,1),opacity .32s";el.style.transform=`translate(${w*460}px,-30px) rotate(${w*22}deg)`;el.style.opacity="0";
-   q.shift();save(d,w>0?"saved":"hidden");if(w>0){d.status="saved";kn.textContent=+kn.textContent+1;kept.insertAdjacentHTML("afterbegin",`<div class="bg"><div class="r dh">${hd(`<span>${esc(d.name)}</span><small class="ds">${esc([d.source,d.city].filter(Boolean).join(" · "))}</small>`,d.price?M(d.price):"",AMB,d.image)}</div></div>`)}
+   q.shift();d.status=w>0?"saved":"hidden";save(d,d.status);const row=list.querySelector(`.drow[data-did="${CSS.escape(d.id)}"]`);if(row)row.remove();ln.textContent=list.querySelectorAll(".drow").length;
+   if(w>0){kn.textContent=+kn.textContent+1;kept.insertAdjacentHTML("afterbegin",dealRow(d,1))}
+   FT.forEach((t,i)=>{const b=fc.querySelector(`.ftabs [data-ft="${i}"] span`);if(b)b.textContent=t.list.filter(x=>x.status!="saved"&&x.status!="hidden").length});
    try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}setTimeout(()=>{draw();deck.querySelectorAll(".dk").forEach(x=>{x.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)"})},300)};
-  fc.querySelector(".sk").onclick=()=>fling(1);fc.querySelector(".sx").onclick=()=>fling(-1);
+  fw.querySelector(".sk").onclick=()=>fling(1);fw.querySelector(".sx").onclick=()=>fling(-1);
+  go.onclick=ev=>{ev.stopPropagation();q=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(!q.length)return;fw.querySelector(".cwt").innerHTML=FT[ti].n;draw();
+   const sc=app.getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
+  fw.querySelector(".cwb").onclick=()=>{fw.classList.remove("on");fw.setAttribute("aria-hidden","true");tab(ti)};
   let x0=null,dx=0,top=null;
   deck.addEventListener("pointerdown",e=>{top=[...deck.querySelectorAll(".dk")].pop();if(!top)return;x0=e.clientX;dx=0;top.style.transition="none";deck.setPointerCapture(e.pointerId)});
   deck.addEventListener("pointermove",e=>{if(x0==null)return;dx=e.clientX-x0;top.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;top.querySelector(".keep").style.opacity=cl(dx/90);top.querySelector(".drop").style.opacity=cl(-dx/90)});
   const up=()=>{if(x0==null)return;x0=null;if(Math.abs(dx)>90)fling(dx>0?1:-1);else{top.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)";top.style.transform="";top.querySelectorAll(".stamp").forEach(s=>s.style.opacity=0)}};
-  deck.addEventListener("pointerup",up);deck.addEventListener("pointercancel",up);draw(); }
+  deck.addEventListener("pointerup",up);deck.addEventListener("pointercancel",up);setTimeout(()=>tab(0)); }
  // ---- writes ----
  const toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
  const addCost=async(amount,cat,note)=>{const d=ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
