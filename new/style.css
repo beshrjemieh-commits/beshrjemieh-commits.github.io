@@ -1,7 +1,7 @@
 
 @font-face{font-family:"Riyal";src:url("../fonts/riyal.woff2") format("woff2");font-weight:100 500;unicode-range:U+20C1}
 @font-face{font-family:"Riyal";src:url("../fonts/riyal-bold.woff2") format("woff2");font-weight:600 900;unicode-range:U+20C1}
-*{box-sizing:border-box}html,body{margin:0;height:100%}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
 :root{--bg:#F1F5F9;color-scheme:light}
 body{background:var(--bg);position:relative;color:#000;font:400 16px/1.3 "Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;overflow:hidden;letter-spacing:-.01em}
 [dir=rtl] body{font-family:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",sans-serif;letter-spacing:0}
@@ -136,3 +136,47 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .gh{margin:12px 0 2px;font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.02em}[dir=rtl] .gh{text-transform:none}.sec .gh:first-of-type{margin-top:0}
 .r span.pimg:first-child,.r .pimg{flex:0 0 36px}
 .ds{unicode-bidi:plaintext}[dir=rtl] .ds{text-align:right}
+/* Forsa swipe deck (Beshr 2026-11-24) */
+.swp{touch-action:pan-y}.deck{position:relative;height:340px;margin-top:4px}
+.dk{position:absolute;inset:0;background:#fff;border:1px solid #FDE68A;border-radius:20px;overflow:hidden;box-shadow:0 14px 30px -18px rgba(120,53,15,.45);display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;cursor:grab}
+.dk img,.dkph{width:100%;height:190px;object-fit:cover;background:#FFFBEB;flex:none;pointer-events:none}.dkph{display:grid;place-items:center;color:#F59E0B;font-size:56px}
+.dkb{padding:12px 16px;display:grid;gap:4px}.dkn{font-size:20px;font-weight:600;color:#0F172A}.dkp{font-size:22px;font-weight:600;color:#B45309}.dkp s{font-size:15px;color:#64748B;font-weight:400}
+.dkt{font-size:14px;font-weight:600;color:#16A34A}.dkb small{color:#64748B;font-size:13px}
+.stamp{position:absolute;top:18px;padding:4px 10px;border:3px solid;border-radius:10px;font:700 20px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;font-style:normal;opacity:0;pointer-events:none;background:#ffffffd9}
+.stamp.keep{inset-inline-start:16px;color:#16A34A;transform:rotate(-12deg)}.stamp.drop{inset-inline-end:16px;color:#DC2626;transform:rotate(12deg)}
+[dir=rtl] .stamp.keep{transform:rotate(12deg)}[dir=rtl] .stamp.drop{transform:rotate(-12deg)}
+.swb{display:flex;justify-content:center;gap:28px;margin:22px 0 4px}
+.swb button{width:60px;height:60px;border-radius:30px;border:0;background:#fff;display:grid;place-items:center;font-size:28px;line-height:0;cursor:pointer;box-shadow:0 8px 20px -10px rgba(15,42,74,.45)}
+.swb .sx{color:#DC2626}.swb .sk{color:#16A34A}.swb button:active{transform:scale(.94)}
+.dkend{height:100%;display:grid;place-items:center;text-align:center}
+/* Store: category tiles + full category window (grocery-app style) */
+.ctiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ctile{border:0;background:#fff;border-radius:14px;box-shadow:0 0 0 .5px #E2E8F0;padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;font:inherit;color:#0F172A;cursor:pointer;min-height:96px}
+.ctile .ci{width:40px;height:40px;border-radius:12px;background:#F0FDF4;color:#16A34A;display:grid;place-items:center;font-size:22px;line-height:0}
+.ctile b{font-size:13px;font-weight:600;text-align:center}.ctile small{font-size:12px;color:#64748B}
+#cw{position:absolute;inset:0;background:#F8FAFC;z-index:40;display:flex;flex-direction:column;transform:translateX(104%);transition:transform .36s cubic-bezier(.3,.6,.2,1);box-shadow:-10px 0 30px -12px rgba(15,42,74,.25)}
+[dir=rtl] #cw{transform:translateX(-104%)}
+#cw.on,[dir=rtl] #cw.on{transform:none}
+.cwh{display:flex;align-items:center;gap:6px;height:52px;padding:0 16px 0 6px;background:#fff;flex:none}
+[dir=rtl] .cwh{padding:0 6px 0 16px}
+.cwb{width:44px;height:44px;border:0;background:none;font-size:22px;color:#0F2A4A;display:grid;place-items:center;cursor:pointer;line-height:0}
+.cwt{flex:1;font-size:20px;font-weight:600;color:#0F172A}.cwn{font-size:13px;color:#64748B}
+.cwc{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 10px;background:#fff;flex:none;scrollbar-width:none}.cwc::-webkit-scrollbar,.cwtabs::-webkit-scrollbar{display:none}
+.cwc button{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:18px;border:1px solid #E2E8F0;background:#fff;font:500 13px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;color:#0F172A;cursor:pointer}
+.cwc button .ph{width:18px;height:18px;color:#64748B}
+.cwc button.on{border-color:#0F2A4A;background:#0F2A4A;color:#fff}.cwc button.on .ph{color:#fff}
+.cwtabs{display:flex;gap:20px;overflow-x:auto;padding:0 16px;background:#fff;border-bottom:.5px solid #E2E8F0;flex:none;scrollbar-width:none}
+.cwtabs button{flex:none;height:40px;border:0;background:none;font:500 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;color:#64748B;border-bottom:2px solid transparent;cursor:pointer;padding:0}
+.cwtabs button.on{color:#2563EB;border-bottom-color:#2563EB;font-weight:600}
+.cwbody{flex:1;overflow-y:auto;padding:0 16px;-webkit-overflow-scrolling:touch}
+.cwbody h5{margin:16px 0 8px;font-size:16px;font-weight:600;color:#0F172A}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pt{border:0;background:#fff;border-radius:12px;box-shadow:0 0 0 .5px #E2E8F0;padding:6px 6px 8px;display:flex;flex-direction:column;align-items:stretch;gap:2px;text-align:start;font:inherit;color:#0F172A;cursor:pointer;min-width:0}
+.pti{aspect-ratio:1;border-radius:9px;background:#F1F5F9;display:grid;place-items:center;color:#94A3B8;font-size:30px;line-height:0;overflow:hidden;margin-bottom:4px}
+.pti img{width:100%;height:100%;object-fit:cover}
+.ptn{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.pts{font-size:11px;color:#64748B;min-height:14px}
+.ptp{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}.ptp b{font-size:15px;font-weight:600;color:#16A34A}.ptp s{font-size:11px;color:#94A3B8}
+.ptst{font-size:11px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptr{display:flex;gap:8px;margin-bottom:10px}.ptr>div{flex:1;background:#F8FAFC;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.ptr small{font-size:12px;color:#64748B}.ptr b{font-size:22px;font-weight:600}
