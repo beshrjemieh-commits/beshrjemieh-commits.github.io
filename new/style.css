@@ -330,3 +330,8 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .dk .dkkind.new{background:#2563EBE6}
 [dir=rtl] .dk .dkkind{inset-inline-start:auto;left:auto;right:12px}
 .akind{margin:2px 0 8px}
+/* pencils and +/- all on one right-hand axis (Beshr 2026-11-24) */
+.pen{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px}
+.pedit{width:22px;height:22px;border-radius:7px;margin:-4px 0}.pedit svg{width:12px;height:12px}
+.slr{display:grid;grid-template-columns:32px 1fr auto 60px 28px;align-items:center;column-gap:8px}
+.slr .slp{text-align:end}.slr .slx{margin-inline-end:-4px;width:28px}
