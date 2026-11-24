@@ -323,3 +323,6 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .sln .slsv{color:#16A34A;font-weight:500}.sln .slsv s{color:#94A3B8;font-weight:400}
 .sltot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;border-top:.5px solid #E2E8F0;font-size:14px;color:#475569}.sltot b{font-size:16px;color:#0F172A}
 [data-gapopen]{cursor:pointer}
+.slq{gap:1px;padding:1px;border-radius:8px}.slq button{width:20px;height:20px;border-radius:6px;font-size:13px}.slq b{min-width:14px;font-size:12px}
+.slclr{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;height:38px;border:0;border-radius:12px;background:#FEF2F2;color:#DC2626;font:500 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}.slclr svg{width:16px;height:16px}
+.slclr.undo{background:#EFF6FF;color:#2563EB}
