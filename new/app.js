@@ -134,7 +134,8 @@ async function aiJSON(prompt,tier){const {data:{session}}=await sb.auth.getSessi
  const j=await res.json().catch(()=>({}));if(!res.ok||j.error)throw {code:(j.error&&j.error.code)||"upstream_error"};
  const t=(j.content||[]).filter(b=>b.type=="text").map(b=>b.text).join("").replace(/^[^{]*/,"").replace(/[^}]*$/,"");return JSON.parse(t||"{}")}
 // AI reads bank messages (Beshr 2026-11-24: "autodetected by AI" like the old app): amount, shop and category, learning from his own past costs
-async function aiReadSms(list,ex){const cats=LOG_CATS.filter(k=>BY[k]).map(k=>`${k} = ${(BY[k]||{}).s||k}`).join("\n"),seen={};
+let SHOPS=null;const shopsOf=async()=>{if(SHOPS)return SHOPS;try{const r=await sb.rpc("community_shops");SHOPS=Array.isArray(r.data)?r.data:[]}catch(e){SHOPS=[]}return SHOPS};
+async function aiReadSms(list,ex){const cm=(await shopsOf()).slice(0,150).map(x=>`${x.shop} -> ${x.cat}, usually ${x.usual} SAR`).join("\n");const cats=LOG_CATS.filter(k=>BY[k]).map(k=>`${k} = ${(BY[k]||{}).s||k}`).join("\n"),seen={};
  ex.forEach(x=>{const n=norm(x.note).toLowerCase();if(n.length>2&&!seen[n]&&x.cat!="flex")seen[n]=x.cat});const hist=Object.entries(seen).slice(0,60).map(([n,c])=>`${n} -> ${c}`).join("\n");
  const o=await aiJSON(`These are bank SMS messages from Saudi Arabia (Arabic or English). For each one, read the payment.
 Return ONLY JSON: {"items":[{"i":<index>,"skip":<true if it is not money he spent: money coming in, salary, refund, OTP, ad, or no amount>,"amount":<number in SAR>,"shop":"<short shop name, as written>","cat":"<one key from the list>"}]}
@@ -142,6 +143,8 @@ Categories:
 ${cats}
 His own past costs (shop -> category), follow these when the shop matches:
 ${hist||"none"}
+Other shoppers' shops (shop -> category, usual price), use these when his own list has no match, and if an amount you read is far from the usual price, re-check the message:
+${cm||"none"}
 Use "flex" only if nothing fits.
 Messages:
 ${list.map((t,i)=>`[${i}] ${String(t).slice(0,500)}`).join("\n\n")}`,"quick");
