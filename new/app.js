@@ -310,9 +310,11 @@ function cards(m){
  return {w,e,s,f,H}}
 // ---------- UI ----------
 let OK="",TL={tap:1e9,open:.42,close:1e9,cd:.34},T0=performance.now();const now=()=>(performance.now()-T0)/1000;
-function start(m){
+function start(m,soft){
+ // soft restart after a save (Beshr 2026-11-24: no more jumping to the loading screen): one render loop and one set of page-wide listeners at a time
+ const GEN=window._gen=(window._gen||0)+1;(window._docL||[]).forEach(([t,f,c])=>document.removeEventListener(t,f,c));window._docL=[];const dAdd=(t,f,c)=>{document.addEventListener(t,f,c);window._docL.push([t,f,c])};OK="";TL.tap=TL.close=1e9;
  const C=cards(m),P=build(m),app=document.getElementById("app");const order=(()=>{try{const o=JSON.parse(localStorage.getItem("s-order")||"null");if(Array.isArray(o)&&o.length==4&&["w","e","s","f"].every(k=>o.includes(k)))return o}catch(e){}return ["w","e","s","f"]})(),y0=144;
- let vis=0;try{vis=(+localStorage.getItem("s-visit")||0)+1;localStorage.setItem("s-visit",vis)}catch(e){}
+ let vis=0;try{vis=(+localStorage.getItem("s-visit")||0)+(soft?0:1);localStorage.setItem("s-visit",vis)}catch(e){}
  const pool=order.filter(k=>C.H[k]),HK=pool.length?pool[vis%pool.length]:"";
  const HH=order.map(k=>k==HK?142:112),TOPS=order.map((k,i)=>y0+HH.slice(0,i).reduce((a,b)=>a+b+8,0)),APPH=window.APPH||770;
  const hr=new Date().getHours(),greet=hr<12?tx("Good morning","صباح الخير"):hr<18?tx("Good afternoon","مساء الخير"):tx("Good evening","مساء الخير");
@@ -328,7 +330,7 @@ function start(m){
  // chart rotation: a different chart per visit, then every 6 s one card (in turn) moves to its next chart while Home is showing
  const CUR={},CHG={};order.forEach((k,i)=>{const n=C[k].pool.length;CUR[k]=(vis+i)%n;CHG[k]=0});let nextEv=6,evI=vis%4;
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
- function render(){const t=now();
+ function render(){if(GEN!=window._gen)return;const t=now();
   if(!OK&&t>nextEv){for(let j=0;j<4;j++){const k=order[evI++%4];if(C[k].pool.length>1){CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"});break}}nextEv=t+6}
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
@@ -395,7 +397,9 @@ function start(m){
  // ---- writes ----
  const toast=window._toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
  const addCost=async(amount,cat,note)=>{const d=ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
- const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}setTimeout(()=>location.reload(),900)};
+ const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
+  // fetch fresh data and redraw in place, keeping the same card/window open (no page reload, no loading screen)
+  load().then(R=>{saveCache(R);const keep=[...document.querySelectorAll("#app>.toast")];start(model(R),1);const a=document.getElementById("app");keep.forEach(t=>a.appendChild(t))}).catch(()=>setTimeout(()=>location.reload(),300))};
  { const c=document.querySelector('.card[data-k="e"]'),x=c.querySelector(".xadd");if(x){
    x.querySelectorAll(".xc button").forEach(b=>b.onclick=()=>{x.querySelectorAll(".xc button").forEach(y=>y.classList.remove("sel"));b.classList.add("sel")});
    const sm=x.querySelector(".sms"),a=x.querySelector(".xa");sm.addEventListener("input",()=>{const mm=sm.value.replace(/,/g,"").match(/(\d+(?:\.\d+)?)\s*(?:SAR|ر\.س|ريال)?/i);if(mm)a.value=mm[1]});
@@ -555,13 +559,13 @@ ${q}`;
  { const sc=document.querySelector('.card[data-k="s"]');sc&&sc.addEventListener("click",ev=>{if(!ev.target.closest(".slopen"))return;ev.stopPropagation();
   show(GR,`<h3><span style="color:${GR};line-height:0">${PH("basket")}</span>${tx("Shopping list","قائمة التسوق")} · <span class="sln-n">${m.list.length}</span></h3><div id="slsheet">${m._listRows()}</div>`,()=>{})},true);
   // clear the whole list: instant, with Undo for 6 s (his delete rule)
-  document.addEventListener("click",ev=>{const c=ev.target.closest("[data-slclear],[data-slundo]");if(!c)return;ev.stopPropagation();
+  dAdd("click",ev=>{const c=ev.target.closest("[data-slclear],[data-slundo]");if(!c)return;ev.stopPropagation();
    if(c.dataset.slclear){window._slBak={keys:m.shopKeys.slice(),qty:Object.assign({},m.shopQty)};m.shopKeys=[];window._shopRefresh();window._saveShop();
     const ls=document.getElementById("slsheet");if(ls){ls.insertAdjacentHTML("beforeend",`<button class="slclr undo" data-slundo="1">${tx("List cleared · Undo","انمسحت القائمة · تراجع")}</button>`);clearTimeout(window._slT);window._slT=setTimeout(()=>{const u=document.querySelector("[data-slundo]");if(u)u.remove()},6000)}}
    else if(window._slBak){m.shopKeys=window._slBak.keys;m.shopQty=window._slBak.qty;window._slBak=null;window._shopRefresh();window._saveShop(tx("List restored","رجعت القائمة"))}},true);
-  document.addEventListener("click",ev=>{const q=ev.target.closest("[data-qu],[data-qd]");if(!q)return;ev.stopPropagation();const k=q.dataset.qu||q.dataset.qd,n=Math.max(1,Math.min(99,(+m.shopQty[k]||1)+(q.dataset.qu?1:-1)));m.shopQty[k]=n;window._shopRefresh();window._saveShop()},true);
+  dAdd("click",ev=>{const q=ev.target.closest("[data-qu],[data-qd]");if(!q)return;ev.stopPropagation();const k=q.dataset.qu||q.dataset.qd,n=Math.max(1,Math.min(99,(+m.shopQty[k]||1)+(q.dataset.qu?1:-1)));m.shopQty[k]=n;window._shopRefresh();window._saveShop()},true);
   sc&&sc.addEventListener("click",ev=>{if(!ev.target.closest("[data-gapopen]"))return;ev.stopPropagation();sc.querySelector(".slopen").click()},true);
-  document.addEventListener("click",ev=>{const b=ev.target.closest("[data-slx]");if(!b)return;ev.stopPropagation();const k=b.dataset.slx;m.shopKeys=m.shopKeys.filter(x=>x!=k);
+  dAdd("click",ev=>{const b=ev.target.closest("[data-slx]");if(!b)return;ev.stopPropagation();const k=b.dataset.slx;m.shopKeys=m.shopKeys.filter(x=>x!=k);
   const row=b.closest(".slr");row.animate([{opacity:1},{opacity:0,transform:"translateX(-12px)"}],{duration:180}).onfinish=()=>window._shopRefresh();
   document.querySelectorAll(`#cw .ptadd[data-add="${CSS.escape(k)}"]`).forEach(x=>{x.classList.remove("on");x.textContent="+"});
   window._saveShop(tx("Removed from list","انشال من القائمة"))},true); }
@@ -583,7 +587,7 @@ ${q}`;
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
    document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
-   document.getElementById("sout").onclick=async()=>{try{await sb.auth.signOut()}catch(e){}location.reload()}})};
+   document.getElementById("sout").onclick=async()=>{try{localStorage.removeItem("w-cache");await sb.auth.signOut()}catch(e){}location.reload()}})};
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}
@@ -597,6 +601,14 @@ ${q}`;
    box.innerHTML=ringFor(m,mon,dPl?Math.max(0,dPl-dSp):null);box.animate([{opacity:.2},{opacity:1}],{duration:260})},true); }
 
 }
+// ---------- data kept on the phone (so the app opens without a loading screen) ----------
+let CUID="";
+function readCache(uid){try{const c=JSON.parse(localStorage.getItem("w-cache")||"null");if(c&&c.uid==uid&&c.R&&c.R.by){CUID=uid;return c.R}}catch(e){}CUID=uid;return null}
+function saveCache(R,uid){uid=uid||CUID;try{const t=JSON.stringify({uid,R,at:Date.now()});if(t.length<3.5e6)localStorage.setItem("w-cache",t);else localStorage.removeItem("w-cache")}catch(e){try{localStorage.removeItem("w-cache")}catch(_){}}}
+// fresh data arrived: redraw in place, but never while a sheet is open (he may be typing)
+function softApply(R){const sh=document.getElementById("sheet");if(sh&&sh.classList.contains("on")){setTimeout(()=>softApply(R),1000);return}
+ try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
+ start(model(R),1)}
 // ---------- boot ----------
 // Visible height. iPhone Home Screen apps can report the full screen height while the page starts below the status bar,
 // which pushed the bottom of the app (quick bar, sheets) off screen (Beshr 2026-11-24). Take the smallest height and remove the status bar in that case.
@@ -610,7 +622,10 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
 (function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
 (async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){gate(`${tx("Sign in on your wallet app first, then come back here.","سجّل دخولك في تطبيق المحفظة أول، بعدين ارجع هنا.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the wallet app","افتح تطبيق المحفظة")}</a>`);return}
+ // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
+ const uid=data.session.user&&data.session.user.id,c=readCache(uid);
+ if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}return}
  gate(`<span class="think" style="justify-content:center"><i></i>${tx("Loading your data","أحمّل بياناتك")}</span>`);
- const R=await load();const m=model(R);document.getElementById("gate").remove();start(m)}
+ const R=await load();saveCache(R,uid);const m=model(R);document.getElementById("gate").remove();start(m)}
  catch(e){gate(`${tx("Couldn't load your data. Check your connection and reload.","ما قدرت أحمّل بياناتك. تأكد من الاتصال وحدّث الصفحة.")}<br><small style="color:${G}">${esc(e&&e.message||e)}</small>`)}})();
 })();
