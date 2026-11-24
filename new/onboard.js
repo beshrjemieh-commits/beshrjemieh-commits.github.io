@@ -216,7 +216,7 @@ const CSS=`
 .wgd[dir=rtl] .gi{line-height:1.7}
 .wgd .gi b{color:${NAVY}}
 .wgd .lk{display:flex;align-items:center;gap:8px;margin-top:10px;background:#F1F5F9;border-radius:10px;padding:8px 8px 8px 12px}
-.wgd .lk code{flex:1;min-width:0;font:500 13px "IBM Plex Sans",sans-serif;color:${BLUE};direction:ltr;text-align:left;overflow-wrap:anywhere}
+.wgd .lk code{flex:1;min-width:0;font:500 13px Riyal,"IBM Plex Sans",sans-serif;color:${BLUE};direction:ltr;text-align:left;overflow-wrap:anywhere}
 .wgd .lk button{height:32px;padding:0 12px;border:0;border-radius:9px;background:${BLUE};color:#fff;font:600 13px inherit;cursor:pointer;flex:none}
 .wgd .st{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px}
 .wgd .sh{display:flex;gap:10px;align-items:flex-start}
@@ -249,7 +249,7 @@ const CSS=`
 .wgd .ios .wsrch{margin:0 10px 8px;background:#E3E3E8;border-radius:9px;padding:6px 10px;color:#8E8E93}
 .wgd .ios .ban{margin:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;gap:8px;align-items:center}
 .wgd .hl{position:relative;outline:2px solid ${BLUE};outline-offset:2px;border-radius:7px}
-.wgd .hl::after{content:attr(data-n);position:absolute;top:-10px;inset-inline-end:-8px;background:${BLUE};color:#fff;font:600 10px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;padding:2px 6px;border-radius:8px;white-space:nowrap;z-index:2}
+.wgd .hl::after{content:attr(data-n);position:absolute;top:-10px;inset-inline-end:-8px;background:${BLUE};color:#fff;font:600 10px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;padding:2px 6px;border-radius:8px;white-space:nowrap;z-index:2}
 .wgd .done{text-align:center;padding:18px 14px;color:${G};font-size:14px}
 `;
 let cssOn=false;const css=()=>{if(cssOn)return;cssOn=true;const s=document.createElement("style");s.textContent=CSS;document.head.appendChild(s)};
@@ -348,7 +348,7 @@ function setup(ctx){
   const tw=$(".tw");tw.classList.add("out");stage.classList.add("out");setTimeout(()=>{fill();$(".body").scrollTop=0;stage.classList.remove("out");stage.classList.add("in");if(dir<0){stage.style.transform=getComputedStyle(stage).transform}
    requestAnimationFrame(()=>requestAnimationFrame(()=>{stage.classList.remove("in");stage.style.transform="";tw.classList.remove("out")}))},200)}
  const okBtn=()=>{$(".cta").disabled=!V[S.i].ok()};
- const go=d=>{if(busy)return;const n=S.i+d;if(n<0)return;if(n>=V.length)return finish("tour");S.i=n;paint(d)};
+ const go=d=>{if(busy)return;let n=S.i+d;while((n==4&&!S.flash)||(n==5&&!S.forsa))n+=d;if(n<0)return;if(n>=V.length)return finish("tour");S.i=n;paint(d)};
  async function finish(how){if(busy)return;busy=true;const F=fit();
   const ans={knew:S.knew,salary:+S.salary||0,payday:S.payday,bills:S.bills.filter(b=>+b.amt>0).map(b=>({k:b.k,amt:+b.amt,name:b.name})),goals:F.gs.map(g=>({name:gName(g),target:+g.target,months:g.months,give:Math.round(g.give)})),
    flash:S.fAns=="yes"?S.flash:null,forsa:S.dAns?{name:(S.dAns=="new"?S.forsa.new.name:S.forsa.used.name)||S.forsa.name,kind:S.dAns}:null};
