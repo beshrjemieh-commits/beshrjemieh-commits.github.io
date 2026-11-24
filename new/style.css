@@ -383,3 +383,15 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .c-w .vz2 div,.c-w .vz2 span{color:rgba(255,255,255,.78)!important}
 .c-w .vz2 b{color:#fff!important}
 .c-w .vz2 text{fill:#fff}
+/* Forsa Added, option 1 (Beshr 2026-11-24): one thin line per deal; swipe to delete */
+.asw{position:relative;overflow:hidden;border-top:.5px solid #F1F5F9}
+.asw:first-child{border-top:0}
+.asd{position:absolute;inset:0;display:none;direction:ltr;align-items:center;padding:0 16px;background:#DC2626;color:#fff;font-size:13px;font-weight:600}
+.asw.sw[data-side=r] .asd:first-child{display:flex;justify-content:flex-end}
+.asw.sw[data-side=l] .asd:last-of-type{display:flex;justify-content:flex-start}
+.afr.ln{position:relative;height:40px;padding:0 2px;gap:8px;border-top:0;background:#fff;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.afr.ln img,.afr.ln .aph{width:26px;height:26px;border-radius:7px;font-size:14px}
+.afr.ln .aln{flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.afr.ln .afp{font-size:14px;color:#0F172A}
+.afr.ln .alp{min-width:40px;text-align:end;font-style:normal;font-size:12px;font-weight:600;color:#16A34A}
+.aundo{display:block;width:100%;margin:0 0 8px;padding:10px 14px;border:0;border-radius:12px;background:#0F172A;color:#fff;font:600 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;text-align:center;cursor:pointer}
