@@ -137,6 +137,19 @@ function addedHTML(list){if(!list.length)return "";const cats={};list.forEach(d=
    const ps=g.map(d=>d.price).filter(Boolean),lo=Math.min(...ps),hi=Math.max(...ps),best=g.slice().sort((a,b)=>(b.pct-a.pct)||(a.price-b.price))[0];
    return `<div class="afam"><div class="afh"><b>${esc(dFam(g[0]))}</b><span>${g.length}</span><em>${M(lo)} – ${M(hi)}</em></div>`+g.sort((a,b)=>a.price-b.price).map(d=>`<a class="arow${d==best?" best":""}" href="${esc(dLink(d))}" target="_blank" rel="noopener">${d.image?`<img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer">`:`<i class="aph">${PH("fire")}</i>`}<span class="ari"><b>${M(d.price)}${d.pct?` <small>▼${d.pct}%</small>`:""}</b><span class="atags">${dTags(d).map(t=>`<i>${t}</i>`).join("")}${d==best?`<i class="bt">${tx("Best value","أفضل قيمة")}</i>`:""}</span></span><span class="ago">${tx("Open","افتح")}</span></a>`).join("")+
     (hi>lo?`<div class="arng"><i style="inset-inline-start:0;width:100%"></i>${g.map(d=>`<u style="inset-inline-start:${(d.price-lo)/(hi-lo)*100}%"></u>`).join("")}</div><div class="arl"><span>${M(lo)}</span><span>${tx(`${M(hi-lo)} difference`,`فرق ${M(hi-lo)}`)}</span><span>${M(hi)}</span></div>`:"")+`</div>`}).join("")+`</div>`}).join("")}
+// Expenses ring for one month (mon = "YYYY-MM"); left = "left for living" (this month only)
+const monName=mon=>{const [y,mm]=mon.split("-").map(Number);return new Date(y,mm-1,15).toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{month:"long",year:new Date().getFullYear()==y?undefined:"numeric"})};
+const prevMon=mon=>{const [y,mm]=mon.split("-").map(Number),d=new Date(y,mm-2,15);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
+function monCats(m,mon){const sp={};m.ex.filter(x=>x.date.startsWith(mon)).forEach(x=>sp[x.cat]=(sp[x.cat]||0)+x.amount);return Object.entries(sp).sort((a,b)=>b[1]-a[1])}
+function ringFor(m,mon,left){const cur=mon==m.mon,cats=monCats(m,mon),tot=cats.reduce((a,x)=>a+x[1],0),[y,mm]=mon.split("-").map(Number),days=cur?new Date().getDate():new Date(y,mm,0).getDate(),
+  first=m.ex.reduce((a,x)=>x.date<a?x.date:a,m.mon+"-99").slice(0,7),pm=prevMon(mon),hasPrev=pm>=first;
+ const nav=`<div class="mnav"><button data-mnav="${pm}" ${hasPrev?"":"disabled"} aria-label="${tx("Earlier month","الشهر اللي قبل")}">${PH("caret-left")}<span>${hasPrev?monName(pm):""}</span></button><h4>${cur?tx("This month","هالشهر"):monName(mon)}</h4>${cur?`<span class="mnsp"></span>`:`<button data-mnav="${(()=>{const [a,b]=mon.split("-").map(Number),d=new Date(a,b,15);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")})()}" class="mnext"><span>${tx("Next","التالي")}</span>${PH("caret-right")}</button>`}</div>`;
+ if(!tot)return nav+`<div class="empty">${tx("No costs this month","ما فيه مصاريف هالشهر")}</div>`;
+ const top=cats.slice(0,6),rest=cats.slice(6),seg=top.map(([k,v])=>({k,n:nm(k),v})).concat(rest.length?[{k:"_other",n:tx("Other","أخرى"),v:rest.reduce((a,x)=>a+x[1],0)}]:[]),R=78,L=2*Math.PI*R;let acc=0;
+ const arcs=seg.map((x,i)=>{const len=x.v/tot*L,g=seg.length>1?Math.min(3,len/3):0,o=`<circle data-cat="${x.k}" data-mon="${mon}" r="${R}" cx="100" cy="100" fill="none" stroke="${DCOL[i]}" stroke-width="28" stroke-dasharray="${Math.max(.5,len-g)} ${L}" stroke-dashoffset="${-acc}" style="--l:${L}"/>`;acc+=len;return o}).join("");
+ return nav+`<div class="dnut"><svg viewBox="0 0 200 200" width="210" height="210" style="transform:rotate(-90deg)">${arcs}</svg><div class="dctr"><small>${tx("Spent","صرفت")}</small><b>${M(tot)}</b><small>${tx(`${M(tot/days)} a day`,`${M(tot/days)} باليوم`)}</small></div></div>
+  <div class="dleg">${seg.map((x,i)=>`<button data-cat="${x.k}" data-mon="${mon}"><i style="background:${DCOL[i]}"></i><span>${x.n}</span><b>${M(x.v)}</b><small>${Math.round(x.v/tot*100)}%</small></button>`).join("")}</div>
+  ${cur&&left!=null?`<div class="dleft">${tx("Left for living this month","باقي للمعيشة هالشهر")} <b style="color:${GR}">${M(left)}</b></div>`:""}`}
 // Forsa: deal link (listing, or a web search for it), tabs by hunt word, one row per deal
 const dLink=d=>d.url||"https://www.google.com/search?q="+encodeURIComponent(d.title);
 function fTabs(m){const und=m.deals.filter(d=>d.status!="saved"),T=[{n:tx("All","الكل"),list:und}];
@@ -188,11 +201,8 @@ function build(m){
  const cats=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),totM=monOut||1;
  const E=[sec(tx("Today","اليوم"),m.todayEx.length?rows(m.todayEx.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):`<div class="empty">${tx("Nothing yet today","ما فيه شي اليوم")}</div>`),
   // Beshr 2026-11-24: one chart instead of rows: ring of this month's categories, centre = total spent (same number as the parts); tap a slice or name for the details
-  sec(tx("This month","هالشهر"),cats.length?(()=>{const top=cats.slice(0,6),rest=cats.slice(6),seg=top.map(([k,v])=>({k,n:nm(k),v})).concat(rest.length?[{k:"_other",n:tx("Other","أخرى"),v:rest.reduce((a,x)=>a+x[1],0)}]:[]),R=78,L=2*Math.PI*R;let acc=0;
-   const arcs=seg.map((x,i)=>{const len=x.v/totM*L,g=seg.length>1?Math.min(3,len/3):0,o=`<circle data-cat="${x.k}" r="${R}" cx="100" cy="100" fill="none" stroke="${DCOL[i]}" stroke-width="28" stroke-dasharray="${Math.max(.5,len-g)} ${L}" stroke-dashoffset="${-acc}" style="--l:${L}"/>`;acc+=len;return o}).join("");
-   return `<div class="dnut"><svg viewBox="0 0 200 200" width="210" height="210" style="transform:rotate(-90deg)">${arcs}</svg><div class="dctr"><small>${tx("Spent","صرفت")}</small><b>${M(monOut)}</b><small>${tx(`${M(monOut/dom)} a day`,`${M(monOut/dom)} باليوم`)}</small></div></div>
-    <div class="dleg">${seg.map((x,i)=>`<button data-cat="${x.k}"><i style="background:${DCOL[i]}"></i><span>${x.n}</span><b>${M(x.v)}</b><small>${Math.round(x.v/totM*100)}%</small></button>`).join("")}</div>
-    ${dPlan?`<div class="dleft">${tx("Left for living this month","باقي للمعيشة هالشهر")} <b style="color:${GR}">${M(Math.max(0,dPlan-dSpent))}</b></div>`:""}`})():`<div class="empty">${tx("No costs this month yet","ما فيه مصاريف هالشهر")}</div>`),
+  // Beshr 2026-11-24: ring for this month, arrows step back to earlier months by name
+  `<div class="sec ringsec">${ringFor(m,m.mon,dPlan?Math.max(0,dPlan-dSpent):null)}</div>`,
   // Beshr 2026-11-24: entries as a chart: last 14 days, one stacked bar per day (category colours as in the ring); tap a day for its costs
   sec(tx("Last 14 days","آخر 14 يوم"),(()=>{const days=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return ymd(d)}),rank=k=>{const i=cats.findIndex(x=>x[0]==k);return i<0||i>5?6:i};
    const per=days.map(d=>{const es=m.ex.filter(x=>x.date==d);return {d,es,t:es.reduce((a,x)=>a+x.amount,0)}}),mx=Math.max(1,...per.map(x=>x.t)),tot=per.reduce((a,x)=>a+x.t,0),big=per.slice().sort((a,b)=>b.t-a.t)[0];
@@ -271,7 +281,7 @@ function start(m){
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
-  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars"))return;
+  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav"))return;
   if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
@@ -393,8 +403,8 @@ function start(m){
  }
 
  // ---- Expenses: tap a slice or a name -> details sheet ----
- { const ec=document.querySelector('.card[data-k="e"]'),cs=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),tot=cs.reduce((a,x)=>a+x[1],0)||1;
-  ec.addEventListener("click",ev=>{const t=ev.target.closest("[data-cat]");if(!t||!OK)return;ev.stopPropagation();const k=t.dataset.cat,ks=k=="_other"?cs.slice(6).map(x=>x[0]):[k],es=m.monthEx.filter(x=>ks.includes(x.cat)).sort((a,b)=>b.date.localeCompare(a.date)),v=es.reduce((a,x)=>a+x.amount,0),pl=ks.reduce((a,q)=>a+m.planOf(q),0),i=cs.findIndex(x=>x[0]==k),col=DCOL[k=="_other"?6:i]||NAVY;
+ { const ec=document.querySelector('.card[data-k="e"]');
+  ec.addEventListener("click",ev=>{const t=ev.target.closest("[data-cat]");if(!t||!OK)return;ev.stopPropagation();const mon=t.dataset.mon||m.mon,cs=monCats(m,mon),tot=cs.reduce((a,x)=>a+x[1],0)||1,k=t.dataset.cat,ks=k=="_other"?cs.slice(6).map(x=>x[0]):[k],es=m.ex.filter(x=>x.date.startsWith(mon)&&ks.includes(x.cat)).sort((a,b)=>b.date.localeCompare(a.date)),v=es.reduce((a,x)=>a+x.amount,0),pl=ks.reduce((a,q)=>a+m.planOf(q),0),i=cs.findIndex(x=>x[0]==k),col=DCOL[k=="_other"?6:i]||NAVY;
    show(col,`<h3><i style="width:14px;height:14px;border-radius:4px;background:${col};display:inline-block"></i>${k=="_other"?tx("Other","أخرى"):nm(k)}</h3>
     <div class="ptr"><div><small>${tx("Spent","صرفت")}</small><b>${M(v)}</b><small>${Math.round(v/tot*100)}% ${tx("of the month","من الشهر")}</small></div>${pl?`<div><small>${tx("Plan","الخطة")}</small><b>${M(pl)}</b><small style="color:${v>pl?"#DC2626":GR}">${v>pl?tx(`${M(v-pl)} over`,`زايد ${M(v-pl)}`):tx(`${M(pl-v)} left`,`باقي ${M(pl-v)}`)}</small></div>`:`<div><small>${tx("Costs","المصاريف")}</small><b>${es.length}</b><small>${tx(`about ${M(v/Math.max(1,es.length))} each`,`تقريباً ${M(v/Math.max(1,es.length))} للواحد`)}</small></div>`}</div>
     ${pl?`<div class="dkbar" style="margin:2px 0 12px"><i style="width:${Math.min(100,v/pl*100)}%;background:${v>pl?"#DC2626":col}"></i></div>`:""}
@@ -419,6 +429,10 @@ function start(m){
  // ---- Expenses: tap a day bar -> that day's costs ----
  { const ec=document.querySelector('.card[data-k="e"]');ec.addEventListener("click",ev=>{const b=ev.target.closest("[data-day]");if(!b||!OK)return;ev.stopPropagation();const d=b.dataset.day,es=m.ex.filter(x=>x.date==d),t=es.reduce((a,x)=>a+x.amount,0);
   show(NAVY,`<h3>${when(d)} <small class="ds" style="font-size:14px;color:${G};font-weight:500">${M(t)}</small></h3><div class="res" style="max-height:50vh;overflow-y:auto">${rows(es.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)]))}</div>`,()=>{})},true); }
+
+ { const ec=document.querySelector('.card[data-k="e"]');ec.addEventListener("click",ev=>{const b=ev.target.closest("[data-mnav]");if(!b||!OK)return;ev.stopPropagation();const box=ec.querySelector(".ringsec"),mon=b.dataset.mnav,
+   dPl=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k),0),dSp=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+(m.spent[i.k]||0),0);
+   box.innerHTML=ringFor(m,mon,dPl?Math.max(0,dPl-dSp):null);box.animate([{opacity:.2},{opacity:1}],{duration:260})},true); }
 
 }
 // ---------- boot ----------
