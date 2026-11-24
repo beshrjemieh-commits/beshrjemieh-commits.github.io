@@ -615,13 +615,28 @@ ${q}`;
   show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("pencil-simple")}</span>${nm(k)}</h3><p class="ds" style="margin:0 0 12px">${tx("Monthly amount","المبلغ الشهري")}</p><input id="pev" class="inp" type="number" inputmode="decimal" min="0" value="${cur||""}" placeholder="0" style="width:100%;font-size:22px;padding:12px 14px;border:1px solid #E2E8F0;border-radius:14px;box-sizing:border-box;font-family:inherit"><button class="go" id="pesv">${tx("Save","حفظ")}</button>`,()=>{const i=document.getElementById("pev");setTimeout(()=>i.focus(),250);
    document.getElementById("pesv").onclick=async()=>{const v=Math.max(0,+i.value||0),its=JSON.parse(JSON.stringify(m.planRaw||{}));its[k]=Object.assign({},its[k]||{},{plan:v});
     try{await put("settings","plan",{items:its});close();toast(tx("Saved","تم الحفظ"));setTimeout(reload,500)}catch(e){toast(tx("Could not save, try again","ما انحفظ، جرب مرة ثانية"))}}})},true); }
+ // ---- bank messages, fully automatic (Beshr 2026-11-24): the iPhone Shortcut sends each bank SMS to log_sms with his personal key; nothing opens ----
+ const smsSetup=async()=>{const url=SB_URL+"/rest/v1/rpc/log_sms?apikey="+SB_KEY;
+  show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("receipt")}</span>${tx("Bank messages","رسائل البنك")}</h3><div id="smss"><span class="think"><i></i>${tx("Getting your key","أجيب مفتاحك")}</span></div>`,()=>{});
+  let key="";try{const r=await sb.rpc("my_sms_key");if(r.error)throw r.error;key=r.data||""}catch(e){}
+  const box=document.getElementById("smss");if(!box)return;
+  if(!key){box.innerHTML=`<p class="ds">${tx("One setup step is still missing in Supabase. Paste the setup code there first, then open this again.","باقي خطوة إعداد في Supabase. الصق كود الإعداد هناك أول، بعدين افتح هذي مرة ثانية.")}</p>`;return}
+  const row=(l,v,id)=>`<div class="smsk"><small>${l}</small><code dir="ltr">${esc(v)}</code><button class="go2" data-cp="${id}">${tx("Copy","نسخ")}</button></div>`;
+  box.innerHTML=`<p class="ds" style="margin:0 0 10px">${tx("Your Shortcut sends each bank message here and the cost is saved by itself. Nothing opens.","الاختصار يرسل كل رسالة بنك هنا وينحفظ المصروف لحاله. ما يفتح شي.")}</p>${row(tx("1 · Address (URL)","١ · العنوان (URL)"),url,"u")}${row(tx("2 · Your key (k)","٢ · مفتاحك (k)"),key,"k")}<button class="go" id="smst">${tx("Send a test message","أرسل رسالة تجربة")}</button><div id="smsr" class="ds" style="margin-top:8px;text-align:center"></div>`;
+  box.onclick=async ev=>{const c=ev.target.closest("[data-cp]");if(!c)return;try{await navigator.clipboard.writeText(c.dataset.cp=="u"?url:key);toast(tx("Copied","انتسخ"))}catch(e){toast(tx("Couldn't copy, hold the text to copy it","ما انتسخ، اضغط مطولاً على النص"))}};
+  document.getElementById("smst").onclick=async()=>{const out=document.getElementById("smsr");out.textContent=tx("Sending…","أرسل…");
+   try{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({k:key,msg:"Purchase\nAmount: SAR 1\nAt: TEST CHECK "+Date.now()})});const j=await r.json();if(!r.ok)throw j;
+    out.textContent=String(j).startsWith("Logged")?tx("It works. The test cost was saved and removed again.","شغّال. انحفظ مصروف التجربة وانحذف."):String(j);
+    await sb.from("app_docs").delete().eq("coll","expenses").like("data->>note","TEST CHECK%")}catch(e){out.textContent=tx("Didn't work: ","ما اشتغل: ")+((e&&e.message)||"")}}};
  document.getElementById("gear").onclick=()=>{if(OK)return;show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("gear-six")}</span>${tx("Settings","الإعدادات")}</h3>
    <div class="setl">${PH("translate")}<span>${tx("Language","اللغة")}</span></div><div class="cwseg" style="margin:0 0 16px"><button data-l="en" class="${AR?"":"on"}">English</button><button data-l="ar" class="${AR?"on":""}">العربية</button></div>
+   <button class="setb" id="ssms">${PH("receipt")}<span>${tx("Bank messages (automatic)","رسائل البنك (تلقائي)")}</span></button>
    <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
    <button class="setb" id="sout">${PH("sign-out")}<span>${tx("Sign out","تسجيل الخروج")}</span></button>
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
    document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
+   document.getElementById("ssms").onclick=()=>{close();setTimeout(smsSetup,350)};
    document.getElementById("sout").onclick=async()=>{try{localStorage.removeItem("w-cache");await sb.auth.signOut()}catch(e){}location.reload()}})};
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");

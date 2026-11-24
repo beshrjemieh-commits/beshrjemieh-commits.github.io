@@ -401,3 +401,8 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .smsbar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .smsbar b{color:#93C5FD;font-weight:600}
 #sheet .pbox{height:auto;padding:10px 14px;margin:-4px 0 12px;resize:none;line-height:1.5}
+/* Settings → Bank messages (automatic) */
+#sheet .smsk{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;margin:0 0 12px}
+#sheet .smsk small{grid-column:1/-1;font-size:12px;font-weight:600;color:#64748B}
+#sheet .smsk code{display:block;min-width:0;padding:10px 12px;border-radius:10px;background:#F1F5F9;font:500 12px/1.4 ui-monospace,Menlo,monospace;color:#0F172A;word-break:break-all;-webkit-user-select:all;user-select:all}
+#sheet .go2{height:38px;padding:0 14px;border:0;border-radius:10px;background:#EFF6FF;color:#2563EB;font:600 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}
