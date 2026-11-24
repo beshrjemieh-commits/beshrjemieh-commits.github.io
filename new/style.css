@@ -407,3 +407,8 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 #sheet .smsk small{grid-column:1/-1;font-size:12px;font-weight:600;color:#64748B}
 #sheet .smsk code{display:block;min-width:0;padding:10px 12px;border-radius:10px;background:#F1F5F9;font:500 12px/1.4 ui-monospace,Menlo,monospace;color:#0F172A;word-break:break-all;-webkit-user-select:all;user-select:all}
 #sheet .go2{height:38px;padding:0 14px;border:0;border-radius:10px;background:#EFF6FF;color:#2563EB;font:600 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}
+/* Forsa swipe filter chips (2026-11-25) */
+#fw .fwch{flex:none;margin:0;padding:2px 16px 6px}#fw .fwch button{padding:6px 11px;font-size:13px;background:#fff;box-shadow:0 0 0 1px #FDE68A}#fw .fwch button.on{background:#0F2A4A;box-shadow:none}
+.fwsep{flex:none;width:1px;background:#FCD34D;margin:6px 2px}
+.achips.akind{margin:4px -16px 2px}.akind button{padding:6px 11px;font-size:13px}
+.akw .achips button{padding:6px 11px;font-size:13px}
