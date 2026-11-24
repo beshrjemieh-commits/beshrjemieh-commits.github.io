@@ -699,7 +699,7 @@ ${q}`;
 function wobPools(m){const by=new Map();[...m.G2.flatMap(g=>g.stores.map(s=>({item:g.item,size:g.size,store:s.store,price:s.price,photo:g.photo}))),...(m.community||[]).map(c=>({item:norm(c.item),size:norm(c.size),store:norm(c.store),price:+c.price,people:+c.people||1,photo:m.photos[keyOf(c)]||""}))]
   .forEach(x=>{if(!x.item||!(x.price>0)||/\((online|shared)\)/i.test(x.store))return;const k=keyOf(x);if(!by.has(k))by.set(k,[]);const a=by.get(k);if(!a.some(y=>y.store.toLowerCase()==x.store.toLowerCase()))a.push(x)});
  const flash=[...by.values()].filter(a=>a.length>1).map(a=>{a.sort((x,y)=>x.price-y.price);const lo=a[0],hi=a.at(-1);return {item:lo.item,size:lo.size,store:lo.store,price:lo.price,was:hi.price,hiStore:hi.store,photo:lo.photo||hi.photo,people:lo.people||1,gap:1-lo.price/hi.price}})
-  .filter(x=>x.gap>=.08&&x.gap<.7).sort((a,b)=>b.gap-a.gap).slice(0,8);
+  .filter(x=>x.gap>=.08&&x.gap<.8).sort((a,b)=>b.gap-a.gap).slice(0,8);
  const ok=m.deals.filter(d=>d.price>0&&d.market>d.price&&!d.offer),U=ok.filter(d=>dKind(d)=="used").sort(byScore),N=ok.filter(d=>dKind(d)=="new").sort(byScore),forsa=[];
  const side=(d,k)=>({name:d.name,title:d.title.slice(0,60),source:d.source,city:d.city,price:d.price,market:d.market,was:d.market,photo:d.image});
  U.slice(0,6).forEach(u=>{const f=dFam(u).toLowerCase(),n=N.find(x=>dFam(x).toLowerCase()==f);if(n)forsa.push({name:u.name,used:side(u),new:side(n)})});
@@ -739,7 +739,7 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
  if(!b&&navigator.standalone&&screen.height>=812)b=34;document.documentElement.style.setProperty("--sab",b+"px")})();
 (function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
-(async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Sign in on your wallet app first, then come back here.","سجّل دخولك في تطبيق المحفظة أول، بعدين ارجع هنا.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the wallet app","افتح تطبيق المحفظة")}</a>`);return}
+(async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Welcome to Smart Wallet.","أهلاً في المحفظة الذكية.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html?signin=new">${tx("Sign in or create an account","سجّل دخولك أو أنشئ حساب")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
  const uid=data.session.user&&data.session.user.id,c=readCache(uid);
  if(c){start(model(c));try{const R=await load();saveCache(R,uid);if(JSON.stringify(R)!=JSON.stringify(c))softApply(R)}catch(e){}window.__spReady=1;smsGo();return}

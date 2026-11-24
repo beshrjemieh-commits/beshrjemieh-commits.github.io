@@ -267,7 +267,7 @@ const pad2=n=>String(n).padStart(2,"0");
 const untilMidnight=()=>{const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.max(0,(m-n)/1000|0);return T(`${s/3600|0}h ${pad2(s/60%60|0)}m`,`${s/3600|0}س ${pad2(s/60%60|0)}د`)};
 function flashHTML(f,ans,v){
  if(!f)return `<div class="cd"><div class="q">${T("No sale to show right now.","ما فيه تخفيض نعرضه الحين.")}</div></div>`;
- const pc=Math.round((1-f.price/f.was)*100),save=Math.round((f.was-f.price)*100)/100,year=Math.round(save*52),ppl=Math.max(1,+f.people||1);
+ const pc=Math.round((1-f.price/f.was)*100),save=Math.round((f.was-f.price)*100)/100,year=Math.round(save*12),ppl=Math.max(1,+f.people||1);
  const has=k=>v=="G"?"AFBCE".includes(k):v==k;
  const photo=h=>`<div class="fhero" style="height:${h}px"><div class="fimg">${f.photo?`<img src="${esc(f.photo)}" alt="">`:`<span class="fico">${PH("basket")}</span>`}</div>
    <span class="ftag"><b dir="ltr">−${pc}%</b></span>${has("E")?`<span class="ftime">${PH("calendar-blank")} ${T("New pick in","اختيار جديد بعد")} <b class="fcd">${untilMidnight()}</b></span>`:""}</div>`;
@@ -275,7 +275,7 @@ function flashHTML(f,ans,v){
    <div class="fpp"><s class="fold">${M(f.was)}</s><b class="fnew" data-from="${f.was}" data-to="${f.price}">${M(f.price)}</b></div></div>
    <div class="fsave">${PH("tag")} ${T(`You save ${M(save)}`,`توفّر ${M(save)}`)}</div>`;
  const duel=f.hiStore?`<div class="fduel">${[[f.store,f.price,1],[f.hiStore,f.was,0]].map(([st,pr,win])=>`<div class="fdr${win?" w":""}"><span class="fdn">${esc(st)}</span><span class="fdb"><i data-w="${Math.round(pr/f.was*100)}%"></i></span><b>${M(pr)}</b></div>`).join("")}</div>`:"";
- const yr=`<div class="fyr"><svg viewBox="0 0 80 28" class="fsp"><path d="M2 26 L20 21 L38 17 L56 10 L78 3"/></svg><span>${T(`Buy it weekly and keep <b>${M(year)}</b> a year`,`لو تشتريه كل أسبوع توفّر <b>${M(year)}</b> بالسنة`)}</span></div>`;
+ const yr=`<div class="fyr"><svg viewBox="0 0 80 28" class="fsp"><path d="M2 26 L20 21 L38 17 L56 10 L78 3"/></svg><span>${T(`Buy it once a month and keep <b>${M(year)}</b> a year`,`لو تشتريه مرة بالشهر توفّر <b>${M(year)}</b> بالسنة`)}</span></div>`;
  const soc=`<div class="fsoc"><span class="fav">${[...Array(Math.min(4,ppl))].map((_,i)=>`<i style="--h:${[210,32,152,262][i]}"></i>`).join("")}</span>${T(`${ppl} ${ppl>1?"shoppers":"shopper"} paid this price`,`${ppl} متسوق دفعوا هالسعر`)}</div>`;
  let body="";
  if(v=="G")body=photo(150)+`<div class="fpad">${price}${duel}${yr}</div>`;
@@ -298,7 +298,7 @@ function setup(ctx){
  css();AR=ctx.lang=="ar";
  const pools=ctx.pools||{},pick=a=>a&&a.length?a[Math.floor(Math.random()*a.length)]:null;
  const S={i:0,knew:null,salary:ctx.salary?String(ctx.salary):"",payday:ctx.payday||27,bills:["rent","util","phone","market"].map(k=>({k,amt:BILL[k][3],name:""})),addB:false,
-  goals:[{k:"trip",target:4600,months:6,name:""}],addG:false,flash:(a=>a&&a.length?a[Math.floor(Date.now()/864e5)%a.length]:null)(pools.flash),fAns:null,forsa:pick(pools.forsa),dAns:null};
+  goals:[{k:"trip",target:4600,months:6,name:""}],addG:false,flash:(a=>{if(!a||!a.length)return null;a=a.slice().sort((x,y)=>(1-y.price/y.was)-(1-x.price/x.was));const big=a.filter(x=>1-x.price/x.was>=.4);return big.length?big[Math.floor(Date.now()/864e5)%big.length]:a[0]})(pools.flash),fAns:null,forsa:pick(pools.forsa),dAns:null};
  const N=7,root=document.createElement("div");root.className="wob";root.dir=AR?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");
  root.innerHTML=`<div class="top"><div class="wbar"><button class="bk" aria-label="${T("Back","رجوع")}">${PH("caret-left")}</button><div class="seg">${"<i></i>".repeat(N-1)}</div><button class="lg">${AR?"English":"العربية"}</button></div><div class="tw"><div class="kk"></div><h1></h1><p class="ld"></p></div><div class="wwv">${WAVE}</div></div><div class="body"><div class="stage"></div></div><div class="foot"><button class="cta"></button><button class="wlnk"></button></div>`;
  document.body.appendChild(root);requestAnimationFrame(()=>root.classList.add("on"));

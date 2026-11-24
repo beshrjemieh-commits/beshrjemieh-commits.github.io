@@ -244,6 +244,8 @@
     };
   }
   function start(u){
+    // signed in from the new app's welcome screen: go straight back there (its own first-time questions run, not the old setup)
+    if(u && /[?&]signin=new\b/.test(location.search)){ location.replace(location.pathname.replace(/old\.html$/, "")); return; }
     if(user) { if(!u || u.id !== user.id) location.reload(); return; }
     if(!u){ if(document.body) gate(); else document.addEventListener("DOMContentLoaded", gate); return; }
     user = u; window.__stage="signed in"; const g = document.getElementById("authGate"); if(g) g.remove(); readyResolve();
