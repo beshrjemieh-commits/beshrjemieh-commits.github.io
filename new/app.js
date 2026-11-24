@@ -1,5 +1,7 @@
 /* Simple wallet (test page at /simple). Reads the same signed-in data as the full app; the full app is not changed.
    Layers: home cards -> card grows into its page -> rows dig deeper on each tap (row -> parts -> full details). */
+// older iPhones (iOS 15.0-15.3) lack Array.at: add it so the app still opens there
+if(!Array.prototype.at)Object.defineProperty(Array.prototype,"at",{value:function(i){i=Math.trunc(i)||0;if(i<0)i+=this.length;return this[i]},configurable:true,writable:true});
 (function(){
 let AR=false;try{AR=localStorage.getItem("w-lang")==="ar"}catch(e){}
 document.documentElement.dir=AR?"rtl":"ltr";document.documentElement.lang=AR?"ar":"en";
@@ -411,7 +413,7 @@ function start(m,soft){
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
-   if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);c.style.left=c.style.right=lerp(16,-off,op)+"px"};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
+   if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);c.style.left=c.style.right=lerp(16,-off,op)+"px";const pd=Math.max(0,off-84)*op;c.style.paddingLeft=c.style.paddingRight=pd?14+pd+"px":"";c.style.setProperty("--cp",pd+"px")};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
    else{c.style.opacity=closing&&OK?1-cl(op/0.12):1-cl(op/0.45)}
    c.style.overflowY=f&&op>=1&&!closing?"auto":"hidden";
    {const fo=f&&FP?1-cl(op/0.4):1;c.querySelector(".big").style.opacity=fo;c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
@@ -828,7 +830,14 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
 // Bottom safe area (home indicator). On Beshr's iPhone 15 Pro Home Screen app env() can read 0, so fall back to 34pt on Face ID iPhones.
 (function sab(){const p=document.createElement("div");p.style.cssText="position:fixed;bottom:0;left:0;width:1px;height:0;padding-bottom:env(safe-area-inset-bottom)";document.body.appendChild(p);let b=p.offsetHeight;p.remove();
  if(!b&&navigator.standalone&&screen.height>=812)b=34;document.documentElement.style.setProperty("--sab",b+"px")})();
-(function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
+// Fit the 393pt design to any screen. --off = spare room each side, so the white top band runs edge to edge (no navy side bars on short or wide screens).
+// --pad keeps full pages' content in a centred column (max ~560pt) on tablets/desktop; 0 on phones. Tablets/desktop may grow up to 1.4x. On rotation or a window resize, fit again and redraw in place.
+function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.4),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`;const off=Math.max(0,(w/s-393)/2);a.style.setProperty("--off",off+"px");a.style.setProperty("--pad",Math.max(0,off-84)+"px");return [w,h]}
+let FIT=fit();
+// Phones turned sideways: the app is made for upright use, so ask to turn back instead of showing a tiny strip.
+document.body.insertAdjacentHTML("beforeend",`<div id="rot" dir="${AR?"rtl":"ltr"}">${PH("device-mobile")}<span>${tx("Turn your phone upright to use Wallet","لف جوالك للوضع الطولي عشان تستخدم المحفظة")}</span></div>`);
+addEventListener("resize",()=>{clearTimeout(window._fitT);window._fitT=setTimeout(()=>{const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return;
+ const w=document.documentElement.clientWidth,h=visH();if(Math.abs(w-FIT[0])<2&&Math.abs(h-FIT[1])<120)return;FIT=fit();const R=CUID&&readCache(CUID);if(R)softApply(R)},250)});
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
 (async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Welcome to Smart Wallet.","أهلاً في المحفظة الذكية.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html?signin=new">${tx("Sign in or create an account","سجّل دخولك أو أنشئ حساب")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
