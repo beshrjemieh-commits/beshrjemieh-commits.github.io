@@ -424,3 +424,9 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .agn{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92}.agp{font-size:13px;font-weight:600}
 .agrid{border-radius:0;overflow:visible}.agt{border-radius:6px;background:#fff;box-shadow:0 0 0 1px #FDE68A inset}
 .agt:not(:has(img)) .agb{background:none;color:#78350F}.agt:not(:has(img)) .agf{padding-bottom:22px}
+/* marquee for text too long for its box (2026-11-25) */
+.mqw{text-overflow:clip!important;overflow:hidden}
+.mq{display:inline-block;animation:mq 6s ease-in-out infinite alternate;will-change:transform}
+@keyframes mq{0%,18%{transform:none}82%,100%{transform:translateX(var(--mx,0))}}
+.dkr .dkn{text-overflow:clip}
+.agn{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
