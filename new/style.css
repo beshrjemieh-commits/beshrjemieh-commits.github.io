@@ -296,3 +296,9 @@ body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
 .afp{font-size:14px;font-weight:600;color:#B45309;white-space:nowrap}.afr .chev{color:#94A3B8}
 #sheet .afam{border:0;padding:0;margin:0}
 a.afr{text-decoration:none}.afn small s{color:#94A3B8}
+.vrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.cnd{font-style:normal;font-size:11px;font-weight:500;color:#475569;background:#F1F5F9;border-radius:6px;padding:1px 6px}.cnd.bad{color:#DC2626;background:#FEF2F2}.cnd.kind{color:#0F2A4A;background:#E2E8F0;font-weight:600}
+.vchip{font-size:11px;font-weight:600;color:var(--v);background:color-mix(in srgb,var(--v) 10%,#fff);border-radius:6px;padding:1px 6px}.vchip small{font-weight:500;font-size:11px;opacity:.85}
+.afn small em{font-style:normal;color:#16A34A;font-weight:600}
+.dkv{margin:4px 0 2px}
+.fkind button{font-size:13px}
