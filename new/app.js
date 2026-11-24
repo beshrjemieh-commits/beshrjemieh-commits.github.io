@@ -9,6 +9,7 @@ const G="#64748B",LN="#E2E8F0",ink="#0F172A",GR="#16A34A",NAVY="#0F2A4A",BLUE="#
 const e3=x=>x<0?0:x>1?1:1-Math.pow(1-x,3),lerp=(a,b,p)=>a+(b-a)*p,cl=x=>x<0?0:x>1?1:x,ez=e3;
 const pad=n=>String(n).padStart(2,"0"),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const norm=s=>String(s||"").trim().replace(/\s+/g," "),keyOf=p=>(norm(p.item)+"|"+norm(p.size)).toLowerCase();
+const DCOL=["#0F2A4A","#2F5583","#5B82B0","#8FB0D3","#BFD2E6","#F59E0B","#CBD5E1"];
 const K={
  line:(a,c,p,o={})=>{const w=o.w||172,h=o.h||46,mx=Math.max(...a),mn=Math.min(...a),n=Math.max(2,Math.ceil(a.length*p)),P=a.slice(0,n).map((v,i)=>[i*(w-6)/(a.length-1)+3,4+(h-8)*(1-(v-mn)/(mx-mn||1))]),d=P.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+","+q[1].toFixed(1)).join(""),L=P.at(-1);
   return `<svg width="${w}" height="${h}"${fl}>${o.area!==0?`<path d="${d}L${L[0]},${h}L3,${h}Z" fill="${c}" opacity=".12"/>`:""}<path d="${d}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>${o.mark!=null&&n>o.mark?`<circle cx="${P[o.mark][0]}" cy="${P[o.mark][1]}" r="3" fill="#fff" stroke="${G}" stroke-width="1.5"/>`:""}<circle cx="${L[0]}" cy="${L[1]}" r="4" fill="${c}" stroke="#fff" stroke-width="2"/></svg>`},
@@ -156,8 +157,12 @@ function build(m){
  const cats=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),totM=monOut||1;
  const E=[sec(tx("Today","اليوم"),m.todayEx.length?rows(m.todayEx.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):`<div class="empty">${tx("Nothing yet today","ما فيه شي اليوم")}</div>`),
   sec(tx("Add a cost","أضف مصروف"),`<div class="xadd"><textarea class="sms" rows="1" placeholder="${tx("📋 Paste a bank message","📋 الصق رسالة البنك")}"></textarea><div style="display:flex;gap:8px;margin-top:8px"><input class="xa" inputmode="decimal" placeholder="${tx("Amount","المبلغ")}"><button class="xb">${tx("Add cost","أضف")}</button></div><input class="xa xn" style="margin-top:8px" placeholder="${tx("Note (optional)","ملاحظة (اختياري)")}"><div class="xc">${LOG_CATS.filter(k=>BY[k]).slice(0,10).map((k,i)=>`<button data-k="${k}" class="${i?"":"sel"}">${nm(k)}</button>`).join("")}</div></div>`),
-  sec(tx("This month","هالشهر"),tiles([[tx("Spent","صرفت"),M(monOut)],[tx("Per day","باليوم"),M(monOut/dom)],[tx("Left","باقي"),M(Math.max(0,dPlan-dSpent)),GR]])),
-  sec(tx("Categories","الفئات"),cats.length?cats.map(([k,v])=>{const es=catEntries(k);return dig(hd(nm(k),M(v)),r2([[tx("Share of month","من الشهر"),Math.round(v/totM*100)+"%",v/totM,ACC.e]])+r2(es.slice(0,5).map(x=>[`${when(x.date)}${x.note?" · "+esc(x.note):""}`,M(x.amount),null])),r3([[tx("Pattern","النمط"),tx(`${es.length} costs, about ${M(v/es.length)} each.`,`${es.length} مصروف، تقريباً ${M(v/es.length)} للواحد.`)]].concat(m.planOf(k)?[[tx("Plan","الخطة"),tx(`${M(v)} of ${M(m.planOf(k))}`,`${M(v)} من ${M(m.planOf(k))}`)]]:[])))}).join(""):`<div class="empty">${tx("No costs this month yet","ما فيه مصاريف هالشهر")}</div>`),
+  // Beshr 2026-11-24: one chart instead of rows: ring of this month's categories, centre = total spent (same number as the parts); tap a slice or name for the details
+  sec(tx("This month","هالشهر"),cats.length?(()=>{const top=cats.slice(0,6),rest=cats.slice(6),seg=top.map(([k,v])=>({k,n:nm(k),v})).concat(rest.length?[{k:"_other",n:tx("Other","أخرى"),v:rest.reduce((a,x)=>a+x[1],0)}]:[]),R=78,L=2*Math.PI*R;let acc=0;
+   const arcs=seg.map((x,i)=>{const len=x.v/totM*L,g=seg.length>1?Math.min(3,len/3):0,o=`<circle data-cat="${x.k}" r="${R}" cx="100" cy="100" fill="none" stroke="${DCOL[i]}" stroke-width="28" stroke-dasharray="${Math.max(.5,len-g)} ${L}" stroke-dashoffset="${-acc}" style="--l:${L}"/>`;acc+=len;return o}).join("");
+   return `<div class="dnut"><svg viewBox="0 0 200 200" width="210" height="210" style="transform:rotate(-90deg)">${arcs}</svg><div class="dctr"><small>${tx("Spent","صرفت")}</small><b>${M(monOut)}</b><small>${tx(`${M(monOut/dom)} a day`,`${M(monOut/dom)} باليوم`)}</small></div></div>
+    <div class="dleg">${seg.map((x,i)=>`<button data-cat="${x.k}"><i style="background:${DCOL[i]}"></i><span>${x.n}</span><b>${M(x.v)}</b><small>${Math.round(x.v/totM*100)}%</small></button>`).join("")}</div>
+    ${dPlan?`<div class="dleft">${tx("Left for living this month","باقي للمعيشة هالشهر")} <b style="color:${GR}">${M(Math.max(0,dPlan-dSpent))}</b></div>`:""}`})():`<div class="empty">${tx("No costs this month yet","ما فيه مصاريف هالشهر")}</div>`),
   sec(tx("Entries","السجل"),rows(m.ex.slice(0,15).map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])))];
  // store page
  const itemDig=g=>{const comm=(m.community||[]).filter(c=>String(c.item||"").toLowerCase()==g.item.toLowerCase()&&+c.price>0).sort((a,b)=>a.price-b.price)[0],inList=m.shopKeys.includes(g.k);
@@ -229,7 +234,7 @@ function start(m){
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
-  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo"))return;
+  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg"))return;
   if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
@@ -332,6 +337,14 @@ function start(m){
    show(GR,`<h3>${esc(x.item)}${x.size?` <small class="ds" style="font-size:13px;font-weight:500;color:${G}">${esc(x.size)}</small>`:""}</h3><div class="ptr"><div><small>${tx("Lowest","الأقل")}</small><b style="color:${GR}">${M(p2(x.lo.price))}</b><small>${esc(x.lo.store)}</small></div><div><small>${tx("Highest","الأعلى")}</small><b>${M(p2(x.hi.price))}</b><small>${esc(x.hi.store)}</small></div></div><div class="res">${r2(rowsH)}</div>`+
     (t=="m"?`<button class="go tbtn" data-list="${esc(x.k)}">${m.shopKeys.includes(x.k)?tx("Remove from shopping list","شيله من قائمة التسوق"):tx("Add to shopping list","أضفه لقائمة التسوق")}</button>`:`<button class="go tbtn" data-oadd="${esc(x.k)}">${tx("+ Add to My items","+ أضفه لأغراضي")}</button>`),()=>wire(sh))};
  }
+
+ // ---- Expenses: tap a slice or a name -> details sheet ----
+ { const ec=document.querySelector('.card[data-k="e"]'),cs=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),tot=cs.reduce((a,x)=>a+x[1],0)||1;
+  ec.addEventListener("click",ev=>{const t=ev.target.closest("[data-cat]");if(!t||!OK)return;ev.stopPropagation();const k=t.dataset.cat,ks=k=="_other"?cs.slice(6).map(x=>x[0]):[k],es=m.monthEx.filter(x=>ks.includes(x.cat)).sort((a,b)=>b.date.localeCompare(a.date)),v=es.reduce((a,x)=>a+x.amount,0),pl=ks.reduce((a,q)=>a+m.planOf(q),0),i=cs.findIndex(x=>x[0]==k),col=DCOL[k=="_other"?6:i]||NAVY;
+   show(col,`<h3><i style="width:14px;height:14px;border-radius:4px;background:${col};display:inline-block"></i>${k=="_other"?tx("Other","أخرى"):nm(k)}</h3>
+    <div class="ptr"><div><small>${tx("Spent","صرفت")}</small><b>${M(v)}</b><small>${Math.round(v/tot*100)}% ${tx("of the month","من الشهر")}</small></div>${pl?`<div><small>${tx("Plan","الخطة")}</small><b>${M(pl)}</b><small style="color:${v>pl?"#DC2626":GR}">${v>pl?tx(`${M(v-pl)} over`,`زايد ${M(v-pl)}`):tx(`${M(pl-v)} left`,`باقي ${M(pl-v)}`)}</small></div>`:`<div><small>${tx("Costs","المصاريف")}</small><b>${es.length}</b><small>${tx(`about ${M(v/Math.max(1,es.length))} each`,`تقريباً ${M(v/Math.max(1,es.length))} للواحد`)}</small></div>`}</div>
+    ${pl?`<div class="dkbar" style="margin:2px 0 12px"><i style="width:${Math.min(100,v/pl*100)}%;background:${v>pl?"#DC2626":col}"></i></div>`:""}
+    <div class="res" style="max-height:44vh;overflow-y:auto">${rows(es.map(x=>[`${when(x.date)}${k=="_other"?" · "+nm(x.cat):""}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)]))}</div>`,()=>{})},true); }
 
 }
 // ---------- boot ----------
