@@ -175,13 +175,19 @@ function famSheetHTML(g){const ps=g.map(d=>d.price).filter(Boolean),lo=Math.min(
   (ps.length>1&&hi>lo?`<div class="arng"><i style="inset-inline-start:0;width:100%"></i>${g.filter(d=>d.price).map(d=>`<u style="inset-inline-start:${(d.price-lo)/(hi-lo)*100}%"></u>`).join("")}</div><div class="arl"><span>${M(lo)}</span><span>${tx(`${M(hi-lo)} difference`,`فرق ${M(hi-lo)}`)}</span><span>${M(hi)}</span></div>`:"")+`</div>`}
 // Beshr 2026-11-24 (later): keep it simple. By category only, one row per item: name, market price, current price. Tap = open the ad.
 // Added rows (Beshr 2026-11-24, option 1): one thin line per deal (photo, name, price, % off); swipe left or right to delete, with Undo
-function addedRows(list){return list.slice().sort(byScore).map(d=>`<div class="asw" data-did="${esc(d.id)}"><span class="asd">${tx("Delete","احذف")}</span><span class="asd">${tx("Delete","احذف")}</span><a class="afr ln" href="${esc(dLink(d))}" target="_blank" rel="noopener" draggable="false">${d.image?`<img src="${esc(d.image)}" alt="" draggable="false" referrerpolicy="no-referrer">`:`<i class="aph">${PH("fire")}</i>`}<b class="aln" dir="auto">${esc(d.name)}</b><b class="afp">${d.price?M(d.price):""}</b><em class="alp">${d.pct?`▼${d.pct}%`:""}</em></a></div>`).join("")}
-// Added (Beshr 2026-11-24): New / Used toggle first, then categories, then rows
-function addedHTML(all,k){if(!all.length)return "";const nU=all.filter(d=>dKind(d)=="used").length,nN=all.length-nU;k=k||(nU?"used":"new");const list=all.filter(d=>dKind(d)==k);
- return `<div class="akw" data-kind="${k}"><div class="cwseg akind">${[["used",tx("Used","مستعمل"),nU],["new",tx("New","جديد"),nN]].map(([x,n,c])=>`<button data-ak="${x}" class="${x==k?"on":""}">${n} · ${c}</button>`).join("")}</div>${list.length?addedCats(list):`<div class="empty">${k=="new"?tx("New items you add show here.","الأغراض الجديدة اللي تضيفها تطلع هنا."):tx("Used deals you add show here.","الصفقات المستعملة اللي تضيفها تطلع هنا.")}</div>`}</div>`}
-function addedCats(list){AFAM={};famOf(list).forEach(g=>AFAM[dFam(g[0]).toLowerCase()]=g);const cats={};list.forEach(d=>{const c=dCat(d);(cats[c]=cats[c]||[]).push(d)});
+// marquee (Beshr 2026-11-25): text too long for its box slides sideways and back so all of it can be read
+window._mqOff=el=>{const sp=el.querySelector(":scope>.mq");if(sp){el.innerHTML=sp.innerHTML;el.classList.remove("mqw")}};
+window._mq=el=>{window._mqOff(el);if(el.scrollWidth<=el.clientWidth+1)return;el.innerHTML=`<span class="mq">${el.innerHTML}</span>`;el.classList.add("mqw");const sp=el.firstChild,d=sp.scrollWidth-el.clientWidth;if(d<=1){window._mqOff(el);return}
+ const rtl=getComputedStyle(el).direction=="rtl";sp.style.setProperty("--mx",(rtl?d:-d)+"px");sp.style.animationDuration=Math.max(5,3+d/25)+"s"};
+// Added (Beshr 2026-11-25): iPhone Photos-style grid, 3 square tiles per row with price + % off on the photo; tap opens the ad, press and hold to delete (Undo)
+function addedRows(list){return `<div class="agrid">${list.slice().sort(byScore).map(d=>`<div class="asw agt" data-did="${esc(d.id)}"><a class="agl" href="${esc(dLink(d))}" target="_blank" rel="noopener" draggable="false">${d.image?`<img src="${esc(d.image)}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()">`:""}<i class="agf">${PH("fire")}</i>${d.pct?`<em class="agd">▼${d.pct}%</em>`:""}<span class="agb"><b class="agn" dir="auto">${esc(d.name)}</b><b class="agp">${d.price?M(d.price):""}</b></span></a></div>`).join("")}</div>`}
+// Added (Beshr 2026-11-25): small chips All / Used / New, then category chips, then rows; no count in the header
+function addedHTML(all,k){if(!all.length)return "";const nU=all.filter(d=>dKind(d)=="used").length,nN=all.length-nU;k=k||"all";const list=k=="all"?all:all.filter(d=>dKind(d)==k);
+ const kc=[["all",tx("All","الكل"),all.length],["used",tx("Used","مستعمل"),nU],["new",tx("New","جديد"),nN]].map(([x,n,c])=>`<button data-ak="${x}" class="${x==k?"on":""}">${n} <i>${c}</i></button>`).join("");
+ return `<div class="akw" data-kind="${k=="all"?"":k}">${list.length?addedCats(list,kc):`<div class="achips akind">${kc}</div><div class="empty">${k=="new"?tx("New items you add show here.","الأغراض الجديدة اللي تضيفها تطلع هنا."):tx("Used deals you add show here.","الصفقات المستعملة اللي تضيفها تطلع هنا.")}</div>`}</div>`}
+function addedCats(list,kc){AFAM={};famOf(list).forEach(g=>AFAM[dFam(g[0]).toLowerCase()]=g);const cats={};list.forEach(d=>{const c=dCat(d);(cats[c]=cats[c]||[]).push(d)});
  const cl=Object.entries(cats).sort((a,b)=>b[1].length-a[1].length),cn=c=>DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):(c=="other"?tx("Other","أخرى"):esc(c.charAt(0).toUpperCase()+c.slice(1)));
- return `<div class="achips"><button class="on" data-acat="">${tx("All","الكل")} <i>${list.length}</i></button>${cl.map(([c,ds])=>`<button data-acat="${esc(c)}">${cn(c)} <i>${ds.length}</i></button>`).join("")}</div><div class="arows">${addedRows(list)}</div>`}
+ return `<div class="achips akind">${kc||""}<span class="fwsep"></span>${cl.map(([c,ds])=>`<button data-acat="${esc(c)}">${cn(c)} <i>${ds.length}</i></button>`).join("")}</div><div class="arows">${addedRows(list)}</div>`}
 // Expenses ring for one month (mon = "YYYY-MM"); left = "left for living" (this month only)
 const monName=mon=>{const [y,mm]=mon.split("-").map(Number);return new Date(y,mm-1,15).toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{month:"long",year:new Date().getFullYear()==y?undefined:"numeric"})};
 const prevMon=mon=>{const [y,mm]=mon.split("-").map(Number),d=new Date(y,mm-2,15);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
@@ -213,6 +219,13 @@ const dVerdict=d=>{const r=d.raw||{},c=+r.comps||0,conf=String(r.confidence||"")
 const PICK={hunt:2e5,added:1e5};
 const dScore=d=>{const v=dVerdict(d);return (PICK[(d.raw||{}).pick]||0)+(v?(v.c=="#16A34A"?2:v.c=="#B45309"?1:0):.5)*1000+(v&&v.conf==tx("High confidence","ثقة عالية")?500:0)+(d.pct||0)};
 const byScore=(a,b)=>dScore(b)-dScore(a);
+// Top pick (Beshr 2026-11-25): ONE fixed, very-high-confidence flip on the home Forsa card.
+// Seller signal words (urgent, leaving the country, unwanted gift, sealed) raise a deal; damaged, too-good-to-be-true (>75% off), offers and thin checks drop it.
+const HOT=[[/urgent|asap|quick sale|must go|need cash|عاجل|مستعجل|ضروري|بيع سريع/i,"Urgent sale","بيع مستعجل"],[/travel|leaving|moving|relocat|final exit|مسافر|سفر|مغادر|خروج نهائي|نقل/i,"Seller leaving","البائع مسافر"],[/\bgift|هدية|اهداء|إهداء/i,"Unwanted gift","جاته هدية"],[/sealed|unopened|in box|brand new|never used|مختوم|بكرتونه|بكرتونته|لم يستخدم|ما استخدم/i,"Sealed","مختوم"]];
+const dHot=d=>{const t=d.title+" "+((d.raw||{}).desc||"");const h=HOT.find(([re])=>re.test(t));return h?tx(h[1],h[2]):""};
+const dTop=d=>{if(!d.price||!d.market||d.offer||dCond(d)[1]||d.pct<20||d.pct>75)return -1;const v=dVerdict(d),hi=v&&v.conf==tx("High confidence","ثقة عالية"),c=+(d.raw||{}).comps||0;
+ if(dKind(d)=="used"&&!hi&&c<3)return -1;return d.pct*2+(hi?40:0)+(dHot(d)?40:0)+Math.min(30,(d.market-d.price)/50)};
+const topPick=list=>{let best=null,bs=-1;list.forEach(d=>{if(d.status=="hidden")return;const v=dTop(d);if(v>bs){bs=v;best=d}});return best};
 const vChip=d=>{const v=dVerdict(d);return v?`<span class="vchip" style="--v:${v.c}">${v.t}${v.conf?`<small> · ${v.conf}</small>`:""}</span>`:""};
 const FKN=()=>({used:tx("Used · market","مستعمل · السوق"),new:tx("New · authorized sellers","جديد · وكلاء معتمدين")});
 function fTabs(m,k){const und=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),T=[{n:tx("All","الكل"),list:und}];
@@ -313,7 +326,7 @@ function build(m){
  // forsa page (Beshr 2026-11-24): a calm list first, sorted by his hunt words; a button opens the swipe (Tinder) mode for that tab; kept deals have an Open button
  const FT=fTabs(m),keptL=m.deals.filter(d=>d.status=="saved");
  const F=[sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span></button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
-  sec(tx("Added","المضافة")+` · <span class="keptn">${keptL.length}</span>`,`<div class="kept">${addedHTML(keptL)}</div>${keptL.length?"":`<div class="empty kempty">${tx("Deals you swipe right show here, each with an Open button.","الصفقات اللي تسحبها يمين تطلع هنا، ومعها زر افتح.")}</div>`}`)];
+  sec(tx("Added","المضافة")+`<span class="keptn" hidden>${keptL.length}</span>`,`<div class="kept">${addedHTML(keptL)}</div>${keptL.length?"":`<div class="empty kempty">${tx("Deals you swipe right show here, each with an Open button.","الصفقات اللي تسحبها يمين تطلع هنا، ومعها زر افتح.")}</div>`}`)];
  return {w:W,e:E,s:S,f:F}}
 // ---------- home cards ----------
 function cards(m){
@@ -324,8 +337,9 @@ function cards(m){
  const drop=m.G2.find(g=>g.drop),top=m.G2.filter(g=>g.last&&g.best&&g.last.price-g.best.price>=.5).sort((a,b)=>(b.last.price-b.best.price)-(a.last.price-a.best.price))[0]||m.G2[0];
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",v:drop?esc(drop.best.store):top?esc(top.best.store):"—",line:drop?tx("Price dropped","السعر نزل"):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),esc(drop.item).slice(0,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),esc(top.item).slice(0,22),ACC.s,p):""};
- const d=m.deals[0];
- const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(d.source||""),AMB,p):""};
+ const tp=topPick(m.deals),d=tp||m.deals.slice().sort(byScore)[0],hot=tp?dHot(tp):"";
+ const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
+  chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(tp?[`▼ ${d.pct}%`,hot||(dKind(d)=="new"?tx("New","جديد"):esc(d.source||""))].join(" · "):(d.source||"")),AMB,p):""};
  // ---- chart pools (Beshr 2026-11-24): each card rotates through its charts from the approved chart pool, built from his real numbers ----
  const sm=a=>a.reduce((x,y)=>x+y,0),LV=m.items.filter(i=>i.g=="Living"||i.g=="Personal"),lvPlan=sm(LV.map(i=>m.planOf(i.k))),lvSpent=sm(LV.map(i=>m.spent[i.k]||0)),allPlan=sm(m.items.map(i=>m.planOf(i.k))),monOut=sm(m.monthEx.map(x=>x.amount)),monIn=sm(m.inc.filter(x=>x.date.startsWith(m.mon)).map(x=>x.amount));
  const WC="#FFFFFF",ago=n=>{const x=new Date();x.setDate(x.getDate()-n);return ymd(x)},wk=(a,b)=>{const o={};m.ex.filter(x=>x.date>ago(b)&&x.date<=ago(a)).forEach(x=>o[x.cat]=(o[x.cat]||0)+x.amount);return o};
@@ -347,12 +361,12 @@ function cards(m){
  {const cnt={};m.G2.forEach(g=>{if(g.best)cnt[g.best.store]=(cnt[g.best.store]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
   if(cs.length>1)S.push({line:tx("Where it's cheapest","وين الأرخص"),chart:p=>K.rows(cs.map(([n,v],i)=>[esc(n).slice(0,9),String(v),i?LN:ACC.s,v/cs[0][1]]),p)})}
  {const h=m.G2.find(g=>g.hist.length>2);if(h)S.push({line:tx(`${esc(h.item).slice(0,18)} price`,`سعر ${esc(h.item).slice(0,18)}`),chart:p=>K.line(h.hist,ACC.s,p,{area:0,mark:0})})}
- const F=[{line:f.line,chart:f.chart}];
+ const F=[{line:f.line,chart:f.chart}];if(tp)f.fixed=1;
  if(d&&d.market>d.price&&d.price)F.push({line:tx("Price vs market","السعر والسوق"),chart:p=>K.track(d.price/d.market,AMB,p,M(d.price),tx("market ","السوق ")+M(d.market))});
  {const cnt={};m.deals.forEach(x=>{const c=dCat(x);cnt[c]=(cnt[c]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3),cn=c=>({electronics:tx("Tech","تقنية"),appliances:tx("Home","البيت"),food:tx("Food","أكل")})[c]||(DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):tx("Other","أخرى"));
   if(cs.length>1)F.push({line:tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>K.rows(cs.map(([c,v])=>[cn(c).slice(0,9),String(v),"#E8A400",v/cs[0][1]]),p)})}
  if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5)));F.push({line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>K.gauge(sc/10,"#E8A400",p,`<b style="font-size:20px;color:${ink}">${sc}</b>/10`)})}
- w.pool=W;e.pool=E;s.pool=S;f.pool=F;
+ w.pool=W;e.pool=E;s.pool=S;f.pool=f.fixed?F.slice(0,1):F;
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?(m.list.length==1?tx("1 item in your list","غرض واحد بقائمتك"):tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`)):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?(newDeals==1?tx("1 new deal today","صفقة جديدة اليوم"):tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`)):""};
  return {w,e,s,f,H}}
@@ -368,17 +382,32 @@ function start(m,soft){
  const hr=new Date().getHours(),greet=hr<5?tx("Good night","مساء الخير"):hr<12?tx("Good morning","صباح الخير"):hr<18?tx("Good afternoon","مساء الخير"):tx("Good evening","مساء الخير");
  const dstr=new Date().toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{weekday:"long",day:"numeric",month:"long"});
  const bandH=TOPS[0]+HH[0]-34,wave=`<svg viewBox="0 0 786 40" preserveAspectRatio="none"><path d="M0,20 C98,0 295,0 393,20 C491,40 688,40 786,20 L786,40 L0,40Z" fill="#16365E"/></svg>`;
- app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
+ app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv wv2">${wave}</div><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
   +order.map((k,i)=>{const c=C[k];return `<div class="card c-${k}" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><span class="ctab">${PH(c.ic)}</span><div class="k">${c.t}<span class="tm">${c.line}</span></div><div class="big" dir="auto" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;text-align:${AR?"right":"left"}">${c.v}</div><div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
   +`<div class="abar" style="background:none;box-shadow:none;height:84px">${[["plus-circle",tx("Add expense","أضف مصروف"),BLUE],["camera",tx("Add bill","أضف فاتورة"),BLUE],["fire",tx("New hunt","صيد جديد"),BLUE]].map(([i,l,c])=>`<div class="ab" role="button" tabindex="0" style="gap:6px"><span style="width:52px;height:52px;border-radius:26px;background:#fff;display:grid;place-items:center;color:${c};line-height:0;box-shadow:0 8px 20px -8px rgba(0,0,0,.45)">${PH(i)}</span>${l}</div>`).join("")}</div>`
   +(HK?`<div id="chip" style="position:absolute;left:0;right:0;margin:auto;width:max-content;max-width:330px;top:${TOPS[order.indexOf(HK)]+HH[order.indexOf(HK)]-14}px;z-index:15;background:${HK=="f"?"#FEF3C7":"#EEF2F7"};color:${HK=="f"?"#92400E":NAVY};font-size:13px;font-weight:600;padding:6px 12px;border-radius:14px;white-space:nowrap">${PH("sparkle")} ${C.H[HK]}</div>`:"")
   +`<div id="scrim"></div><div id="sheet" role="dialog"></div>`;
  
  const cardEls=[...document.querySelectorAll(".card")];
- // chart rotation (Beshr 2026-11-24): a different chart each time the app opens, and each time a page is closed back to Home; nothing changes on a timer
+ // chart rotation (Beshr 2026-11-24): a different chart each time the app opens or he comes back to it; nothing changes on taps or a timer
  const CUR={},CHG={};order.forEach((k,i)=>{const n=C[k].pool.length;CUR[k]=(vis+i)%n;CHG[k]=0});
- const nextCharts=t=>order.forEach(k=>{if(C[k].pool.length<2)return;CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"})});
+ const nextCharts=t=>order.forEach(k=>{if(C[k].pool.length<2)return;CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;fitTm(tm);tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"})});
+ // Beshr 2026-11-25: charts change only when he leaves the app and comes back (not on taps or page close)
+ window._nextCharts=()=>{if(OK)return;try{localStorage.setItem("s-visit",(+localStorage.getItem("s-visit")||0)+1)}catch(e){}nextCharts(now());setTimeout(()=>window._fitCards&&window._fitCards(),60)};
+ if(!window._visH){window._visH=1;let hid=0;document.addEventListener("visibilitychange",()=>{if(document.hidden)hid=1;else if(hid){hid=0;window._nextCharts&&window._nextCharts()}})}
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
+ // Beshr 2026-11-25: text fits its box: one line if it fits at 18px+, else two lines (16px+) with the 2nd line's bottom lined up with the chart/price beside it, else it slides sideways (marquee) so it can be read
+ const fitBig=b=>{if(!b)return;window._mqOff(b);b.style.transform="";const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();let bots=[];
+  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);if(!e.firstElementChild)bots.push(r.bottom)}});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min(170,L-br.left-10))+"px"}
+  b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
+  two=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="normal";b.style.lineHeight="1.15";return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=f*1.15*2+2};
+  for(let f=base;f>=18;f--)if(one(f))return;
+  for(let f=Math.min(base,22);f>=16;f--)if(two(f)){const bb=b.getBoundingClientRect().bottom-f*.2;let best=null;bots.forEach(y=>{const d=y-bb;if(d>=-2&&d<=28&&(best==null||d>best))best=d});
+   if(best&&b.getBoundingClientRect().bottom+best<=cr.bottom-10)b.style.transform=`translateY(${Math.round(best)}px)`;return}
+  one(18);window._mq(b)};
+ const fitTm=tm=>{if(!tm)return;const k=tm.parentElement;tm.style.fontSize="";for(let f=13;f>=10&&k.scrollWidth>k.clientWidth+1;f-=.5)tm.style.fontSize=f+"px"};
+ window._fitCards=()=>document.querySelectorAll("#app .card").forEach(c=>{fitBig(c.querySelector(".big"));fitTm(c.querySelector(".tm"))});
+ window._fitCards();if(document.fonts)document.fonts.ready.then(()=>window._fitCards&&window._fitCards());
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
@@ -394,20 +423,20 @@ function start(m,soft){
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=1;
   const ch=document.getElementById("chip");if(ch){const hc=document.querySelector(`.card[data-k="${HK}"]`),A=HK=="f"?AMB:BLUE,u=t-0.5,v=Math.max(0,u-0.4),g=ez(u/0.4)*(0.7+0.3*Math.cos(2*Math.PI*v/1.2)*Math.exp(-v/1.2)),al=n=>Math.round(Math.min(255,Math.max(0,n*g))).toString(16).padStart(2,"0");
    ch.style.opacity=(u<0?0:1)*fade;ch.style.boxShadow=`0 0 0 1px ${A}88,0 0 ${16*g}px ${A}${al(170)}`;if(op==0)hc.style.boxShadow=`0 0 0 ${1.5*g}px ${A}${al(200)},0 10px ${30*g}px -6px ${A}${al(150)}`;else if(HK!=OK)hc.style.boxShadow="none"}
-  if(t>TL.close+TL.cd){OK="";TL.tap=TL.close=1e9;nextCharts(t);cardEls.forEach(c=>{c.style.zIndex="";c.style.boxShadow="none";c.scrollTop=0})}
+  if(t>TL.close+TL.cd){OK="";TL.tap=TL.close=1e9;cardEls.forEach(c=>{c.style.zIndex="";c.style.boxShadow="none";c.scrollTop=0})}
   requestAnimationFrame(render)}
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
   if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav,.fkind,.achips"))return;
-  if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
+  if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;if(OK=="f"&&window._fBest)window._fBest();return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
  try{document.documentElement.style.setProperty("--fire",PHurl("fire"))}catch(e){}
- { const fc=document.querySelector('.card[data-k="f"]');let FT=fTabs(m),ti=0,q=[];
-  app.insertAdjacentHTML("beforeend",`<div id="fw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Skip","تخطَّ")}">${PH("x")}</button><button class="sk" aria-label="${tx("Add","أضف")}">${PH("heart")}</button></div><p class="swh">${tx("Swipe right to add, left to skip","اسحب يمين للإضافة، يسار للتخطي")}</p></div></div>`);
+ { const fc=document.querySelector('.card[data-k="f"]');let FT=fTabs(m),ti=0,q=[],qAll=[],fk="",fcat="",dMode=0;
+  app.insertAdjacentHTML("beforeend",`<div id="fw" aria-hidden="true"><div class="cwh"><button class="cwb" aria-label="${tx("Back","رجوع")}">${PH("caret-left")}</button><b class="cwt"></b><span class="cwn"></span></div><div class="achips fwch"></div><div class="swp"><div class="deck"></div><div class="swb" dir="ltr"><button class="sx" aria-label="${tx("Skip","تخطَّ")}">${PH("x")}</button><button class="sk" aria-label="${tx("Add","أضف")}">${PH("heart")}</button></div><p class="swh">${tx("Swipe right to add, left to skip","اسحب يمين للإضافة، يسار للتخطي")}</p></div></div>`);
   const fw=document.getElementById("fw"),deck=fw.querySelector(".deck"),kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn"),go=fc.querySelector(".fgo");
-  const left=()=>{fw.querySelector(".cwn").textContent=tx(`${q.length} left`,`باقي ${q.length}`)};
+  const left=()=>{fw.querySelector(".cwn").textContent=dMode==2?"":tx(`${q.length} left`,`باقي ${q.length}`)};
   const tab=i=>{ti=i;const ids=new Set(FT[i].list.filter(d=>d.status!="saved"&&d.status!="hidden").map(d=>d.id));fc.querySelectorAll(".ftabs [data-ft]").forEach(b=>b.classList.toggle("on",+b.dataset.ft==i));
    go.querySelector(".fgot").textContent=ids.size?(ids.size==1?tx("Swipe 1 deal","اسحب صفقة واحدة"):tx(`Swipe ${ids.size} deals`,`اسحب ${ids.size} صفقات`)):tx("All caught up","خلصت الصفقات");go.disabled=!ids.size};
   fc.querySelector(".ftabs").addEventListener("click",ev=>{const b=ev.target.closest("[data-ft]");if(b){ev.stopPropagation();tab(+b.dataset.ft)}});
@@ -421,21 +450,31 @@ function start(m,soft){
      :d.pct>0?tx(`Good price${comps?` next to ${comps} similar ads`:""}. Check the condition before you buy.`,`سعر حلو${comps?` مقارنة بـ ${comps} إعلان مشابه`:""}. تأكد من الحالة قبل الشراء.`)
      :d.offer?esc(d.offer):tx("New find from your hunt.","لقطة جديدة من بحثك.");
    const pic=d.image?`<div class="dkim" style="--bg:url('${esc(d.image)}')"><img src="${esc(d.image)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()"></div>`:`<div class="dkim noimg"></div>`;
-   return `<div class="dk">${pic}<i class="dkkind ${dKind(d)}">${dKind(d)=="new"?tx("New","جديد"):tx("Used","مستعمل")}</i><div class="dkb"><div class="dkr"><b class="dkn">${esc(d.name)}</b>${d.pct?`<span class="dkpc">▼ ${d.pct}%</span>`:""}</div><div class="vrow dkv">${d.source?`<i class="cnd src">${esc(d.source)}</i>`:""}${dKind(d)=="used"?`<i class="cnd${dCond(d)[1]?" bad":""}">${dCond(d)[0]}</i>`:""}${d.city?`<i class="cnd src">${esc(d.city)}</i>`:""}</div>
+   return `<div class="dk">${pic}<div class="dkb"><div class="dkr"><b class="dkn">${esc(d.name)}</b>${d.pct?`<span class="dkpc">▼ ${d.pct}%</span>`:""}</div><div class="vrow dkv">${d.source?`<i class="cnd src">${esc(d.source)}</i>`:""}${dKind(d)=="used"?`<i class="cnd${dCond(d)[1]?" bad":""}">${dCond(d)[0]}</i>`:`<i class="cnd">${tx("New","جديد")}</i>`}${d.city?`<i class="cnd src">${esc(d.city)}</i>`:""}</div>
     <div class="dkp">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}</div>${d.market&&d.price?`<div class="dkbar"><i style="width:${Math.max(8,Math.min(100,d.price/d.market*100))}%"></i></div><div class="dkl"><span>${tx("Price","السعر")}</span>${save?`<b>${tx("Save","توفّر")} ${M(save)}</b>`:""}<span>${tx("Market","السوق")}</span></div>`:""}
     ${vChip(d)?`<div class="vrow" style="margin-top:8px">${vChip(d)}</div>`:""}<p class="dkh">${PH("sparkle")}<span>${hint}</span></p></div><i class="stamp keep">${tx("ADD","أضف")}</i><i class="stamp drop">${tx("SKIP","تخطَّ")}</i></div>`};
-  const draw=()=>{deck.innerHTML=q.length?q.slice(0,3).map(face).reverse().join(""):`<div class="empty dkend">${tx("All caught up. New deals come with the next hunt.","خلصت الصفقات. الجديدة تجي مع البحث الجاي.")}</div>`;
-   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*12}px) scale(${1-i*.05})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=fw.querySelector(".swh").style.visibility=q.length?"":"hidden";left()};
+  const draw=()=>{deck.innerHTML=q.length?q.slice(0,3).map(face).reverse().join(""):`<div class="empty dkend">${dMode==2?"":tx("All caught up. New deals come with the next hunt.","خلصت الصفقات. الجديدة تجي مع البحث الجاي.")}</div>`;
+   [...deck.querySelectorAll(".dk")].reverse().forEach((el,i)=>{el.style.transform=`translateY(${i*12}px) scale(${1-i*.05})`;el.style.zIndex=10-i});fw.querySelector(".swb").style.visibility=fw.querySelector(".swh").style.visibility=q.length?"":"hidden";left();deck.querySelectorAll(".dkn").forEach(n=>{n.style.whiteSpace="normal";const lh=parseFloat(getComputedStyle(n).lineHeight)||26;if(n.scrollHeight>lh*2+2||n.scrollWidth>n.clientWidth+1){n.style.whiteSpace="nowrap";window._mq(n)}})};
   const save=(d,st)=>{const raw=Object.assign({},d.raw);delete raw.id;delete raw.shared;raw.status=st;put("deals",d.id,raw).catch(()=>toast(tx("Couldn't save","ما انحفظ")))};
   const fling=(dir)=>{const el=[...deck.querySelectorAll(".dk")].pop(),d=q[0];if(!el||!d)return;const w=dir>0?1:-1;
    el.style.transition="transform .32s cubic-bezier(.3,.6,.2,1),opacity .32s";el.style.transform=`translate(${w*460}px,-30px) rotate(${w*22}deg)`;el.style.opacity="0";
-   q.shift();d.status=w>0?"saved":"hidden";save(d,d.status);
+   q.shift();qAll=qAll.filter(x=>x!==d);d.status=w>0?"saved":"hidden";save(d,d.status);
    if(w>0){const ke=fc.querySelector(".kempty");if(ke)ke.remove();showKept()}
    FT.forEach((t,i)=>{const b=fc.querySelector(`.ftabs [data-ft="${i}"] span`);if(b)b.textContent=t.list.filter(x=>x.status!="saved"&&x.status!="hidden").length});
-   try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}setTimeout(()=>{draw();deck.querySelectorAll(".dk").forEach(x=>{x.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)"})},300)};
+   try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}if(dMode==2){setTimeout(()=>fw.querySelector(".cwb").click(),380);return}setTimeout(()=>{chips();draw();deck.querySelectorAll(".dk").forEach(x=>{x.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)"})},300)};
   fw.querySelector(".sk").onclick=()=>fling(1);fw.querySelector(".sx").onclick=()=>fling(-1);
-  go.onclick=ev=>{ev.stopPropagation();q=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(!q.length)return;fw.querySelector(".cwt").innerHTML=FT[ti].n;draw();
+  const fch=fw.querySelector(".fwch"),cnm=c=>DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):(c=="other"?tx("Other","أخرى"):esc(c.charAt(0).toUpperCase()+c.slice(1)));
+  // Beshr 2026-11-25: filter chips on the swipe view: All / Used / New, then categories
+  const chips=()=>{const byK=qAll.filter(d=>!fk||dKind(d)==fk),cats={};byK.forEach(d=>{const c=dCat(d);cats[c]=(cats[c]||0)+1});if(fcat&&!cats[fcat])fcat="";
+   fch.innerHTML=[["",tx("All","الكل"),qAll.length],["used",tx("Used","مستعمل"),qAll.filter(d=>dKind(d)=="used").length],["new",tx("New","جديد"),qAll.filter(d=>dKind(d)=="new").length]].map(([x,n,c])=>`<button data-fk="${x}" class="${x==fk?"on":""}">${n} <i>${c}</i></button>`).join("")
+    +`<span class="fwsep"></span>`+Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<button data-fc="${esc(c)}" class="${c==fcat?"on":""}">${cnm(c)} <i>${n}</i></button>`).join("");
+   q=byK.filter(d=>!fcat||dCat(d)==fcat)};
+  fch.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;if(b.dataset.fk!=null){fk=b.dataset.fk;fcat=""}else fcat=fcat==b.dataset.fc?"":b.dataset.fc;chips();draw();deck.animate([{opacity:.4},{opacity:1}],{duration:200})});
+  const openFw=(list,title,daily)=>{qAll=list.slice();fk=fcat="";chips();dMode=daily;fch.style.display=daily==2?"none":"";fw.querySelector(".cwt").innerHTML=title;draw();
    const sc=app.getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
+  go.onclick=ev=>{ev.stopPropagation();const l=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(l.length)openFw(l,FT[ti].n,0)};
+  // Beshr 2026-11-25: tapping Forsa on Home opens the single best match right now (the next best once that one is swiped); after it, the normal Forsa page
+  window._fBest=()=>{const L=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),b=topPick(L)||L.sort(byScore)[0];if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
   fw.querySelector(".cwb").onclick=()=>{fw.classList.remove("on");fw.setAttribute("aria-hidden","true");tab(ti)};
   let x0=null,dx=0,top=null;
   deck.addEventListener("pointerdown",e=>{top=[...deck.querySelectorAll(".dk")].pop();if(!top)return;x0=e.clientX;dx=0;top.style.transition="none";deck.setPointerCapture(e.pointerId)});
@@ -634,6 +673,13 @@ ${q}`;
   window._saveShop(tx("Removed from list","انشال من القائمة"))},true); }
  // ---- Forsa Added: slide category chips, tap a product -> its offers lowest to highest ----
  { { const fc=document.querySelector('.card[data-k="f"]');let sx=0,sy=0,row=null,dx=0,on=0,pid=null;
+  // grid tile: press and hold to delete (instant, 6 s Undo)
+  { let lt=null,lx=0,ly=0;const stop=()=>{clearTimeout(lt);lt=null;document.querySelectorAll(".agt.hold").forEach(x=>x.classList.remove("hold"))};
+   fc&&fc.addEventListener("pointerdown",ev=>{const t=ev.target.closest(".agt");if(!t||!OK)return;lx=ev.clientX;ly=ev.clientY;t.classList.add("hold");lt=setTimeout(()=>{lt=null;t.classList.remove("hold");const a=t.querySelector(".agl");a.dataset.swiped="1";setTimeout(()=>delete a.dataset.swiped,600);try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}window._delKept(t)},550)},true);
+   fc&&fc.addEventListener("pointermove",ev=>{if(lt&&Math.hypot(ev.clientX-lx,ev.clientY-ly)>8)stop()},true);
+   fc&&fc.addEventListener("pointerup",()=>{if(lt)stop()},true);fc&&fc.addEventListener("pointercancel",stop,true);
+   fc&&fc.addEventListener("contextmenu",ev=>{if(ev.target.closest(".agt"))ev.preventDefault()},true);
+   fc&&fc.addEventListener("click",ev=>{const a=ev.target.closest(".agl[data-swiped]");if(a){ev.preventDefault();ev.stopPropagation()}},true); }
   // swipe a kept deal left or right to delete it (instant, 6 s Undo: his delete rule)
   fc&&fc.addEventListener("pointerdown",ev=>{const r=ev.target.closest(".asw .afr");if(!r||!OK)return;row=r;sx=ev.clientX;sy=ev.clientY;dx=0;on=0;pid=ev.pointerId},true);
   fc&&fc.addEventListener("pointermove",ev=>{if(!row||ev.pointerId!=pid)return;const x=ev.clientX-sx,y=ev.clientY-sy;if(!on){if(Math.abs(y)>10&&Math.abs(y)>Math.abs(x)){row=null;return}if(Math.abs(x)>10){on=1;row.closest(".asw").classList.add("sw");try{row.setPointerCapture(pid)}catch(e){}}}
@@ -651,8 +697,8 @@ ${q}`;
    u.onclick=ev=>{ev.stopPropagation();u.remove();set("saved");kept.innerHTML=addedHTML(m.deals.filter(x=>x.status=="saved"),kd);if(kn)kn.textContent=m.deals.filter(x=>x.status=="saved").length}}; }
  const fc=document.querySelector('.card[data-k="f"]');fc&&fc.addEventListener("click",ev=>{const ak=ev.target.closest("[data-ak]");if(ak&&OK){ev.stopPropagation();const box=ak.closest(".kept");box.innerHTML=addedHTML(m.deals.filter(x=>x.status=="saved"),ak.dataset.ak);box.animate([{opacity:.4},{opacity:1}],{duration:200});return}
   const c=ev.target.closest("[data-acat]"),r=ev.target.closest("[data-fam]");if(!(c||r)||!OK)return;ev.stopPropagation();ev.preventDefault();
-  if(c){const box=c.closest(".kept"),k=c.dataset.acat,kd=(c.closest(".akw")||{dataset:{}}).dataset.kind,all=m.deals.filter(x=>x.status=="saved"&&(!kd||dKind(x)==kd));box.querySelectorAll("[data-acat]").forEach(b=>b.classList.toggle("on",b==c));
-   c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});const rw=box.querySelector(".arows");rw.innerHTML=addedRows(k?all.filter(d=>dCat(d)==k):all);rw.animate([{opacity:.3},{opacity:1}],{duration:220});return}
+  if(c){const box=c.closest(".kept"),k=c.dataset.acat,kd=(c.closest(".akw")||{dataset:{}}).dataset.kind,all=m.deals.filter(x=>x.status=="saved"&&(!kd||dKind(x)==kd));const was=c.classList.contains("on");box.querySelectorAll("[data-acat]").forEach(b=>b.classList.toggle("on",b==c&&!was));const kk=was?"":k;
+   c.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});const rw=box.querySelector(".arows");rw.innerHTML=addedRows(kk?all.filter(d=>dCat(d)==kk):all);rw.animate([{opacity:.3},{opacity:1}],{duration:220});return}
   const g=AFAM[r.dataset.fam];if(!g)return;show(AMB,`<h3><span style="color:${AMB};line-height:0">${PH("fire")}</span><span dir="auto">${esc(dFam(g[0]))}</span> <small class="ds" style="font-size:13px;font-weight:500">${g.length>1?tx(`${g.length} offers · lowest first`,`${g.length} عروض · الأرخص أول`):""}</small></h3><div class="res">${famSheetHTML(g)}</div>`,()=>{})},true); }
  // ---- Wallet budget rows: pencil beside each item -> change its monthly amount ----
  { const wc=document.querySelector('.card[data-k="w"]');wc&&wc.addEventListener("click",ev=>{const b=ev.target.closest("[data-pe]");if(!b)return;ev.stopPropagation();ev.preventDefault();const k=b.dataset.pe,cur=m.planOf(k);
