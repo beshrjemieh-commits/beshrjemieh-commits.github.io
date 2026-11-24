@@ -355,3 +355,4 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .cwlist{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + var(--sab,0px));z-index:5;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px;border:0;border-radius:22px;background:#0F2A4A;color:#fff;font:500 15px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;box-shadow:0 8px 20px -6px rgba(15,42,74,.5);cursor:pointer}
 .cwlist svg{width:20px;height:20px}.cwlist b{background:#fff;color:#0F2A4A;border-radius:10px;padding:0 7px;font-size:13px}
 .cwlist[hidden]{display:none}
+.sltot.svd{border-top:0;padding-top:2px;color:#16A34A}.sltot.svd b{color:#16A34A}
