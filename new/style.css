@@ -395,3 +395,9 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .afr.ln .afp{font-size:14px;color:#0F172A}
 .afr.ln .alp{min-width:40px;text-align:end;font-style:normal;font-size:12px;font-weight:600;color:#16A34A}
 .aundo{display:block;width:100%;margin:0 0 8px;padding:10px 14px;border:0;border-radius:12px;background:#0F172A;color:#fff;font:600 14px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;text-align:center;cursor:pointer}
+/* bank SMS from the iPhone Shortcut: logged automatically, Undo bar (Beshr 2026-11-24) */
+.smsbar{position:absolute;left:16px;right:16px;top:96px;z-index:70;display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-radius:14px;background:#0F172A;color:#fff;font:500 14px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;text-align:start;box-shadow:0 12px 30px -10px rgba(15,23,42,.5);cursor:pointer}
+.smsbar svg{flex:none;width:20px;height:20px;color:#4ADE80}
+.smsbar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smsbar b{color:#93C5FD;font-weight:600}
+#sheet .pbox{height:auto;padding:10px 14px;margin:-4px 0 12px;resize:none;line-height:1.5}
