@@ -187,14 +187,18 @@ function build(m){
  const daily=m.items.filter(i=>i.g=="Living"||i.g=="Personal").map(i=>i.k),dPlan=groupSum(daily),dSpent=spentOf(daily),dom=new Date().getDate();
  const cats=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),totM=monOut||1;
  const E=[sec(tx("Today","اليوم"),m.todayEx.length?rows(m.todayEx.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])):`<div class="empty">${tx("Nothing yet today","ما فيه شي اليوم")}</div>`),
-  sec(tx("Add a cost","أضف مصروف"),`<div class="xadd"><textarea class="sms" rows="1" placeholder="${tx("📋 Paste a bank message","📋 الصق رسالة البنك")}"></textarea><div style="display:flex;gap:8px;margin-top:8px"><input class="xa" inputmode="decimal" placeholder="${tx("Amount","المبلغ")}"><button class="xb">${tx("Add cost","أضف")}</button></div><input class="xa xn" style="margin-top:8px" placeholder="${tx("Note (optional)","ملاحظة (اختياري)")}"><div class="xc">${LOG_CATS.filter(k=>BY[k]).slice(0,10).map((k,i)=>`<button data-k="${k}" class="${i?"":"sel"}">${nm(k)}</button>`).join("")}</div></div>`),
   // Beshr 2026-11-24: one chart instead of rows: ring of this month's categories, centre = total spent (same number as the parts); tap a slice or name for the details
   sec(tx("This month","هالشهر"),cats.length?(()=>{const top=cats.slice(0,6),rest=cats.slice(6),seg=top.map(([k,v])=>({k,n:nm(k),v})).concat(rest.length?[{k:"_other",n:tx("Other","أخرى"),v:rest.reduce((a,x)=>a+x[1],0)}]:[]),R=78,L=2*Math.PI*R;let acc=0;
    const arcs=seg.map((x,i)=>{const len=x.v/totM*L,g=seg.length>1?Math.min(3,len/3):0,o=`<circle data-cat="${x.k}" r="${R}" cx="100" cy="100" fill="none" stroke="${DCOL[i]}" stroke-width="28" stroke-dasharray="${Math.max(.5,len-g)} ${L}" stroke-dashoffset="${-acc}" style="--l:${L}"/>`;acc+=len;return o}).join("");
    return `<div class="dnut"><svg viewBox="0 0 200 200" width="210" height="210" style="transform:rotate(-90deg)">${arcs}</svg><div class="dctr"><small>${tx("Spent","صرفت")}</small><b>${M(monOut)}</b><small>${tx(`${M(monOut/dom)} a day`,`${M(monOut/dom)} باليوم`)}</small></div></div>
     <div class="dleg">${seg.map((x,i)=>`<button data-cat="${x.k}"><i style="background:${DCOL[i]}"></i><span>${x.n}</span><b>${M(x.v)}</b><small>${Math.round(x.v/totM*100)}%</small></button>`).join("")}</div>
     ${dPlan?`<div class="dleft">${tx("Left for living this month","باقي للمعيشة هالشهر")} <b style="color:${GR}">${M(Math.max(0,dPlan-dSpent))}</b></div>`:""}`})():`<div class="empty">${tx("No costs this month yet","ما فيه مصاريف هالشهر")}</div>`),
-  sec(tx("Entries","السجل"),rows(m.ex.slice(0,15).map(x=>[`${when(x.date)} · ${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)])))];
+  // Beshr 2026-11-24: entries as a chart: last 14 days, one stacked bar per day (category colours as in the ring); tap a day for its costs
+  sec(tx("Last 14 days","آخر 14 يوم"),(()=>{const days=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return ymd(d)}),rank=k=>{const i=cats.findIndex(x=>x[0]==k);return i<0||i>5?6:i};
+   const per=days.map(d=>{const es=m.ex.filter(x=>x.date==d);return {d,es,t:es.reduce((a,x)=>a+x.amount,0)}}),mx=Math.max(1,...per.map(x=>x.t)),tot=per.reduce((a,x)=>a+x.t,0),big=per.slice().sort((a,b)=>b.t-a.t)[0];
+   if(!tot)return `<div class="empty">${tx("No costs in the last 14 days","ما فيه مصاريف آخر 14 يوم")}</div>`;
+   return `<div class="ebars" dir="ltr">${per.map((x,i)=>{const by={};x.es.forEach(e=>{const r=rank(e.cat);by[r]=(by[r]||0)+e.amount});return `<button class="eb${i==13?" today":""}" data-day="${x.d}" ${x.t?"":"disabled"}><span class="ebs" style="height:${Math.max(x.t?6:2,x.t/mx*110)}px">${Object.keys(by).sort((p,q)=>p-q).map(r=>`<i style="flex:${by[r]};background:${DCOL[r]}"></i>`).join("")}</span><small>${i%2==1||i==13?+x.d.slice(8):""}</small></button>`}).join("")}</div>
+    <div class="eleg"><span>${tx("14 days","14 يوم")} <b>${M(tot)}</b></span><span>${tx("Biggest","الأعلى")} <b>${M(big.t)}</b> · ${when(big.d)}</span></div>`})())];
  // store page
  const itemDig=g=>{const comm=(m.community||[]).filter(c=>String(c.item||"").toLowerCase()==g.item.toLowerCase()&&+c.price>0).sort((a,b)=>a.price-b.price)[0],inList=m.shopKeys.includes(g.k);
   return dig(hd(`<span>${esc(g.item)}</span><small class="ds">${esc([g.size,g.best.store].filter(Boolean).join(" · "))}</small>`,M(g.best.price.toFixed(g.best.price%1?2:0)),GR,g.photo),
@@ -267,7 +271,7 @@ function start(m){
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
-  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg"))return;
+  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars"))return;
   if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
@@ -311,10 +315,10 @@ function start(m){
  const toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
  const addCost=async(amount,cat,note)=>{const d=ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
  const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}setTimeout(()=>location.reload(),900)};
- { const c=document.querySelector('.card[data-k="e"]'),x=c.querySelector(".xadd");
+ { const c=document.querySelector('.card[data-k="e"]'),x=c.querySelector(".xadd");if(x){
    x.querySelectorAll(".xc button").forEach(b=>b.onclick=()=>{x.querySelectorAll(".xc button").forEach(y=>y.classList.remove("sel"));b.classList.add("sel")});
    const sm=x.querySelector(".sms"),a=x.querySelector(".xa");sm.addEventListener("input",()=>{const mm=sm.value.replace(/,/g,"").match(/(\d+(?:\.\d+)?)\s*(?:SAR|ر\.س|ريال)?/i);if(mm)a.value=mm[1]});
-   x.querySelector(".xb").onclick=async()=>{const v=+a.value;if(!(v>0))return;try{await addCost(v,x.querySelector(".xc .sel").dataset.k,x.querySelector(".xn").value||sm.value.slice(0,60));toast(tx("Added","انضاف"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}}; }
+   x.querySelector(".xb").onclick=async()=>{const v=+a.value;if(!(v>0))return;try{await addCost(v,x.querySelector(".xc .sel").dataset.k,x.querySelector(".xn").value||sm.value.slice(0,60));toast(tx("Added","انضاف"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}};} }
  const wire=root=>{root.querySelectorAll(".tbtn[data-oadd]").forEach(b=>b.onclick=async()=>{const o=m.others.find(x=>x.k==b.dataset.oadd);if(!o)return;b.disabled=true;try{await put("prices",newId(),{item:o.item.slice(0,80),price:Math.round(o.price*100)/100,store:(o.store||"Store not set").slice(0,50)+" (shared)",size:o.size.slice(0,40),date:o.date||ymd(new Date()),createdAt:Date.now()});toast(tx("Added to My items","انضاف لأغراضك"));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}});
  root.querySelectorAll(".tbtn[data-list]").forEach(b=>b.onclick=async()=>{const k=b.dataset.list,keys=m.shopKeys.includes(k)?m.shopKeys.filter(x=>x!=k):m.shopKeys.concat(k);try{await put("settings","shopping",{keys});toast(tx("List updated","انحدثت القائمة"));reload()}catch(e){toast(tx("Couldn't save","ما انحفظ"))}});};wire(document);
  const sh=document.getElementById("sheet"),sc=document.getElementById("scrim"),close=()=>{sh.classList.remove("on");sc.classList.remove("on")};sc.onclick=close;
@@ -411,6 +415,10 @@ function start(m){
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}
+
+ // ---- Expenses: tap a day bar -> that day's costs ----
+ { const ec=document.querySelector('.card[data-k="e"]');ec.addEventListener("click",ev=>{const b=ev.target.closest("[data-day]");if(!b||!OK)return;ev.stopPropagation();const d=b.dataset.day,es=m.ex.filter(x=>x.date==d),t=es.reduce((a,x)=>a+x.amount,0);
+  show(NAVY,`<h3>${when(d)} <small class="ds" style="font-size:14px;color:${G};font-weight:500">${M(t)}</small></h3><div class="res" style="max-height:50vh;overflow-y:auto">${rows(es.map(x=>[`${nm(x.cat)}${x.note?` <small class="ds">${esc(x.note)}</small>`:""}`,M(x.amount)]))}</div>`,()=>{})},true); }
 
 }
 // ---------- boot ----------
