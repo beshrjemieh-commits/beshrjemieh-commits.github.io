@@ -289,7 +289,8 @@ function setup(ctx){
   const gs=S.goals.filter(g=>+g.target>0).map(g=>{const need=g.target/g.months,give=Math.min(need,r);r-=give;return Object.assign({},g,{give,late:give<need-1,ready:give>0?Math.ceil(g.target/give):null})});
   const gt=sum(gs.map(g=>g.give));return {sal,bills,gs,gt,spend:Math.max(0,sal-bills-gt)}};
  const bName=b=>b.k=="custom"&&b.name?b.name:BILL[b.k][AR?1:0],gName=g=>g.k=="other"&&g.name?g.name:GOAL[g.k][AR?1:0];
- const V=[
+ // v189: built as a function so the language button can rebuild titles, counter and buttons (QA row 20)
+ const mkV=()=>[
   {kk:T("1 of 2","1 من 2"),h:T("How much lands in your account each month?","كم ينزل في حسابك كل شهر؟"),ld:T("Your salary after deductions.","راتبك بعد الخصومات."),cta:T("Continue","متابعة"),ok:()=>+S.salary>0,
    html:()=>`<div class="cd tab"><span class="ctb">${PH("wallet")}</span><div class="ck">${T("Salary","الراتب")}</div><label class="wamt"><b>${RS}</b><input id="wsal" inputmode="numeric" placeholder="0" value="${S.salary?fm(S.salary):""}" aria-label="${T("Salary","الراتب")}"></label>
    <div class="pd"><span>${T("It arrives on the","ينزل")}</span><span class="stp"><button data-pd="-1" aria-label="-">−</button><b id="wpd">${ord(S.payday)}</b><button data-pd="1" aria-label="+">+</button></span></div></div>`},
@@ -304,6 +305,7 @@ function setup(ctx){
     <div class="wsb">${L.map(l=>`<i data-g="${l[2]/sal}" style="background:${l[0]}"></i>`).join("")}</div>
     <div class="wlg">${L.filter(l=>l[2]>0).map(l=>`<span><i class="wsw" style="background:${l[0]}"></i>${l[1]}</span>`).join("")}</div></div>`}}
  ];
+ let V=mkV();
  const anim=()=>{root.querySelectorAll(".wsb i").forEach((b,i)=>setTimeout(()=>b.style.flexGrow=Math.max(.001,+b.dataset.g),80+i*120));
   root.querySelectorAll("[data-c]").forEach(el=>{const to=+el.dataset.c,t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/900),e=1-Math.pow(1-p,3);el.innerHTML=M(Math.round(to*e));if(p<1)requestAnimationFrame(f)})(t0)})};
  let busy=false;
@@ -325,7 +327,7 @@ function setup(ctx){
   if(b.classList.contains("cta"))return go(1);
   if(b.classList.contains("wlnk"))return finish(ctx.preview?"close":S.i==V.length-1?"home":"skip");
   if(b.classList.contains("bk"))return go(-1);
-  if(b.classList.contains("lg")){AR=!AR;root.dir=AR?"rtl":"ltr";b.textContent=AR?"English":"العربية";ctx.onLang&&ctx.onLang(AR?"ar":"en");paint();return}
+  if(b.classList.contains("lg")){AR=!AR;root.dir=AR?"rtl":"ltr";b.textContent=AR?"English":"العربية";ctx.onLang&&ctx.onLang(AR?"ar":"en");V=mkV();$(".bk").setAttribute("aria-label",T("Back","رجوع"));paint();return}
   if(d.knew!=null){S.knew=+d.knew;root.querySelectorAll("[data-knew]").forEach(o=>o.classList.toggle("on",o==b));okBtn();return}
   if(d.pd){S.payday=((S.payday-1+ +d.pd+31)%31)+1;$("#wpd").textContent=ord(S.payday);return}
   if(d.bx!=null){S.bills.splice(+d.bx,1);paint();return}
@@ -374,7 +376,7 @@ function tour(ctx){
    <div class="cd">${[["basket",T("Rice 5kg","رز 5 كيلو"),39],["basket",T("Fairy 3L","فيري 3 لتر"),20],["coffee",T("Nescafé Gold","نسكافيه قولد"),21]].map(([ic,n,v])=>`<div class="xr nw"><span class="ic">${PH(ic)}</span><div><b>${n}</b><small>${T("Lulu · saved","لولو · انحفظ")}</small></div><b>${M(v)}</b></div>`).join("")}</div>`},
   {kk:T("4 of 4 · Forsa","4 من 4 · فرصة"),h:T("One search checks every store","بحث واحد يفحص كل المتاجر"),ld:T("Buy smart, or flip it for profit.","اشترِ بذكاء، أو اقلبها بربح."),
    html:()=>`${ex}<div class="xs">${PH("magnifying-glass")}<span class="xty" data-t="${T("iPhone 15 Pro","آيفون 15 برو")}"></span></div>
-   <div class="xsrc">${["Haraj","Amazon","Noon","Extra","Jarir","OpenSooq"].map(s=>`<span>${s}</span>`).join("")}</div>
+   <div class="xsrc">${(AR?["حراج","أمازون","نون","إكسترا","جرير","السوق المفتوح"]:["Haraj","Amazon","Noon","Extra","Jarir","OpenSooq"]).map(s=>`<span>${s}</span>`).join("")}</div>
    <div class="cd xd"><div class="xdr"><b>${T("iPhone 15 Pro 256GB","آيفون 15 برو 256")}</b><span class="xpc">▼ 22%</span></div><div class="xdr"><b class="xbig">${M(2650)}</b><s>${M(3400)}</s></div>
    <div class="xad">${PH("info")}<span><b>${T("Good time to buy","وقت مناسب للشراء")}</b>${T("Lowest of 41 ads this month.","الأرخص من 41 إعلان هذا الشهر.")}</span></div></div>`}];
  let i=0,tm=[];const later=(f,ms)=>tm.push(setTimeout(f,ms));
