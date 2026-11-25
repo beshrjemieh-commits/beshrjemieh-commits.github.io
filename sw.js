@@ -1,6 +1,6 @@
 // Keeps the app shell on the phone so it opens instantly, even on weak 4G; data always comes live from Supabase.
 // 2026-11-22: blank white screen on slow 4G (Beshr). Before, every file waited for the network with no time limit.
-const CACHE = "wallet-v177";
+const CACHE = "wallet-v178";
 const SHELL = ["./", "index.html", "new/app.js", "new/onboard.js", "new/track.js", "new/style.css", "old.html", "shim.js", "i18n.js", "home.js", "extras.js", "motion.js", "icons.js", "riyal.js", "manifest.webmanifest", "vendor/supabase-2.118.0.js", "icon-180.png", "icon-192.png", "icon-512.png"];
 const CDN = /^https:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 const WAIT = 1500; // ms to wait for the network before showing the saved copy
@@ -17,6 +17,8 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (u.origin !== location.origin) return;
+  // videos: let Safari stream them itself (range requests)
+  if (req.headers.has("range") || u.pathname.endsWith(".mp4")) return;
   // our own files: try the network for a moment (so updates show up), otherwise show the saved copy right away
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
