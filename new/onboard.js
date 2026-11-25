@@ -366,7 +366,7 @@ function tour(ctx){
    <div class="cd">${row("basket",T("Panda","بنده"),T("Groceries · from bank SMS","بقالة · من رسالة البنك"),45,1)}${row("coffee",T("Coffee shop","مقهى"),T("Coffee · from bank SMS","قهوة · من رسالة البنك"),18)}</div>`},
   {kk:T("2 of 4 · Store","2 من 4 · المتجر"),h:T("Shoppers' bills find the cheapest","فواتير الناس تكشف الأرخص"),ld:T("Everyone adds bills. Everyone saves.","الكل يضيف فواتيره، والكل يوفّر."),
    html:()=>`${ex}<div class="xq l">${T("I paid","دفعت")} ${M(40)} ${T("for Fairy 3L","على فيري 3 لتر")}</div><div class="xq r">${T("Same item:","نفس الغرض:")} ${M(20)} ${T("at Lulu","في لولو")}</div>
-   <div class="cd xc">${bar(T("Lulu","لولو"),20,50,1)}${bar(T("Panda","بنده"),29,72)}${bar(T("Danube","الدانوب"),40,100)}<div class="xt">${PH("users")} ${T("Add your bills to keep prices fresh.","أضف فواتيرك عشان تبقى الأسعار محدّثة.")}</div></div>`},
+   <div class="cd xc">${bar(T("Lulu","لولو"),20,50,1)}${bar(T("Panda","بنده"),29,72)}${bar(T("Danube","الدانوب"),40,100)}<div class="xt">${PH("users")} ${T("Add your bills to keep prices fresh. Shared with no name. Turn off in Settings.","أضف فواتيرك عشان تبقى الأسعار محدّثة. تنشارك بدون اسم، وتقدر توقفها من الإعدادات.")}</div></div>`},
   // Beshr 2026-11-25: show how easy adding a bill is (photo -> we read it -> prices saved)
   {kk:T("3 of 4 · Add a bill","3 من 4 · أضف فاتورة"),h:T("Snap a bill, done","صوّر الفاتورة، وخلاص"),ld:T("Tap Add bill, take a photo. We read every item and price.","اضغط أضف فاتورة وصوّرها. نقرأ كل غرض وسعره."),
    html:()=>`${ex}<div class="xsms"><span>${PH("camera")}</span><p><b>${T("Bill photo","صورة الفاتورة")}</b>${T("Lulu · 3 items","لولو · 3 أغراض")}</p></div>
