@@ -387,7 +387,7 @@ function cards(m){
  const dRed=d&&(dVerdict(d)||{}).c=="#DC2626";
  // Tabs 6: Forsa glows when its best deal is newer than the last time Forsa was opened
  {let seen=0;try{seen=+localStorage.getItem("f-seen")||0}catch(e){}f.isNew=!!(d&&(d.foundAt||+(d.raw&&d.raw.createdAt)||0)>seen&&!(dVerdict(d)&&dVerdict(d).c=="#DC2626"))}
- if(HOME_PHOTOS&&!d){f.v=`<span style="font-size:18px">${tx("No new deals right now","ما فيه صفقات جديدة الحين")}</span>`;f.sub=tx("The next hunt brings more","البحث الجاي يجيب أكثر");f.line="";f.photo=()=>tile("","fire")}
+ if(HOME_PHOTOS&&!d){f.v=`<span style="font-size:18px">${tx("No new deals","ما فيه صفقات جديدة")}</span>`;f.sub=tx("The next hunt brings more","البحث الجاي يجيب أكثر");f.line="";f.photo=()=>tile("","fire")}
  else if(HOME_PHOTOS&&dRed){f.v=`<span style="font-size:18px">${tx("No strong deal today","ما فيه صفقة قوية اليوم")}</span>`;f.sub=tx(m.deals.length==1?"1 deal checked":`${m.deals.length} deals checked`,`فحصنا ${m.deals.length} صفقة`);f.line="";f.photo=()=>tile("","fire")}
  else if(d&&d.market>d.price){f.v=`${M(d.price)} <s class="hst">${M(d.market)}</s>`;const pc=d.pct||Math.round((1-d.price/d.market)*100);const nm=cutW(d.name,24);f.sub=`<bdi>${nm}${nm.length<esc(d.name).length&&!nm.endsWith("…")?"…":""}</bdi> · ${tx(`${pc}% below market`,`أقل ${pc}٪ من السوق`)}`;f.line=`<span class="hchip"><bdi>${[cutW(d.source||"",14),dKind(d)=="new"?tx("New","جديد"):tx("Used","مستعمل")].filter(Boolean).join(" · ")}</bdi></span>`}
  const F=[{line:f.line,chart:f.chart}];if(tp)f.fixed=1;
