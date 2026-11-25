@@ -709,7 +709,7 @@ ${q}`;
   show(GR,`<h3><span style="color:${GR};line-height:0">${PH("basket")}</span>${tx("Shopping list","قائمة التسوق")} · <span class="sln-n">${m.list.length}</span></h3><div id="slsheet">${m._listRows()}</div>`,()=>{})},true);
   // Beshr 2026-11-25: split the list into one list per cheapest store, each copied as plain text to paste into a delivery or notes app
   const qy=k=>Math.max(1,+m.shopQty[k]||1),byStore=()=>{const o={};m.list.forEach(g=>(o[g.best.store]=o[g.best.store]||[]).push(g));return Object.entries(o).sort((a,b)=>b[1].length-a[1].length)};
-  const listTxt=(st,gs)=>`${st}\n`+gs.map(g=>`- ${g.item}${g.size?" "+g.size:""} x${qy(g.k)}`).join("\n");
+  const listTxt=(st,gs)=>`${st}\n`+gs.map(g=>`- ${g.item}${g.size?" "+g.size:""} ×${qy(g.k)}`).join("\n");
   dAdd("click",async ev=>{const b=ev.target.closest("[data-slsplit],[data-slcopy],[data-slback]");if(!b)return;ev.stopPropagation();const ls=document.getElementById("slsheet");if(!ls)return;
    if(b.dataset.slback)return window._shopRefresh();
    const G=byStore();
