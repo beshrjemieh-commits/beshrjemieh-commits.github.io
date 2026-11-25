@@ -389,7 +389,7 @@ function tour(ctx){
  const paint=dir=>{const v=V[i];$(".seg").querySelectorAll("i").forEach((s,k)=>s.classList.toggle("on",k<=i));$(".bk").hidden=i==0;
   const fill=()=>{$(".kk").textContent=v.kk;$("h1").textContent=v.h;$(".ld").textContent=v.ld;$(".stage").innerHTML=v.html();$(".cta").textContent=i<V.length-1?T("Next","التالي"):ctx&&ctx.done?T("Set up bank messages","جهّز رسائل البنك"):T("Done","تم");$(".wlnk").style.visibility=i<V.length-1?"":"hidden";play()};
   if(!dir)return fill();const tw=$(".tw"),st=$(".stage");tw.classList.add("out");st.classList.add("out");setTimeout(()=>{fill();st.classList.remove("out");tw.classList.remove("out")},200)};
- const end=()=>{tm.forEach(clearTimeout);root.classList.remove("on");setTimeout(()=>{root.remove();ctx&&ctx.done&&ctx.done()},260)};
+ const end=()=>{tm.forEach(clearTimeout);window._tourEnd&&window._tourEnd();root.classList.remove("on");setTimeout(()=>{root.remove();ctx&&ctx.done&&ctx.done()},260)};
  root.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   if(b.classList.contains("cta")){window.track&&window.track(i>=V.length-1?"tour_done":"tour_step","tour","s"+(i+1));if(i>=V.length-1)return end();i++;return paint(1)}
   if(b.classList.contains("bk")&&i>0){i--;return paint(-1)}
