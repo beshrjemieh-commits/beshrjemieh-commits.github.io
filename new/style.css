@@ -447,3 +447,5 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .cml{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:#64748B}.cml span{display:flex;align-items:center;gap:5px}.cml i{width:8px;height:8px;border-radius:2px;display:inline-block}.cml b{color:#0F172A;font-weight:600}
 
 .tpk{display:inline-flex;align-items:center;gap:4px;font-weight:600;color:#92400E}.tpk .ph{color:#F59E0B}
+/* hidden sheet never peeks below the app on screens taller than the app (Galaxy Fold) */
+#sheet{visibility:hidden;transition:transform .34s cubic-bezier(.3,.6,.2,1),visibility 0s .34s}#sheet.on{visibility:visible;transition:transform .42s cubic-bezier(.3,.6,.2,1),visibility 0s}
