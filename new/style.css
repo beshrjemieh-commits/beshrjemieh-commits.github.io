@@ -458,3 +458,6 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .c-s .ctab,.c-f .ctab{margin-inline-start:var(--cp,0px)}
 /* hidden sheet never peeks below the app on screens taller than the app (Galaxy Fold) */
 #sheet{visibility:hidden;transition:transform .34s cubic-bezier(.3,.6,.2,1),visibility 0s .34s}#sheet.on{visibility:visible;transition:transform .42s cubic-bezier(.3,.6,.2,1),visibility 0s}
+/* 2026-11-25 walk-through: back chevron on Store/Forsa full pages (replaces the tab icon once open) */
+.cbk{position:absolute;top:0;inset-inline-start:0;margin-inline-start:var(--cp,0px);width:44px;height:44px;display:grid;place-items:center;font-size:24px;line-height:0;color:#2563EB;opacity:0;z-index:3;pointer-events:none}
+#chip{transition:opacity .25s}
