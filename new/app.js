@@ -341,6 +341,9 @@ function cards(m){
  const bk=(m.list||[]).filter(g=>g.best),bkT=p2(bk.reduce((a,g)=>a+g.best.price*Math.max(1,+(m.shopQty||{})[g.k]||1),0));
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),esc(drop.item).slice(0,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),esc(top.item).slice(0,22),ACC.s,p):""};
+ // Beshr 2026-11-25 (option B): Store and Forsa each show ONE item on a big discount; its photo pops out over the card's top edge
+ const pf=v=>v.toFixed(v%1?2:0),sd=m.G2.map(g=>{const o=g.drop?g.drop.from:g.stores&&g.stores.length>1?g.stores.at(-1).price:0,n=g.drop?g.drop.to:g.best?g.best.price:0;return o>n&&n>0?{g,o,n,pct:Math.round((1-n/o)*100)}:null}).filter(x=>x&&x.pct>=5).sort((a,b)=>b.pct-a.pct)[0];
+ if(sd){s.v=esc(sd.g.item);s.deal={img:sd.g.photo||"",o:M(pf(sd.o)),n:M(pf(sd.n)),pct:sd.pct,fit:1}}
  const tp=topPick(m.deals),d=tp||m.deals.slice().sort(byScore)[0],hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
   chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(tp?[`▼ ${d.pct}%`,hot||(dKind(d)=="new"?tx("New","جديد"):esc(d.source||""))].join(" · "):(d.source||"")),AMB,p):""};
@@ -371,7 +374,7 @@ function cards(m){
   if(cs.length>1)F.push({line:tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),chart:p=>K.rows(cs.map(([c,v])=>[cn(c).slice(0,9),String(v),"#E8A400",v/cs[0][1]]),p)})}
  if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5)));F.push({line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>K.gauge(sc/10,"#E8A400",p,`<b style="font-size:20px;color:${ink}">${sc}</b>/10`)})}
  // ---- more charts (Beshr 2026-11-25 picked the 12 ideas sheet; ones without real data yet are skipped) ----
- const RED="#DC2626",sv=(w,h,b)=>`<svg width="${w}" height="${h}" style="overflow:visible">${b}</svg>`;
+ const RED="#DC2626",sv=(w,h,b)=>`<svg width="${w}" height="${h}" style="overflow:visible;direction:ltr">${b}</svg>`;
  // W1 money runway: battery = days the balance lasts at the usual daily spend, line = payday
  if(bal>0&&m.usual>0&&m.toPay>0){const days=Math.floor(bal/m.usual),span=Math.max(days,m.toPay)*1.15,ok=days>=m.toPay,fw=Math.max(4,Math.min(1,days/span)*150),px=6+Math.min(1,m.toPay/span)*150;
   W.push({line:days>=m.toPay*2?tx("Lasts well past payday","يكفي لما بعد الراتب"):ok?tx(`Lasts ${days} days`,`يكفي ${days} يوم`):tx(`Lasts ${days} of ${m.toPay} days`,`يكفي ${days} من ${m.toPay} يوم`),chart:p=>sv(172,50,`<rect x="2" y="12" width="158" height="30" rx="7" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="2"/><rect x="162" y="21" width="5" height="12" rx="2" fill="#fff" fill-opacity=".45"/><rect x="6" y="16" width="${fw*p}" height="22" rx="4" fill="${ok?"#4ADE80":"#F87171"}"/><line x1="${px}" y1="6" x2="${px}" y2="48" stroke="#fff" stroke-dasharray="3 2"/><text x="${px+3}" y="9" fill="#ffffffb0" font-size="9">${tx("payday","الراتب")}</text>`)})}
@@ -398,6 +401,8 @@ function cards(m){
  {const i=F.findIndex(x=>x.score);if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5))),r=21,L=2*Math.PI*r;const ch={line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>sv(172,50,`<g transform="translate(118,25)"><circle r="${r}" fill="none" stroke="#E8A400" stroke-opacity=".2" stroke-width="7"/><circle r="${r}" fill="none" stroke="#E8A400" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L*sc/10*p} ${L}" transform="rotate(-90)" ${sc>=8?'style="filter:drop-shadow(0 0 4px #F59E0B)"':""}/><text y="6" text-anchor="middle" font-size="17" font-weight="600" fill="${ink}">${sc}</text></g><text x="88" y="30" text-anchor="end" font-size="11" fill="${G}">${tx("out of 10","من 10")}</text>`)};
   const gi=F.findIndex(x=>x.line==ch.line);if(gi>0)F[gi]=ch;else F.push(ch)}}
  w.pool=W;e.pool=E;s.pool=S;f.pool=f.fixed?F.slice(0,1):F;
+ if(d&&d.market>d.price&&d.price>0)f.deal={img:d.image||"",o:M(fmt(d.market)),n:M(fmt(d.price)),pct:d.pct||Math.round((1-d.price/d.market)*100)};
+ [s,f].forEach(c=>{if(c.deal)c.pool=[{line:"",chart:()=>"",hero:""}]});
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?(m.list.length==1?tx("1 item in your list","غرض واحد بقائمتك"):tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`)):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?(newDeals==1?tx("1 new deal today","صفقة جديدة اليوم"):tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`)):""};
  return {w,e,s,f,H}}
@@ -414,7 +419,8 @@ function start(m,soft){
  const dstr=new Date().toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{weekday:"long",day:"numeric",month:"long"});
  const bandH=TOPS[0]+HH[0]-34,wave=`<svg viewBox="0 0 1572 40" preserveAspectRatio="none"><path d="M0,20 C98,0 295,0 393,20 C491,40 688,40 786,20 C884,0 1081,0 1179,20 C1277,40 1474,40 1572,20 L1572,40 L0,40Z" fill="#16365E"/></svg>`;
  app.innerHTML=`<div id="band" style="height:${bandH}px"><div class="wv wv2">${wave}</div><div class="wv">${wave}</div></div><div class="hd"><div class="d">${dstr}</div><h1>${greet}${m.name?tx(", ","، ")+esc(m.name):""}</h1></div><div class="tg"><button id="gear" aria-label="${tx("Settings","الإعدادات")}">${PH("gear-six")}</button></div><div class="srch">${PH("magnifying-glass")}<span>${tx("Search or ask","ابحث أو اسأل")}</span><b class="askb">${PH("sparkle")} ${tx("Ask","اسأل")}</b></div>`
-  +order.map((k,i)=>{const c=C[k];return `<div class="card c-${k}" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><span class="ctab">${PH(c.ic)}</span><div class="k">${c.t}<span class="tm">${c.line}</span></div><div class="big" dir="auto" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;text-align:${AR?"right":"left"}">${c.v}</div><div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
+  +order.map((k,i)=>{const c=C[k];return `<div class="card c-${k}" data-k="${k}" style="--acc:${ACC[k]};top:${TOPS[i]}px;height:${HH[i]}px;overflow:hidden"><span class="ctab">${PH(c.ic)}</span><div class="k">${c.t}<span class="tm">${c.line}</span></div><div class="big" dir="auto" style="margin-top:14px;max-width:170px;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;text-align:${AR?"right":"left"}">${c.v}</div>${c.deal?`<div class="dpr"><s>${c.deal.o}</s><b>${c.deal.n}</b><i dir="ltr">▼${c.deal.pct}%</i></div>`:""}<div class="vz2"></div><div class="pg">${P[k].join("")}</div></div>`}).join("")
+  +order.map(k=>C[k].deal?`<div class="pop pop-${k}" data-k="${k}" role="button" aria-label="${C[k].t}">${PH(C[k].ic)}${C[k].deal.img?`<img src="${esc(C[k].deal.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`:"").join("")
   +`<div class="abar" style="background:none;box-shadow:none;height:84px">${[["plus-circle",tx("Add expense","أضف مصروف"),BLUE],["camera",tx("Add bill","أضف فاتورة"),BLUE],["fire",tx("New hunt","صيد جديد"),BLUE]].map(([i,l,c])=>`<div class="ab" role="button" tabindex="0" style="gap:6px"><span style="width:52px;height:52px;border-radius:26px;background:#fff;display:grid;place-items:center;color:${c};line-height:0;box-shadow:0 8px 20px -8px rgba(0,0,0,.45)">${PH(i)}</span>${l}</div>`).join("")}</div>`
   +(HK?`<div id="chip" style="position:absolute;left:0;right:0;margin:auto;width:max-content;max-width:330px;top:${TOPS[order.indexOf(HK)]+HH[order.indexOf(HK)]-14}px;z-index:15;background:${HK=="f"?"#FEF3C7":"#EEF2F7"};color:${HK=="f"?"#92400E":NAVY};font-size:13px;font-weight:600;padding:6px 12px;border-radius:14px;white-space:nowrap">${PH("sparkle")} ${C.H[HK]}</div>`:"")
   +`<div id="scrim"></div><div id="sheet" role="dialog"></div>`;
@@ -432,7 +438,7 @@ function start(m,soft){
   if(vz&&vz.firstElementChild){let L=1e9,R=-1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);R=Math.max(R,r.right);if(!e.firstElementChild)bots.push(r.bottom)}});
    // room up to the chart beside it; in Arabic the chart is on the left (2026-11-25: names were cut to 120pt and slid in Arabic)
    const ks=cr.width/(b.parentElement.offsetWidth||cr.width)||1,room=(AR?br.right-R:L-br.left)/ks-10;if(L<1e9)b.style.maxWidth=Math.max(120,Math.min((window.AW||393)-223,room))+"px"}
-  b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
+  if(b.parentElement.querySelector(".dpr"))b.style.maxWidth=((window.AW||393)-190)+"px";b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
   two=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="normal";b.style.lineHeight="1.15";return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=f*1.15*2+2};
   for(let f=base;f>=18;f--)if(one(f))return;
   for(let f=Math.min(base,22);f>=16;f--)if(two(f)){const bb=b.getBoundingClientRect().bottom-f*.2;let best=null;bots.forEach(y=>{const d=y-bb;if(d>=-2&&d<=28&&(best==null||d>best))best=d});
@@ -451,6 +457,7 @@ function start(m,soft){
    const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",XR=(window.AW||393)-220,W=f?lerp(172,isB?(window.AW||393)-64:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(XR,16,op):XR,Y=f?lerp(48,98,op):48;
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
+   const pp=document.querySelector(`.pop[data-k="${k}"]`);if(pp){const AWv=window.AW||393,po=(+c.style.opacity||1)*(f&&FP?1-cl(op/0.3):1);pp.style.top=(parseFloat(c.style.top)-20)+"px";pp.style.left=(AR?34:AWv-16-18-76)+"px";pp.style.opacity=po;pp.style.pointerEvents=po>.5?"auto":"none"}
    pg.style.top=lerp(h0,FP?44:isB?232:isD?200:186,f?op:0)+"px";
    pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=1;
@@ -459,6 +466,7 @@ function start(m,soft){
   if(t>TL.close+TL.cd){OK="";TL.tap=TL.close=1e9;cardEls.forEach(c=>{c.style.zIndex="";c.style.boxShadow="none";c.scrollTop=0})}
   requestAnimationFrame(render)}
  requestAnimationFrame(render);
+ document.querySelectorAll(".pop").forEach(pp=>pp.addEventListener("click",()=>{const c=document.querySelector(`.card[data-k="${pp.dataset.k}"]`);if(c&&!OK)c.click()}));
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
   if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav,.fkind,.achips"))return;
