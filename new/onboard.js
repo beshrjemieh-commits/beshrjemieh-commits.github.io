@@ -1,7 +1,7 @@
 /* Smart Wallet: first-time questions, the "how to use" tour and the bank-message Shortcut guide.
    Light mode, original look (white top + navy wave, corner-tab cards, IBM Plex, Phosphor icons), English + Arabic.
    window.WOB.setup(ctx)  first-time questions (6 steps + "Here is your month"); ctx.save(answers) stores them, ctx.done(how) after
-   window.WOB.tour(ctx)   spotlight tour over the real Home (gear, search, 4 cards, 3 quick buttons)
+   window.WOB.tour(ctx)   3-screen intro: bank messages add themselves, shoppers' bills find the cheapest, one Forsa search
    window.WOB.guide(ctx)  12 drawn steps to set up Beshr's original Shortcut (Wallet tap -> Text -> Copy -> open app with ?sms=) */
 (function(){
 const PH=n=>window.PH?window.PH(n):"";
@@ -180,31 +180,34 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wob .fno{flex:none;height:48px;padding:0 14px;border:1px solid #E2E8F0;border-radius:12px;background:#fff;color:${G};font-size:14px;cursor:pointer}
 .wob .fno.on{border-color:${BLUE};color:${BLUE}}
 
-/* ---- tour ---- */
-#wtour{position:fixed;inset:0;z-index:9100;font-family:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased}
-#wtour[dir=rtl]{font-family:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",sans-serif}
-#wtour .hole{position:absolute;border-radius:16px;box-shadow:0 0 0 2000px rgba(8,20,38,.72);transition:all .42s cubic-bezier(.3,.7,.2,1);pointer-events:none}
-#wtour .hole::after{content:"";position:absolute;inset:-5px;border-radius:inherit;border:2px solid #93C5FD;animation:wtring 1.6s ease-out infinite}
-@keyframes wtring{0%{opacity:1;inset:-3px}100%{opacity:0;inset:-14px}}
-#wtour .tip{position:absolute;left:16px;right:16px;background:#fff;border-radius:16px;padding:14px 16px 12px;box-shadow:0 18px 40px -12px rgba(0,0,0,.6);transition:top .42s cubic-bezier(.3,.7,.2,1),opacity .2s;color:#0F172A}
-#wtour .tip::before{content:"";position:absolute;width:14px;height:14px;background:#fff;transform:rotate(45deg);left:var(--ax,50%);margin-left:-7px}
-#wtour .tip.dn::before{top:-6px}
-#wtour .tip.up::before{bottom:-6px}
-#wtour .tn{font-size:12px;font-weight:600;color:${G}}
-#wtour .tt{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:17px;font-weight:600;color:${NAVY}}
-#wtour .tt span{width:28px;height:28px;border-radius:9px;background:#EEF2F7;display:grid;place-items:center;font-size:17px;line-height:0}
-#wtour .tt svg{width:1em;height:1em;fill:currentColor}
-#wtour .tx{margin:6px 0 0;font-size:15px;line-height:1.45;color:#334155}
-#wtour[dir=rtl] .tx{line-height:1.7}
-#wtour .tb{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-#wtour .dots{display:flex;gap:4px}
-#wtour .dots i{width:6px;height:6px;border-radius:3px;background:#E2E8F0;transition:all .25s}
-#wtour .dots i.on{width:16px;background:${NAVY}}
-#wtour .tb div:last-child{display:flex;gap:6px}
-#wtour button{font:inherit;height:38px;padding:0 14px;border-radius:12px;border:0;cursor:pointer;font-size:15px}
-#wtour .wsk{background:none;color:${G}}
-#wtour .nx{background:${BLUE};color:#fff;font-weight:600;min-width:84px}
-
+/* ---- intro (what the app is for) ---- */
+.wit .wbar>span{width:32px}
+.wit .xeg{display:inline-block;font-size:12px;font-weight:600;color:#BFD2E6;border:1px solid rgba(191,210,230,.4);border-radius:10px;padding:2px 8px;margin-bottom:10px}
+.wit .xsms{display:flex;gap:10px;align-items:center;background:rgba(245,245,247,.97);border-radius:18px;padding:10px 12px;margin-bottom:12px;opacity:0;transform:translateY(-12px);transition:all .4s cubic-bezier(.2,.8,.2,1);direction:ltr;text-align:left}
+.wit .xsms.on{opacity:1;transform:none}.wit .xsms>span{width:26px;height:26px;border-radius:7px;background:${GR};color:#fff;display:grid;place-items:center;font-size:15px;flex:none}
+.wit .xsms p{margin:0;font-size:14px;color:#1F2937}.wit .xsms b{display:block;font-size:13px}
+.wit .x3{display:flex;gap:8px;margin-bottom:12px}
+.wit .x3 div{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;text-align:center;font-size:13px;font-weight:600;color:#BFD2E6;transition:all .3s}
+.wit .x3 em{display:block;font-style:normal;font-size:18px}
+.wit .x3 div.on{background:#fff;border-color:#fff;color:${NAVY}}.wit .x3 div.on em{color:${BLUE}}
+.wit .xr{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #F1F5F9}.wit .xr:first-child{border:0}
+.wit .xr .ic{width:34px;height:34px;border-radius:10px;background:#EEF2F7;color:${NAVY};display:grid;place-items:center;font-size:18px;flex:none}
+.wit .xr div{flex:1;min-width:0}.wit .xr small{display:block;font-size:13px;color:${G}}.wit .xr b{font-weight:600}
+.wit .xa{font-style:normal;font-size:11px;font-weight:600;color:${NAVY};background:#E0E7FF;border-radius:6px;padding:1px 6px;margin-inline-start:6px;vertical-align:1px}
+.wit .xr.nw{max-height:0;opacity:0;padding:0;overflow:hidden;transition:all .45s}.wit .xr.nw.on{max-height:60px;opacity:1;padding:8px;margin:0 -8px;background:#F0FDF4;border-radius:10px}
+.wit .xq{max-width:82%;padding:9px 13px;border-radius:18px;font-size:15px;margin-bottom:8px;opacity:0;transform:translateY(8px);transition:all .4s}
+.wit .xq.on,.wit .xc.on,.wit .xd.on{opacity:1;transform:none}
+.wit .xq.l{background:#fff;border-end-start-radius:6px}.wit .xq.r{background:#1E4170;color:#fff;margin-inline-start:auto;border-end-end-radius:6px}
+.wit .xc,.wit .xd{opacity:0;transform:translateY(10px);transition:all .45s}
+.wit .xb{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:15px}.wit .xb span{width:64px}.wit .xb i{flex:1;height:8px;border-radius:4px;background:#E2E8F0;overflow:hidden}
+.wit .xb u{display:block;height:100%;width:var(--w);border-radius:4px}.wit .xb b{min-width:44px;text-align:end;font-weight:600}
+.wit .xt{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:14px;color:${G}}
+.wit .xs{display:flex;align-items:center;gap:8px;height:44px;border-radius:12px;background:#fff;padding:0 12px;font-size:16px;color:${G}}.wit .xs span{color:#0F172A}
+.wit .xsrc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}.wit .xsrc span{font-size:13px;font-weight:600;padding:4px 10px;border-radius:14px;color:#BFD2E6;border:1px solid rgba(191,210,230,.35);transition:all .3s}
+.wit .xsrc span.on{color:${GR};background:#F0FDF4;border-color:#BBF7D0}.wit .xsrc span.on::before{content:"✓ "}
+.wit .xdr{display:flex;align-items:center;justify-content:space-between;gap:8px}.wit .xdr s{color:${G}}.wit .xbig{font-size:26px;font-weight:700;color:${NAVY}}
+.wit .xpc{background:${GR};color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:2px 6px}
+.wit .xad{display:flex;gap:8px;margin-top:10px;padding:9px 10px;border-radius:10px;background:#FFFBEB;border-inline-start:3px solid ${AMB};font-size:14px;color:#334155}.wit .xad svg{color:#B45309;font-size:18px;flex:none;margin-top:1px}.wit .xad b{display:block;color:#0F172A}
 /* ---- Shortcut guide ---- */
 .wgd.pg .st{display:none}.wgd.pg .st.cur{display:block}.wgd.pg .done{display:none}.wgd.pg .gs{padding-bottom:90px}.wgd .gft{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #E2E8F0}.wgd .gft button{height:44px;border:0;border-radius:12px;font:600 15px inherit;font-family:inherit;padding:0 18px}.wgd .gl{background:#F1F5F9;color:#0F172A}.wgd .gn{background:#2563EB;color:#fff;flex:1}.wgd .gc{font-size:13px;color:#64748B;min-width:52px;text-align:center}
 .wgd{position:fixed;inset:0;z-index:9050;background:#F1F5F9;display:flex;flex-direction:column;font-family:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased;color:#0F172A;transform:translateY(100%);transition:transform .38s cubic-bezier(.3,.7,.2,1)}
@@ -369,33 +372,47 @@ function setup(ctx){
  return {close:()=>root.remove(),go,state:S};
 }
 
-/* ================= tour ================= */
-// Beshr 2026-11-25: 3-step tour, one short line each (Quality lead cuts)
-const STEPS=[
- ['.card[data-k="w"]',"wallet",["Wallet","Your money now. Tap for your budget."],["المحفظة","فلوسك الحين. اضغط لميزانيتك."]],
- [".abar .ab:nth-child(1)","plus-circle",["Add expense","Log a cost in two taps."],["أضف مصروف","سجّل مصروف بضغطتين."]],
- ['.card[data-k="f"]',"fire",["Forsa","Only sure deals below market."],["فرصة","بس العروض المضمونة الأرخص من السوق."]]];
+/* ================= intro (replaces the spotlight tour) =================
+   Beshr 2026-11-25: after the wallet questions, 3 short screens on what the app is for:
+   bank messages add themselves (1-2-3), shoppers' bills find the cheapest, one Forsa search checks every store.
+   Figures are a labelled example, not his data. ctx.done() (if given) runs after the last screen. */
 function tour(ctx){
- css();AR=(ctx&&ctx.lang)=="ar";if(document.getElementById("wtour"))return;
- const steps=STEPS.filter(s=>document.querySelector(s[0]));if(!steps.length)return;
- const w=document.createElement("div");w.id="wtour";w.dir=AR?"rtl":"ltr";w.setAttribute("role","dialog");w.setAttribute("aria-modal","true");
- w.innerHTML=`<div class="hole"></div><div class="tip" role="status"><div class="tn"></div><div class="tt"><span></span><b></b></div><p class="tx"></p><div class="tb"><div class="dots">${steps.map(()=>"<i></i>").join("")}</div><div><button class="wsk">${T("Skip","تخطّ")}</button><button class="nx"></button></div></div></div>`;
- document.body.appendChild(w);const hole=w.querySelector(".hole"),tip=w.querySelector(".tip");let i=0;
- function show(){const s=steps[i],el=document.querySelector(s[0]);if(!el)return next();const r=el.getBoundingClientRect(),p=8,vh=innerHeight;
-  const rad=/gear|ab:/.test(s[0])?Math.min(r.width,r.height)/2+p:18;
-  Object.assign(hole.style,{left:r.left-p+"px",top:r.top-p+"px",width:r.width+2*p+"px",height:r.height+2*p+"px",borderRadius:rad+"px"});
-  const L=s[AR?3:2];tip.querySelector(".tn").textContent=T(`${i+1} of ${steps.length}`,`${i+1} من ${steps.length}`);tip.querySelector(".tt span").innerHTML=PH(s[1]);tip.querySelector(".tt b").textContent=L[0];tip.querySelector(".tx").textContent=L[1];
-  w.querySelectorAll(".dots i").forEach((d,k)=>d.classList.toggle("on",k==i));w.querySelector(".nx").textContent=i==steps.length-1?T("Done","تم"):T("Next","التالي");
-  const below=r.bottom+p+14,th=tip.offsetHeight||150,dn=below+th<vh-10;tip.className="tip "+(dn?"dn":"up");tip.style.top=(dn?below:Math.max(10,r.top-p-14-th))+"px";
-  // wide screens (tablet/computer): a phone-width tip next to its target, arrow kept on the target
-  const tw=Math.min(innerWidth-32,400),cx=r.left+r.width/2,tl=Math.max(16,Math.min(innerWidth-16-tw,cx-tw/2));tip.style.left=tl+"px";tip.style.right="auto";tip.style.width=tw+"px";
-  tip.style.setProperty("--ax",Math.max(24,Math.min(tw-40,cx-16-(tl-16)))+"px")}
- function next(){i++;window.track&&window.track(i>=steps.length?"tour_done":"tour_step","tour","s"+i);if(i>=steps.length)return end();show()}
- function end(){w.style.transition="opacity .25s";w.style.opacity=0;setTimeout(()=>w.remove(),260);ctx&&ctx.done&&ctx.done()}
- w.querySelector(".nx").onclick=e=>{e.stopPropagation();next()};w.querySelector(".wsk").onclick=e=>{e.stopPropagation();window.track&&window.track("tour_skip","tour","s"+(i+1));end()};
- w.addEventListener("click",e=>{if(!tip.contains(e.target))next()});
- addEventListener("resize",()=>document.getElementById("wtour")&&show());
- show();return {next,end};
+ css();AR=(ctx&&ctx.lang)=="ar";if(document.querySelector(".wob"))return;
+ const root=document.createElement("div");root.className="wob wit";root.dir=AR?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");
+ root.innerHTML=`<div class="top"><div class="wbar"><button class="bk" aria-label="${T("Back","رجوع")}">${PH("caret-left")}</button><div class="seg"><i></i><i></i><i></i></div><span></span></div><div class="tw"><div class="kk"></div><h1></h1><p class="ld"></p></div><div class="wwv">${WAVE}</div></div><div class="body"><div class="stage"></div></div><div class="foot"><button class="cta"></button><button class="wlnk">${T("Skip","تخطّ")}</button></div>`;
+ document.body.appendChild(root);requestAnimationFrame(()=>root.classList.add("on"));
+ const $=s=>root.querySelector(s),ex=`<div class="xeg">${T("Example","مثال")}</div>`;
+ const row=(ic,n,sub,v,nw)=>`<div class="xr${nw?" nw":""}"><span class="ic">${PH(ic)}</span><div><b>${n}<i class="xa">${T("Auto","تلقائي")}</i></b><small>${sub}</small></div><b>${M(v)}</b></div>`;
+ const bar=(n,v,w,g)=>`<div class="xb"><span>${n}</span><i><u style="--w:${w}%;background:${g?GR:"#94A3B8"}"></u></i><b${g?` style="color:${GR}"`:""}>${M(v)}</b></div>`;
+ const V=[
+  {kk:T("1 of 3 · Expenses","1 من 3 · المصاريف"),h:T("Bank messages add themselves","رسائل البنك تنضاف لحالها"),ld:T("No typing. Every card purchase is logged.","بدون كتابة. كل شراء بالبطاقة ينسجّل."),
+   html:()=>`<div class="xsms"><span>${PH("receipt")}</span><p><b>${T("Bank","البنك")}</b>${T("Purchase SAR 45.00 at Panda","شراء 45.00 ريال من بنده")}</p></div>
+   <div class="x3">${[T("SMS arrives","توصل الرسالة"),T("Shortcut sends it","الاختصار يرسلها"),T("Expense added","ينضاف المصروف")].map((s,i)=>`<div><em>${i+1}</em>${s}</div>`).join("")}</div>
+   <div class="cd">${row("basket",T("Panda","بنده"),T("Groceries · from bank SMS","بقالة · من رسالة البنك"),45,1)}${row("coffee",T("Coffee shop","مقهى"),T("Coffee · from bank SMS","قهوة · من رسالة البنك"),18)}</div>`},
+  {kk:T("2 of 3 · Store","2 من 3 · المتجر"),h:T("Shoppers' bills find the cheapest","فواتير الناس تكشف الأرخص"),ld:T("Everyone adds bills. Everyone saves.","الكل يضيف فواتيره، والكل يوفّر."),
+   html:()=>`${ex}<div class="xq l">${T("I paid","دفعت")} ${M(40)} ${T("for Fairy 3L","على فيري 3 لتر")}</div><div class="xq r">${T("Same item:","نفس الغرض:")} ${M(20)} ${T("at Lulu","في لولو")}</div>
+   <div class="cd xc">${bar(T("Lulu","لولو"),20,50,1)}${bar(T("Panda","بنده"),29,72)}${bar(T("Danube","الدانوب"),40,100)}<div class="xt">${PH("users")} ${T("Add your bills to keep prices fresh.","أضف فواتيرك عشان تبقى الأسعار محدّثة.")}</div></div>`},
+  {kk:T("3 of 3 · Forsa","3 من 3 · فرصة"),h:T("One search checks every store","بحث واحد يفحص كل المتاجر"),ld:T("Buy smart, or flip it for profit.","اشترِ بذكاء، أو اقلبها بربح."),
+   html:()=>`${ex}<div class="xs">${PH("magnifying-glass")}<span class="xty" data-t="${T("iPhone 15 Pro","آيفون 15 برو")}"></span></div>
+   <div class="xsrc">${["Haraj","Amazon","Noon","Extra","Jarir","OpenSooq"].map(s=>`<span>${s}</span>`).join("")}</div>
+   <div class="cd xd"><div class="xdr"><b>${T("iPhone 15 Pro 256GB","آيفون 15 برو 256")}</b><span class="xpc">▼ 22%</span></div><div class="xdr"><b class="xbig">${M(2650)}</b><s>${M(3400)}</s></div>
+   <div class="xad">${PH("info")}<span><b>${T("Good time to buy","وقت مناسب للشراء")}</b>${T("Lowest of 41 ads this month.","الأرخص من 41 إعلان هذا الشهر.")}</span></div></div>`}];
+ let i=0,tm=[];const later=(f,ms)=>tm.push(setTimeout(f,ms));
+ const play=()=>{tm.forEach(clearTimeout);tm=[];const st=$(".stage");
+  if(i==0){later(()=>{st.querySelector(".xsms").classList.add("on");st.querySelectorAll(".x3 div")[0].classList.add("on")},350);later(()=>st.querySelectorAll(".x3 div")[1].classList.add("on"),1150);
+   later(()=>{st.querySelector(".xsms").classList.remove("on");st.querySelectorAll(".x3 div")[2].classList.add("on");st.querySelector(".xr.nw").classList.add("on")},1900)}
+  if(i==1)[".xq.l",".xq.r",".xc"].forEach((s,k)=>later(()=>st.querySelector(s).classList.add("on"),300+k*700));
+  if(i==2){const el=st.querySelector(".xty"),tx=el.dataset.t;for(let k=1;k<=tx.length;k++)later(()=>el.textContent=tx.slice(0,k),200+k*45);const t0=300+tx.length*45;
+   st.querySelectorAll(".xsrc span").forEach((s,k)=>later(()=>s.classList.add("on"),t0+k*150));later(()=>st.querySelector(".xd").classList.add("on"),t0+1000)}};
+ const paint=dir=>{const v=V[i];$(".seg").querySelectorAll("i").forEach((s,k)=>s.classList.toggle("on",k<=i));$(".bk").hidden=i==0;
+  const fill=()=>{$(".kk").textContent=v.kk;$("h1").textContent=v.h;$(".ld").textContent=v.ld;$(".stage").innerHTML=v.html();$(".cta").textContent=i<2?T("Next","التالي"):ctx&&ctx.done?T("Set up bank messages","جهّز رسائل البنك"):T("Done","تم");$(".wlnk").style.visibility=i<2?"":"hidden";play()};
+  if(!dir)return fill();const tw=$(".tw"),st=$(".stage");tw.classList.add("out");st.classList.add("out");setTimeout(()=>{fill();st.classList.remove("out");tw.classList.remove("out")},200)};
+ const end=()=>{tm.forEach(clearTimeout);root.classList.remove("on");setTimeout(()=>{root.remove();ctx&&ctx.done&&ctx.done()},260)};
+ root.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.classList.contains("cta")){window.track&&window.track(i>=2?"tour_done":"tour_step","tour","s"+(i+1));if(i>=2)return end();i++;return paint(1)}
+  if(b.classList.contains("bk")&&i>0){i--;return paint(-1)}
+  if(b.classList.contains("wlnk")){window.track&&window.track("tour_skip","tour","s"+(i+1));end()}});
+ paint();return {end};
 }
 
 /* ================= Shortcut guide (Beshr's original: Wallet tap -> Text -> Copy -> open app) ================= */
