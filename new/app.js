@@ -234,6 +234,7 @@ const vChip=d=>{const v=dVerdict(d);return v?`<span class="vchip" style="--v:${v
 const FKN=()=>({used:tx("Used · market","مستعمل · السوق"),new:tx("New · authorized sellers","جديد · وكلاء معتمدين")});
 // Beshr 2026-11-25: fewer Forsa deals, only sure ones: high confidence, 15%+ below market, no damage; at most 12 (top 5 by score if none pass)
 const dSure=d=>{const r=d.raw||{},c=+r.comps||0,conf=String(r.confidence||"")||(dKind(d)=="new"?(d.market?"high":""):(c>=8?"high":""));return d.market>0&&d.price>0&&d.pct>=15&&conf=="high"&&!dCond(d)[1]&&!(r.ended)&&!(r.reserved)};
+const bestDeal=m=>{const L0=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),LS=L0.filter(dSure),L=LS.length?LS:L0;return topPick(L)||L.sort(byScore)[0]};
 function fTabs(m,k){const all=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),sure=all.filter(dSure),und=(sure.length?sure:all).slice(0,sure.length?12:5),T=[{n:tx("All","الكل"),list:und}];
  (m.hunt.terms||[]).slice(0,12).forEach(t=>{const w=norm(t).toLowerCase().split(" ").filter(x=>x.length>1);if(!w.length)return;const l=und.filter(d=>{const h=(d.title+" "+d.category).toLowerCase();return w.every(x=>h.includes(x))});if(l.length)T.push({n:esc(clean(t)),list:l})});return T}
 const dealRow=(d,kept)=>`<div class="drow" data-did="${esc(d.id)}">`+dig(hd(`<span>${esc(d.name)}</span><small class="ds">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}${d.pct?` · ▼${d.pct}%`:""}</small>`,`<a class="fopen" href="${esc(dLink(d))}" target="_blank" rel="noopener">${tx("Open","افتح")}</a>`,"",d.image),
@@ -345,7 +346,7 @@ function cards(m){
  const bk=(m.list||[]).filter(g=>g.best),bkT=p2(bk.reduce((a,g)=>a+g.best.price*Math.max(1,+(m.shopQty||{})[g.k]||1),0));
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",sub:bk.length?tx("Shopping list total","مجموع قائمة التسوق"):tx("With saved prices","بأسعار محفوظة"),v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(drop.item,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(top.item,22),ACC.s,p):""};
- const tp=topPick(m.deals),d=tp||m.deals.slice().sort(byScore)[0],hot=tp?dHot(tp):"";
+ const d=bestDeal(m),tp=d&&topPick([d]),hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",sub:d?tx("Best deal now","أفضل صفقة الحين"):tx("No deals yet","ما فيه صفقات للحين"),v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
   chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(tp?[`▼ ${d.pct}%`,hot||(dKind(d)=="new"?tx("New","جديد"):esc(d.source||""))].join(" · "):(d.source||"")),AMB,p):""};
  // ---- chart pools (Beshr 2026-11-24): each card rotates through its charts from the approved chart pool, built from his real numbers ----
@@ -512,7 +513,7 @@ function start(m,soft){
    const sc=app.getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
   go.onclick=ev=>{ev.stopPropagation();const l=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(l.length)openFw(l,FT[ti].n,0)};
   // Beshr 2026-11-25: tapping Forsa on Home opens the single best match right now (the next best once that one is swiped); after it, the normal Forsa page
-  window._fBest=()=>{const L0=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),LS=L0.filter(dSure),L=LS.length?LS:L0,b=topPick(L)||L.sort(byScore)[0];if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
+  window._fBest=()=>{const b=bestDeal(m);if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
   fw.querySelector(".cwb").onclick=()=>{fw.classList.remove("on");fw.setAttribute("aria-hidden","true");tab(ti)};
   let x0=null,dx=0,top=null;
   deck.addEventListener("pointerdown",e=>{top=[...deck.querySelectorAll(".dk")].pop();if(!top)return;x0=e.clientX;dx=0;top.style.transition="none";deck.setPointerCapture(e.pointerId)});
