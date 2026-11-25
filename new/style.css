@@ -108,8 +108,8 @@ svg{display:block;overflow:visible}
 
 /* ===== Original app look (navy band + wave, corner-tab cards, IBM Plex) ===== */
 body{background:linear-gradient(#16365E,#0F2A4A);color:#0F172A}
-#band{position:absolute;left:0;right:0;top:0;background:#fff;z-index:0;pointer-events:none}
-#band .wv{position:absolute;left:0;right:0;top:calc(100% - 1px);height:110px;overflow:hidden;transform:scaleY(-1)}
+#band{position:absolute;left:calc(-1*var(--off,0px));right:calc(-1*var(--off,0px));top:0;background:#fff;z-index:0;pointer-events:none}
+#band .wv{position:absolute;left:0;right:0;top:calc(100% - 1px);height:110px;overflow:hidden;transform:scaleY(-1);direction:ltr}
 #band .wv svg{width:400%;height:100%;animation:wv 32s linear infinite;will-change:transform}
 @keyframes wv{to{transform:translateX(-50%)}}
 #band .wv path{fill:#fff}
@@ -447,5 +447,14 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .cml{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:#64748B}.cml span{display:flex;align-items:center;gap:5px}.cml i{width:8px;height:8px;border-radius:2px;display:inline-block}.cml b{color:#0F172A;font-weight:600}
 
 .tpk{display:inline-flex;align-items:center;gap:4px;font-weight:600;color:#92400E}.tpk .ph{color:#F59E0B}
+
+/* sideways phone (2026-11-25 device check) */
+#rot{display:none}
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){#rot{display:flex;position:fixed;inset:0;z-index:99998;background:#0F2A4A;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;font:500 17px/1.5 "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif}#rot svg{width:40px;height:40px}}
+/* tablets/desktop: full pages and sheets keep their content in a centred column (--pad is 0 on phones) */
+#sheet{padding-left:calc(16px + var(--pad,0px));padding-right:calc(16px + var(--pad,0px))}
+#cw,#fw{padding-left:var(--pad,0px);padding-right:var(--pad,0px)}
+.c-s .pg,.c-f .pg{left:calc(16px + var(--cp,0px));right:calc(16px + var(--cp,0px))}
+.c-s .ctab,.c-f .ctab{margin-inline-start:var(--cp,0px)}
 /* hidden sheet never peeks below the app on screens taller than the app (Galaxy Fold) */
 #sheet{visibility:hidden;transition:transform .34s cubic-bezier(.3,.6,.2,1),visibility 0s .34s}#sheet.on{visibility:visible;transition:transform .42s cubic-bezier(.3,.6,.2,1),visibility 0s}

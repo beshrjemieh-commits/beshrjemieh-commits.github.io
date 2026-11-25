@@ -1,5 +1,7 @@
 /* Simple wallet (test page at /simple). Reads the same signed-in data as the full app; the full app is not changed.
    Layers: home cards -> card grows into its page -> rows dig deeper on each tap (row -> parts -> full details). */
+// older iPhones (iOS 15.0-15.3) lack Array.at: add it so the app still opens there
+if(!Array.prototype.at)Object.defineProperty(Array.prototype,"at",{value:function(i){i=Math.trunc(i)||0;if(i<0)i+=this.length;return this[i]},configurable:true,writable:true});
 (function(){
 let AR=false;try{AR=localStorage.getItem("w-lang")==="ar"}catch(e){}
 document.documentElement.dir=AR?"rtl":"ltr";document.documentElement.lang=AR?"ar":"en";
@@ -407,7 +409,7 @@ function start(m,soft){
  // soft restart after a save (Beshr 2026-11-24: no more jumping to the loading screen): one render loop and one set of page-wide listeners at a time
  const GEN=window._gen=(window._gen||0)+1;(window._docL||[]).forEach(([t,f,c])=>document.removeEventListener(t,f,c));window._docL=[];const dAdd=(t,f,c)=>{document.addEventListener(t,f,c);window._docL.push([t,f,c])};OK="";TL.tap=TL.close=1e9;
  const C=cards(m),P=build(m),app=document.getElementById("app");const order=(()=>{try{const o=JSON.parse(localStorage.getItem("s-order")||"null");if(Array.isArray(o)&&o.length==4&&["w","e","s","f"].every(k=>o.includes(k)))return o}catch(e){}return ["w","e","s","f"]})(),y0=144;
- let vis=0;try{vis=(+localStorage.getItem("s-visit")||0)+(soft?0:1);localStorage.setItem("s-visit",vis)}catch(e){}
+ let vis=0;try{const q=sessionStorage.getItem("w-quick");sessionStorage.removeItem("w-quick");vis=(+localStorage.getItem("s-visit")||0)+(soft||q?0:1);localStorage.setItem("s-visit",vis)}catch(e){}
  const pool=order.filter(k=>C.H[k]),HK=pool.length?pool[vis%pool.length]:"";
  const HH=order.map(k=>k==HK?142:112),TOPS=order.map((k,i)=>y0+HH.slice(0,i).reduce((a,b)=>a+b+8,0)),APPH=window.APPH||770;
  const hr=new Date().getHours(),greet=hr<5?tx("Good night","مساء الخير"):hr<12?tx("Good morning","صباح الخير"):hr<18?tx("Good afternoon","مساء الخير"):tx("Good evening","مساء الخير");
@@ -429,7 +431,9 @@ function start(m,soft){
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
  // Beshr 2026-11-25: text fits its box: one line if it fits at 18px+, else two lines (16px+) with the 2nd line's bottom lined up with the chart/price beside it, else it slides sideways (marquee) so it can be read
  const fitBig=b=>{if(!b)return;window._mqOff(b);b.style.transform="";const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();let bots=[];
-  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);if(!e.firstElementChild)bots.push(r.bottom)}});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min((window.AW||393)-223,L-br.left-10))+"px"}
+  if(vz&&vz.firstElementChild){let L=1e9,R=-1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);R=Math.max(R,r.right);if(!e.firstElementChild)bots.push(r.bottom)}});
+   // room up to the chart beside it; in Arabic the chart is on the left (2026-11-25: names were cut to 120pt and slid in Arabic)
+   const ks=cr.width/(b.parentElement.offsetWidth||cr.width)||1,room=(AR?br.right-R:L-br.left)/ks-10;if(L<1e9)b.style.maxWidth=Math.max(120,Math.min((window.AW||393)-223,room))+"px"}
   b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
   two=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="normal";b.style.lineHeight="1.15";return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=f*1.15*2+2};
   for(let f=base;f>=18;f--)if(one(f))return;
@@ -442,7 +446,7 @@ function start(m,soft){
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
-   if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);c.style.left=c.style.right=lerp(16,-off,op)+"px"};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
+   if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);c.style.left=c.style.right=lerp(16,-off,op)+"px";const pd=Math.max(0,off-84)*op;c.style.paddingLeft=c.style.paddingRight=pd?14+pd+"px":"";c.style.setProperty("--cp",pd+"px")};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
    else{c.style.opacity=closing&&OK?1-cl(op/0.12):1-cl(op/0.45)}
    c.style.overflowY=f&&op>=1&&!closing?"auto":"hidden";
    {const fo=f&&FP?1-cl(op/0.4):1;c.querySelector(".big").style.opacity=fo;c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
@@ -861,9 +865,15 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
  if(!b&&navigator.standalone&&screen.height>=812)b=34;document.documentElement.style.setProperty("--sab",b+"px")})();
 (function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");
  // wide screens (Galaxy Fold inner screen, tablets): the app grows wider instead of leaving empty bars at the sides (Beshr 2026-11-25)
- window.AW=Math.round(Math.min(Math.max(393,w/s),720));a.style.width=window.AW+"px";window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`;window._fit=fit})();
+ window.AW=Math.round(Math.min(Math.max(393,w/s),720));a.style.width=window.AW+"px";window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`;
+ // --off = spare room each side beyond the app (computer, wide tablets): the white top band runs edge to edge; --pad keeps full pages' content in a centred column there (0 on phones)
+ const off=Math.max(0,(w/s-window.AW)/2);a.style.setProperty("--off",off+"px");a.style.setProperty("--pad",Math.max(0,off-84)+"px");window._fit=fit})();
 // refit when the screen size changes (Galaxy Fold folded/unfolded, rotation); a new width redraws Home so cards and charts use the new size
-{let lw=document.documentElement.clientWidth,rt=0;const rf=()=>{clearTimeout(rt);rt=setTimeout(()=>{const cw=document.documentElement.clientWidth;if(Math.abs(cw-lw)<2)return;lw=cw;const ow=window.AW;window._fit();if(window.AW!=ow)location.reload()},250)};addEventListener("resize",rf)}
+{let lw=document.documentElement.clientWidth,rt=0;const rf=()=>{clearTimeout(rt);rt=setTimeout(()=>{const cw=document.documentElement.clientWidth;if(Math.abs(cw-lw)<2)return;lw=cw;const ow=window.AW;window._fit();if(window.AW!=ow)window._refitReload()},250)};addEventListener("resize",rf)}
+// fold/unfold reload: come back to the same page, no loading screen, same charts (2026-11-25 Huawei Mate X check)
+window._refitReload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}));sessionStorage.setItem("w-quick","1")}catch(e){}location.reload()};
+// Phones turned sideways: the app is made for upright use, so ask to turn back instead of showing a tiny strip.
+document.body.insertAdjacentHTML("beforeend",`<div id="rot" dir="${AR?"rtl":"ltr"}">${PH("device-mobile")}<span>${tx("Turn your phone upright to use Wallet","لف جوالك للوضع الطولي عشان تستخدم المحفظة")}</span></div>`);
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
 (async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Welcome to Smart Wallet.","أهلاً في المحفظة الذكية.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html?signin=new">${tx("Sign in or create an account","سجّل دخولك أو أنشئ حساب")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
