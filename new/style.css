@@ -487,3 +487,11 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .hchip{font-size:12px;font-weight:600;color:#92400E;background:#fff;border-radius:6px;padding:1px 6px;white-space:nowrap}
 .hfc{display:inline-flex;align-items:center;gap:3px;color:#B45309;font-weight:700}.hfc svg{width:14px;height:14px}
 .hst{font-size:15px;font-weight:500;color:#64748B}
+/* Store: top deal first (Beshr 2026-11-25) */
+.tdh{display:flex;align-items:center;gap:6px;margin:0 4px 6px;font-size:13px;font-weight:600;color:#64748B}.tdh svg{width:14px;height:14px;color:#F59E0B}
+.tdc{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,.06);margin-bottom:12px}
+.tdc img,.tdc .tdi{width:56px;height:56px;border-radius:12px;border:1px solid #E2E8F0;object-fit:cover;flex:none;display:grid;place-items:center;color:#94A3B8;background:#F8FAFC}.tdc .tdi svg{width:28px;height:28px}
+.tdb{flex:1;min-width:0;font-size:14px}.tdb>b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tdb small{color:#64748B;font-size:12.5px}.tdb s{color:#64748B;font-size:13px}.tdp{color:#16A34A;font-size:20px}
+.tdb small svg{width:13px;height:13px;vertical-align:-2px}
+.tdadd{width:38px;height:38px;border-radius:50%;border:0;background:#2563EB;color:#fff;font-size:22px;line-height:1;cursor:pointer;flex:none}.tdadd.on{background:#16A34A;font-size:18px}
+.slsv2{font-size:12.5px;font-weight:600;color:#16A34A;margin-inline-start:6px}
