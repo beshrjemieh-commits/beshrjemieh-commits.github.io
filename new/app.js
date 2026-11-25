@@ -275,10 +275,11 @@ function subsOf(gk,list){if(gk!="groc")return list.length?[{k:"all",n:grpName(gk
  return SUB_ORDER.filter(k=>by[k]).map(k=>{const c=SUBC.find(z=>z[0]==k);return {k,n:c?tx(c[1],c[2]):tx("Other groceries","بقالة أخرى"),list:by[k]}})}
 // Store categories: my items and other shoppers' items per group, each with lowest and highest known price
 const p2=v=>v.toFixed(v%1?2:0),GIC={groc:"basket",cafe:"coffee",food:"fork-knife",elec:"device-mobile",home:"couch",other:"package"};
-function catsOf(m){if(m._cats)return m._cats;const cb=new Map();(m.community||[]).forEach(c=>{const k=norm(c.item).toLowerCase(),pr=+c.price;if(!k||!(pr>0))return;if(!cb.has(k))cb.set(k,[]);cb.get(k).push({store:norm(c.store).replace(/\s*\((shared|online)\)/i,""),price:pr})});
- const rg=(item,own)=>{const seen=new Set(),a=own.concat(cb.get(item.toLowerCase())||[]).filter(x=>x.price>0).sort((x,y)=>x.price-y.price).filter(x=>{const k=x.store.toLowerCase()+"|"+x.price;if(seen.has(k))return false;seen.add(k);return true});return {lo:a[0],hi:a.at(-1),all:a}};
- const mine=m.G2.map(g=>Object.assign({t:"m",k:g.k,item:g.item,size:g.size,photo:g.photo,grp:g.grp,g},rg(g.item,g.stores.map(r=>({store:r.store.replace(/\s*\((shared|online)\)/i,""),price:r.price,date:r.date}))))),
-  oth=m.others.map(o=>Object.assign({t:"o",k:o.k,item:o.item,size:o.size,photo:(m.photos||{})[o.k]||"",grp:o.grp,o},rg(o.item,[{store:o.store,price:o.price}])));
+function catsOf(m){if(m._cats)return m._cats;const cb=new Map();(m.community||[]).forEach(c=>{const k=(norm(c.item)+"|"+norm(c.size)).toLowerCase(),pr=+c.price;if(!norm(c.item))return;if(!k||!(pr>0))return;if(!cb.has(k))cb.set(k,[]);cb.get(k).push({store:norm(c.store).replace(/\s*\((shared|online)\)/i,""),price:pr})});
+ // v188 (QA): compare prices only for the same item AND size, never 600g against no size
+ const rg=(item,size,own)=>{const seen=new Set(),a=own.concat(cb.get((item+"|"+(size||"")).toLowerCase())||[]).filter(x=>x.price>0).sort((x,y)=>x.price-y.price).filter(x=>{const k=x.store.toLowerCase()+"|"+x.price;if(seen.has(k))return false;seen.add(k);return true});return {lo:a[0],hi:a.at(-1),all:a}};
+ const mine=m.G2.map(g=>Object.assign({t:"m",k:g.k,item:g.item,size:g.size,photo:g.photo,grp:g.grp,g},rg(g.item,g.size,g.stores.map(r=>({store:r.store.replace(/\s*\((shared|online)\)/i,""),price:r.price,date:r.date}))))),
+  oth=m.others.map(o=>Object.assign({t:"o",k:o.k,item:o.item,size:o.size,photo:(m.photos||{})[o.k]||"",grp:o.grp,o},rg(o.item,o.size,[{store:o.store,price:o.price}])));
  return m._cats=PG.map(([k])=>({k,mine:mine.filter(x=>x.grp==k),oth:oth.filter(x=>x.grp==k)})).filter(c=>c.mine.length+c.oth.length)}
 // Beshr 2026-11-25: everyday spending at a glance: today vs yesterday vs usual, then this week vs last week day by day
 function cmpSec(m){const EV=LOG_CATS.slice(0,10),day=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)},sumD=k=>m.ex.filter(x=>x.date==k&&EV.includes(x.cat)).reduce((a,x)=>a+x.amount,0);
@@ -380,7 +381,7 @@ function build(m){
  m._shopTop=()=>{const LK=new Set(m.list.map(g=>g.k)),LG=ALLG.filter(x=>LK.has(x.k)),ONL=m.list.length>0,GAPS=ONL?LG:ALLG,GAP=GAPS.reduce((a,x)=>a+(x.hi.price-x.lo.price)*(ONL?QY(x.k):1),0);
   // the price gap is the hook: what choosing the cheapest store saves him
   // Beshr 2026-11-25: no price-gap box. Store opens with the top deal found (his items first, then other shoppers'), then the shopping list with what it saves
-  const fresh=x=>!x.lo.date||(Date.now()-new Date(x.lo.date))/864e5<=14,pickN=a=>a.filter(x=>!LK.has(x.k)&&fresh(x)&&x.hi.price-x.lo.price>=Math.max(1,x.hi.price*.05)).sort((a,b)=>(b.hi.price-b.lo.price)-(a.hi.price-a.lo.price));
+  const fresh=x=>!x.lo.date||(Date.now()-new Date(x.lo.date))/864e5<=14,pickN=a=>a.filter(x=>!LK.has(x.k)&&fresh(x)&&x.hi.price-x.lo.price>=Math.max(1,x.hi.price*.05)&&x.lo.price>=x.hi.price*.5).sort((a,b)=>(b.hi.price-b.lo.price)-(a.hi.price-a.lo.price));
   // v180 (QA walkthrough): Store opens with the same "found cheaper" story as Home: up to 4 photo cards, swipe sideways
   const icOf=td=>/\b(tv|television)\b|تلفزيون|شاشة/i.test(td.item)?"television-simple":/phone|iphone|جوال|ايفون/i.test(td.item)?"device-mobile":GIC[td.grp]||"basket";
   const tds=pickN(ALLG).concat(pickN(CATS.flatMap(c=>c.oth).filter(x=>x.hi&&x.lo))).slice(0,4);
@@ -417,6 +418,10 @@ function cards(m){
  const tile=(src,ic,chip)=>`<span class="hph">${src?`<img src="${esc(src)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('i'),{innerHTML:window.PH('${ic}')}))">`:`<i>${PH(ic)}</i>`}</span>${chip?`<span class="hchip"><bdi>${chip}</bdi></span>`:""}`;
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",sub:bk.length?tx("Shopping list total","مجموع قائمة التسوق"):tx("With saved prices","بأسعار محفوظة"),v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
   photo:()=>tile(fnd?fnd.photo:(bk[0]||top||{}).photo,"basket"),chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(drop.item,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(top.item,22),ACC.s,p):""};
+ // v188 (QA): a new friend has no items of their own: lead with the best find from other shoppers (same item and size only)
+ if(!fnd&&!bk.length&&!m.G2.length){const cf=catsOf(m).flatMap(c=>c.oth).filter(x=>x.hi&&x.lo&&x.hi.price-x.lo.price>=Math.max(1,x.hi.price*.05)&&x.lo.price>=x.hi.price*.5).sort((a,b)=>(b.hi.price-b.lo.price)-(a.hi.price-a.lo.price))[0];
+  if(cf){s.line=`<span class="hfc">${PH("sparkle")}${tx("Found cheaper","لقيناه أرخص")}</span>`;s.v=`<span style="color:${GR}">${M2(cf.lo.price)}</span> <s class="hst">${M2(cf.hi.price)}</s>`;s.sub=`${cutW(cf.item,16)} · <bdi>${esc(cf.lo.store)}</bdi>`;s.photo=()=>tile(cf.photo,"basket");s.chart=p=>K.strike(p2(cf.hi.price),p2(cf.lo.price),cutW(cf.item,22),ACC.s,p)}
+  else{s.v=tx("Add a bill","أضف فاتورة");s.sub=tx("See where it's cheapest","شوف وين أرخص");s.line=tx("Snap a receipt to start","صوّر فاتورة وابدأ")}}
  if(fnd){s.line=`<span class="hfc">${PH("sparkle")}${tx("Found cheaper","لقيناه أرخص")}</span>`;s.v=`<span style="color:${GR}">${M2(fnd.best.price)}</span> <s class="hst">${M2(fnd.last.price)}</s>`;s.sub=`${cutW(fnd.item,16)} · <bdi>${esc(fnd.best.store)}</bdi>`}
  const d=bestDeal(m),tp=d&&topPick([d]),hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",sub:d?tx("Best deal now","أفضل صفقة الحين"):tx("No deals yet","ما فيه صفقات للحين"),v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
