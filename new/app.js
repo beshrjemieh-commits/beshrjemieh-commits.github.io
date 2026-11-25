@@ -432,6 +432,20 @@ function cards(m){
  if(HOME_PHOTOS&&!d){f.v=`<span style="font-size:18px">${tx("No new deals","ما فيه صفقات جديدة")}</span>`;f.sub=tx("The next hunt brings more","البحث الجاي يجيب أكثر");f.line="";f.photo=()=>tile("","fire")}
  else if(HOME_PHOTOS&&dRed){f.v=`<span style="font-size:18px">${tx("No strong deal today","ما فيه صفقة قوية اليوم")}</span>`;f.sub=tx(m.deals.length==1?"1 deal checked":`${m.deals.length} deals checked`,`فحصنا ${m.deals.length} صفقة`);f.line="";f.photo=()=>tile("","fire")}
  else if(d&&d.market>d.price){f.v=`${M(d.price)} <s class="hst">${M(d.market)}</s>`;const pc=d.pct||Math.round((1-d.price/d.market)*100);const nm=cutW(d.name,24);f.sub=`<bdi>${nm}${nm.length<esc(d.name).length&&!nm.endsWith("…")?"…":""}</bdi> · ${tx(`${pc}% below market`,`أقل ${pc}٪ من السوق`)}`;f.line=`<span class="hchip"><bdi>${[cutW(d.source||"",14),dKind(d)=="new"?tx("New","جديد"):tx("Used","مستعمل")].filter(Boolean).join(" · ")}</bdi></span>`}
+ // Beshr 2026-11-25 (video 8, option A): Store and Forsa flip through their top 3 offers every 3 s, 2 rounds, then rest on the best one; chart on the right
+ const pf=v=>{v=Math.round(+v*100)/100;return "⃁"+v.toLocaleString("en-US",{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})},
+  offV=(p,w,col)=>`<span class="flp" dir="ltr"${col?` style="color:${col}"`:""}>${[...pf(p)].map(c=>`<i>${c}</i>`).join("")}</span> <s class="hst">${pf(w)}</s>`,
+  svC=(w,p)=>{const pc=Math.round((w-p)/w*100);return `<div class="osv"><small>${tx("You save","توفّر")}</small><b style="color:${GR}"><bdi dir="ltr">${pf(p2(w-p))} · ${pc}%</bdi></b><i><u style="width:${pc}%;background:${GR}"></u></i></div>`},
+  fC=x=>{const pc=Math.round((1-x.price/x.market)*100),h=(((x.raw||{}).priceHist)||[]).map(v=>+(v&&v.price)).filter(v=>v>0).slice(-6),hs=h.length&&h.at(-1)!=x.price?h.concat([x.price]):h;
+   if(hs.length<3)return `<div class="osv"><small>${tx("Market","السوق")} ${pf(x.market)}</small><b>${pc}% ${tx("below","أقل")}</b><i><u style="width:${Math.round(x.price/x.market*100)}%;background:#B45309"></u></i></div>`;
+   const mx=Math.max(x.market,...hs)*1.03,mn=Math.min(...hs)*.95,Y=v=>6+(1-(v-mn)/(mx-mn))*36,X=i=>4+i*142/(hs.length-1);
+   return `<svg width="150" height="50" style="direction:ltr;overflow:visible"><rect x="0" y="${Y(x.market)-5}" width="150" height="10" rx="4" fill="#92400E" opacity=".12"/><text x="${AR?148:2}" y="${Math.min(48,Y(x.market)+16)}" font-size="10" fill="#92400E" text-anchor="${AR?"end":"start"}">${tx("market","السوق")}</text><polyline points="${hs.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")}" fill="none" stroke="#78350F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(hs.length-1)}" cy="${Y(x.price)}" r="4" fill="#F59E0B"/></svg>`};
+ if(HOME_PHOTOS){
+  const so=m.G2.filter(g=>g.last&&g.best&&g.last.price-g.best.price>=.5&&g.last.store!=g.best.store).sort((a,b)=>(b.last.price-b.best.price)-(a.last.price-a.best.price)).slice(0,3);
+  if(so.length>1)s.offers=so.map(g=>({pf:pf(g.best.price),wf:pf(g.last.price),v:offV(g.best.price,g.last.price,GR),n:`${cutW(g.item,16)} · <bdi>${esc(g.best.store)}</bdi>`,ch:()=>svC(g.last.price,g.best.price)}));
+  const fo=d&&!dRed&&d.market>d.price?[d].concat(m.deals.filter(x=>x!==d&&x.market>x.price&&x.price>0&&!/^(saved|hidden|dismissed)$/.test(x.status)&&!((dVerdict(x)||{}).c=="#DC2626")).sort((a,b)=>(1-b.price/b.market)-(1-a.price/a.market)).slice(0,2)):[];
+  if(fo.length>1){f.offers=fo.map(x=>({pf:pf(x.price),wf:pf(x.market),v:offV(x.price,x.market),n:`<bdi>${cutW(x.name,18)}</bdi> · <bdi>${esc(cutW(x.source||"",12))}</bdi>`,ch:()=>fC(x)}));f.line=`<span class="hchip">${tx("Best deals","أفضل العروض")}</span>`}
+  [s,f].forEach(c=>{if(c.offers){c.oi=0;c.v=c.offers[0].v;c.sub=c.offers[0].n}})}
  const F=[{line:f.line,chart:f.chart}];if(tp)f.fixed=1;
  if(d&&d.market>d.price&&d.price)F.push({line:tx("Price vs market","السعر والسوق"),chart:p=>K.track(d.price/d.market,AMB,p,M(d.price),tx("market ","السوق ")+M(d.market))});
  {const cnt={};m.deals.forEach(x=>{const c=dCat(x);cnt[c]=(cnt[c]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3),cn=c=>({electronics:tx("Tech","تقنية"),appliances:tx("Home","البيت"),food:tx("Food","أكل")})[c]||(DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):tx("Other","أخرى"));
@@ -465,7 +479,7 @@ function cards(m){
  {const i=F.findIndex(x=>x.score);if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5))),r=21,L=2*Math.PI*r;const ch={line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>sv(172,50,`<g transform="translate(118,25)"><circle r="${r}" fill="none" stroke="#E8A400" stroke-opacity=".2" stroke-width="7"/><circle r="${r}" fill="none" stroke="#E8A400" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L*sc/10*p} ${L}" transform="rotate(-90)" ${sc>=8?'style="filter:drop-shadow(0 0 4px #F59E0B)"':""}/><text y="6" text-anchor="middle" font-size="17" font-weight="600" fill="${ink}">${sc}</text></g><text x="88" y="30" text-anchor="end" font-size="11" fill="${G}">${tx("out of 10","من 10")}</text>`)};
   const gi=F.findIndex(x=>x.line==ch.line);if(gi>0)F[gi]=ch;else F.push(ch)}}
  // Beshr 2026-11-25 (video 4, "let's try it"): Store and Forsa show a product photo instead of rotating charts. Old pools kept: set HOME_PHOTOS=0 to go back
- w.pool=HOME_PHOTOS&&bal==null?[{line:"",chart:w.chart,hero:"dots"}]:HOME_PHOTOS?W.map(x=>Object.assign({},x,{line:tx("Money in and out","الداخل والطالع")})):W;e.pool=E;s.pool=HOME_PHOTOS?[{line:s.line,chart:s.photo,hero:"photo"}]:S;f.pool=HOME_PHOTOS?[{line:f.line,chart:f.photo,hero:"photo"}]:f.fixed?F.slice(0,1):F;
+ w.pool=HOME_PHOTOS&&bal==null?[{line:"",chart:w.chart,hero:"dots"}]:HOME_PHOTOS?W.map(x=>Object.assign({},x,{line:tx("Money in and out","الداخل والطالع")})):W;e.pool=E;s.pool=HOME_PHOTOS?[{line:s.line,chart:s.offers?()=>s.offers[s.oi].ch():s.photo,hero:"photo"}]:S;f.pool=HOME_PHOTOS?[{line:f.line,chart:f.offers?()=>f.offers[f.oi].ch():f.photo,hero:"photo"}]:f.fixed?F.slice(0,1):F;
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?(m.list.length==1?tx("1 item in your list","غرض واحد بقائمتك"):tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`)):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?(newDeals==1?tx("1 new deal today","صفقة جديدة اليوم"):tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`)):""};
  return {w,e,s,f,H}}
@@ -509,6 +523,16 @@ function start(m,soft){
  const fitTm=tm=>{if(!tm)return;const k=tm.parentElement;tm.style.fontSize="";for(let f=13;f>=10&&k.scrollWidth>k.clientWidth+1;f-=.5)tm.style.fontSize=f+"px"};
  window._fitCards=()=>document.querySelectorAll("#app .card").forEach(c=>{fitBig(c.querySelector(".big"));fitTm(c.querySelector(".tm"))});
  window._fitCards();if(document.fonts)document.fonts.ready.then(()=>window._fitCards&&window._fitCards());
+ // rotating offers (video 8 A): Store at 3 s, Forsa 1.5 s later; pauses while touched, a card is open or the app is hidden; still with Reduce Motion
+ if(!matchMedia("(prefers-reduced-motion: reduce)").matches)["s","f"].filter(k=>C[k].offers).forEach((k,j)=>{const c=C[k],L=c.offers;let left=L.length*2,hold=0;
+  const el0=document.querySelector(`#app .card[data-k="${k}"]`);if(el0)el0.addEventListener("pointerdown",()=>hold=Date.now()+5000,{passive:true});
+  const show=(el,o)=>{const b=el.querySelector(".big"),fl=b.querySelector(".flp"),nx=[...o.pf];
+   if(!fl||fl.children.length!=nx.length)b.innerHTML=o.v;else{[...fl.children].forEach((sp,i)=>{if(sp.textContent!=nx[i])setTimeout(()=>{sp.classList.add("go");setTimeout(()=>{sp.textContent=nx[i];sp.classList.remove("go")},180)},i*60)});const st=b.querySelector("s");if(st)st.textContent=o.wf}
+   el.querySelector(".bsub").innerHTML=o.n;const vz=el.querySelector(".vz2");if(vz)vz.innerHTML=o.ch();fitBig(b)};
+  const go=()=>{if(GEN!=window._gen)return;const el=document.querySelector(`#app .card[data-k="${k}"]`);if(!el)return;
+   if(OK||document.hidden||hold>Date.now()){setTimeout(go,1000);return}
+   c.oi=(c.oi+1)%L.length;show(el,L[c.oi]);if(--left>0)setTimeout(go,3000)};
+  setTimeout(go,3000+j*1500)});
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
