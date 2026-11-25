@@ -416,7 +416,7 @@ function cards(m){
  if(m.usual>0){const mx=Math.max(m.todayDaily,m.usual)||1;E.push({line:m.todayDaily<=m.usual?tx("Calmer than usual","أهدى من المعتاد"):tx("Today vs usual","اليوم والمعتاد"),chart:p=>K.twin([[tx("Today","اليوم"),fmt(m.todayDaily),m.todayDaily/mx,ACC.e],[tx("Usual","المعتاد"),fmt(m.usual),m.usual/mx,LN]],p)})}
  // walk-through 2026-11-25: the share ring shows everyday spending only (fixed bills like rent or car payment no longer lead it)
  const MP=new Set(m.items.filter(i=>i.g=="Must pay").map(i=>i.k)),mc=Object.entries(m.spent).filter(([k,v])=>!MP.has(k)&&v>0).sort((a,b)=>b[1]-a[1]);{const monOut=sm(mc.map(x=>x[1]));if(monOut>0&&mc.length){const t2=mc.slice(0,2),cs=[ACC.e,"#8FB0D3"],oth=monOut-sm(t2.map(x=>x[1]));
-  E.push({line:tx(`Mostly ${nm(mc[0][0])}`,`أغلبها ${nm(mc[0][0])}`),chart:p=>K.donut(t2.map((x,i)=>[x[1]/monOut,cs[i]]).concat(oth>0?[[oth/monOut,LN]]:[]),p,t2.map((x,i)=>[`${nm(x[0])} ${Math.round(x[1]/monOut*100)}%`,cs[i]]).concat(oth>0?[[tx("Other","أخرى"),"#CBD5E1"]]:[]))})}}
+  E.push({line:tx(`Mostly ${nm(mc[0][0])}`,`أغلبها ${nm(mc[0][0])}`),chart:p=>K.rows(mc.slice(0,3).map(([k,v],i)=>[cutW(nm(k),9),Math.round(v/monOut*100)+"%",i?"#8FB0D3":ACC.e,v/mc[0][1]]),p)})}}
  if(lvPlan>0){const dn=new Date().getDate(),dl=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();E.push({line:lvSpent<=lvPlan?tx(`${RS}${fmt(lvPlan-lvSpent)} left`,`باقي ${RS}${fmt(lvPlan-lvSpent)}`):tx("Over the month plan","فوق خطة الشهر"),chart:p=>K.track(cl(lvSpent/lvPlan),ACC.e,p,(lvSpent/lvPlan>3?tx(`over ${RS}${fmt(lvSpent-lvPlan)}`,`زاد ${RS}${fmt(lvSpent-lvPlan)}`):tx(`used ${Math.round(lvSpent/lvPlan*100)}%`,`صرفت ${Math.round(lvSpent/lvPlan*100)}٪`)),tx(`day ${dn} of ${dl}`,`يوم ${dn} من ${dl}`))})}
  {const tw=wk(0,7),lw=wk(7,14),ch=Object.keys(lw).filter(k=>lw[k]>0&&LOG_CATS.slice(0,10).includes(k)).map(k=>[k,((tw[k]||0)-lw[k])/lw[k],tw[k]||0,lw[k]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,3);
   if(ch.length>1)E.push({line:tx("This week vs last","هالأسبوع والماضي"),chart:p=>K.list(ch.map(([k,r,a,b])=>[nm(k),b>=100&&r>=-.9&&r<=2?(r<=0?"▼":"▲")+Math.abs(Math.round(r*100))+"%":`${r<=0?"▼":"▲"} ${M(Math.round(a))} ${tx(`(was ${M(Math.round(b))})`,`(كان ${M(Math.round(b))})`)}`,r<=0?GR:"#DC2626"]),p)})}
@@ -435,11 +435,11 @@ function cards(m){
  // Beshr 2026-11-25 (video 8, option A): Store and Forsa flip through their top 3 offers every 3 s, 2 rounds, then rest on the best one; chart on the right
  const pf=v=>{v=Math.round(+v*100)/100;return "⃁"+v.toLocaleString("en-US",{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})},
   offV=(p,w,col)=>`<span class="flp" dir="ltr"${col?` style="color:${col}"`:""}>${[...pf(p)].map(c=>`<i>${c}</i>`).join("")}</span> <s class="hst">${pf(w)}</s>`,
-  svC=(w,p)=>{const pc=Math.round((w-p)/w*100);return `<div class="osv"><small>${tx("You save","توفّر")}</small><b style="color:${GR}"><bdi dir="ltr">${pf(p2(w-p))} · ${pc}%</bdi></b><i><u style="width:${pc}%;background:${GR}"></u></i></div>`},
-  fC=x=>{const pc=Math.round((1-x.price/x.market)*100),h=(((x.raw||{}).priceHist)||[]).map(v=>+(v&&v.price)).filter(v=>v>0).slice(-6),hs=h.length&&h.at(-1)!=x.price?h.concat([x.price]):h;
-   if(hs.length<3)return `<div class="osv"><small>${tx("Market","السوق")} ${pf(x.market)}</small><b>${pc}% ${tx("below","أقل")}</b><i><u style="width:${Math.round(x.price/x.market*100)}%;background:#B45309"></u></i></div>`;
-   const mx=Math.max(x.market,...hs)*1.03,mn=Math.min(...hs)*.95,Y=v=>6+(1-(v-mn)/(mx-mn))*36,X=i=>4+i*142/(hs.length-1);
-   return `<svg width="150" height="50" style="direction:ltr;overflow:visible"><rect x="0" y="${Y(x.market)-5}" width="150" height="10" rx="4" fill="#92400E" opacity=".12"/><text x="${AR?148:2}" y="${Math.min(48,Y(x.market)+16)}" font-size="10" fill="#92400E" text-anchor="${AR?"end":"start"}">${tx("market","السوق")}</text><polyline points="${hs.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")}" fill="none" stroke="#78350F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(hs.length-1)}" cy="${Y(x.price)}" r="4" fill="#F59E0B"/></svg>`};
+  svC=(w,p)=>{const pc=Math.round((w-p)/w*100);return `<div class="osv"><div><b style="color:${GR}">${tx("Save","توفّر")} <bdi dir="ltr">${pf(p2(w-p))} · ${pc}%</bdi></b><span class="obar"><u style="width:${pc}%;background:${GR}"></u></span></div></div>`},
+  fC=x=>{const pc=Math.round((1-x.price/x.market)*100),h=(((x.raw||{}).priceHist)||[]).map(v=>+(v&&v.price)).filter(v=>v>0).slice(-6),hs=h.length&&h.at(-1)!=x.price?h.concat([x.price]):h,ph=tile(x.image,"fire");
+   if(hs.length<3)return `<div class="osv"><div><b>${tx(`${pc}% below`,`أقل ${pc}٪`)}</b><span class="obar"><u style="width:${Math.round(x.price/x.market*100)}%;background:#B45309"></u></span></div>${ph}</div>`;
+   const mx=Math.max(x.market,...hs)*1.03,mn=Math.min(...hs)*.95,Y=v=>4+(1-(v-mn)/(mx-mn))*34,X=i=>3+i*98/(hs.length-1);
+   return `<div class="osv"><svg width="104" height="42" style="direction:ltr;overflow:visible"><rect x="0" y="${Y(x.market)-5}" width="104" height="10" rx="4" fill="#92400E" opacity=".12"/><polyline points="${hs.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")}" fill="none" stroke="#78350F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(hs.length-1)}" cy="${Y(x.price)}" r="4" fill="#F59E0B"/></svg>${ph}</div>`};
  if(HOME_PHOTOS){
   const so=m.G2.filter(g=>g.last&&g.best&&g.last.price-g.best.price>=.5&&g.last.store!=g.best.store).sort((a,b)=>(b.last.price-b.best.price)-(a.last.price-a.best.price)).slice(0,3);
   if(so.length>1)s.offers=so.map(g=>({pf:pf(g.best.price),wf:pf(g.last.price),v:offV(g.best.price,g.last.price,GR),n:`${cutW(g.item,16)} · <bdi>${esc(g.best.store)}</bdi>`,ch:()=>svC(g.last.price,g.best.price)}));
@@ -479,7 +479,7 @@ function cards(m){
  {const i=F.findIndex(x=>x.score);if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5))),r=21,L=2*Math.PI*r;const ch={line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>sv(172,50,`<g transform="translate(118,25)"><circle r="${r}" fill="none" stroke="#E8A400" stroke-opacity=".2" stroke-width="7"/><circle r="${r}" fill="none" stroke="#E8A400" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L*sc/10*p} ${L}" transform="rotate(-90)" ${sc>=8?'style="filter:drop-shadow(0 0 4px #F59E0B)"':""}/><text y="6" text-anchor="middle" font-size="17" font-weight="600" fill="${ink}">${sc}</text></g><text x="88" y="30" text-anchor="end" font-size="11" fill="${G}">${tx("out of 10","من 10")}</text>`)};
   const gi=F.findIndex(x=>x.line==ch.line);if(gi>0)F[gi]=ch;else F.push(ch)}}
  // Beshr 2026-11-25 (video 4, "let's try it"): Store and Forsa show a product photo instead of rotating charts. Old pools kept: set HOME_PHOTOS=0 to go back
- w.pool=HOME_PHOTOS&&bal==null?[{line:"",chart:w.chart,hero:"dots"}]:HOME_PHOTOS?W.map(x=>Object.assign({},x,{line:tx("Money in and out","الداخل والطالع")})):W;e.pool=E;s.pool=HOME_PHOTOS?[{line:s.line,chart:s.offers?()=>s.offers[s.oi].ch():s.photo,hero:"photo"}]:S;f.pool=HOME_PHOTOS?[{line:f.line,chart:f.offers?()=>f.offers[f.oi].ch():f.photo,hero:"photo"}]:f.fixed?F.slice(0,1):F;
+ const wio=W.find(x=>x.line==tx("Money in and out","الداخل والطالع"));w.pool=HOME_PHOTOS&&bal==null?[{line:"",chart:w.chart,hero:"dots"}]:HOME_PHOTOS?[wio||Object.assign({},W[0],{line:tx("Money in and out","الداخل والطالع")})]:W;e.pool=E;s.pool=HOME_PHOTOS?[{line:s.line,chart:s.offers?()=>s.offers[s.oi].ch():s.photo,hero:"photo"}]:S;f.pool=HOME_PHOTOS?[{line:f.line,chart:f.offers?()=>f.offers[f.oi].ch():f.photo,hero:"photo"}]:f.fixed?F.slice(0,1):F;
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?(m.list.length==1?tx("1 item in your list","غرض واحد بقائمتك"):tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`)):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?(newDeals==1?tx("1 new deal today","صفقة جديدة اليوم"):tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`)):""};
  return {w,e,s,f,H}}
@@ -506,7 +506,7 @@ function start(m,soft){
  const CUR={},CHG={};order.forEach((k,i)=>{const n=C[k].pool.length;CUR[k]=(vis+i)%n;CHG[k]=0});
  const nextCharts=t=>order.forEach(k=>{if(C[k].pool.length<2)return;CUR[k]=(CUR[k]+1)%C[k].pool.length;CHG[k]=t;const tm=document.querySelector(`.card[data-k="${k}"] .tm`);tm.innerHTML=cc(k).line;fitTm(tm);tm.animate([{opacity:0,transform:"translateY(4px)"},{opacity:1,transform:"none"}],{duration:420,easing:"ease-out"})});
  // Beshr 2026-11-25: charts change only when he leaves the app and comes back (not on taps or page close)
- window._nextCharts=()=>{if(OK)return;try{localStorage.setItem("s-visit",(+localStorage.getItem("s-visit")||0)+1)}catch(e){}nextCharts(now());setTimeout(()=>window._fitCards&&window._fitCards(),60)};
+ window._nextCharts=()=>{if(OK)return;window._offNext&&window._offNext();try{localStorage.setItem("s-visit",(+localStorage.getItem("s-visit")||0)+1)}catch(e){}nextCharts(now());setTimeout(()=>window._fitCards&&window._fitCards(),60)};
  if(!window._visH){window._visH=1;let hid=0;document.addEventListener("visibilitychange",()=>{if(document.hidden)hid=1;else if(hid){hid=0;window._nextCharts&&window._nextCharts()}})}
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
  // Beshr 2026-11-25: text fits its box: one line if it fits at 18px+, else two lines (16px+) with the 2nd line's bottom lined up with the chart/price beside it, else it slides sideways (marquee) so it can be read
@@ -523,16 +523,11 @@ function start(m,soft){
  const fitTm=tm=>{if(!tm)return;const k=tm.parentElement;tm.style.fontSize="";for(let f=13;f>=10&&k.scrollWidth>k.clientWidth+1;f-=.5)tm.style.fontSize=f+"px"};
  window._fitCards=()=>document.querySelectorAll("#app .card").forEach(c=>{fitBig(c.querySelector(".big"));fitTm(c.querySelector(".tm"))});
  window._fitCards();if(document.fonts)document.fonts.ready.then(()=>window._fitCards&&window._fitCards());
- // rotating offers (video 8 A): Store at 3 s, Forsa 1.5 s later; pauses while touched, a card is open or the app is hidden; still with Reduce Motion
- if(!matchMedia("(prefers-reduced-motion: reduce)").matches)["s","f"].filter(k=>C[k].offers).forEach((k,j)=>{const c=C[k],L=c.offers;let left=L.length*2,hold=0;
-  const el0=document.querySelector(`#app .card[data-k="${k}"]`);if(el0)el0.addEventListener("pointerdown",()=>hold=Date.now()+5000,{passive:true});
-  const show=(el,o)=>{const b=el.querySelector(".big"),fl=b.querySelector(".flp"),nx=[...o.pf];
+ // rotating offers (video 8 A; Beshr 2026-11-25 "too fast, change per tab"): one gentle flip to the next offer each time he comes back to Home (card closed or app reopened); Forsa 0.4 s after Store; still with Reduce Motion
+ {const RM=matchMedia("(prefers-reduced-motion: reduce)").matches,show=(el,c,o)=>{const b=el.querySelector(".big"),fl=b.querySelector(".flp"),nx=[...o.pf];
    if(!fl||fl.children.length!=nx.length)b.innerHTML=o.v;else{[...fl.children].forEach((sp,i)=>{if(sp.textContent!=nx[i])setTimeout(()=>{sp.classList.add("go");setTimeout(()=>{sp.textContent=nx[i];sp.classList.remove("go")},180)},i*60)});const st=b.querySelector("s");if(st)st.textContent=o.wf}
    el.querySelector(".bsub").innerHTML=o.n;{const nb=el.querySelector(".hnewb");if(nb){nb.style.display=c.oi?"none":"";el.classList.toggle("hnew",!c.oi)}}const vz=el.querySelector(".vz2");if(vz)vz.innerHTML=o.ch();fitBig(b)};
-  const go=()=>{if(GEN!=window._gen)return;const el=document.querySelector(`#app .card[data-k="${k}"]`);if(!el)return;
-   if(OK||document.hidden||hold>Date.now()){setTimeout(go,1000);return}
-   c.oi=(c.oi+1)%L.length;show(el,L[c.oi]);if(--left>0)setTimeout(go,3000)};
-  setTimeout(go,3000+j*1500)});
+  window._offNext=()=>{if(RM||GEN!=window._gen)return;["s","f"].filter(k=>C[k].offers).forEach((k,j)=>setTimeout(()=>{const el=document.querySelector(`#app .card[data-k="${k}"]`);if(!el||OK)return;const c=C[k];c.oi=(c.oi+1)%c.offers.length;show(el,c,c.offers[c.oi])},350+j*400))}}
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
@@ -544,13 +539,13 @@ function start(m,soft){
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=Q.hero=="photo"?Q.chart():isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
    // video 4: Home shows number + one line only; Wallet/Expenses charts appear as the card opens
-   if(HOME_PHOTOS&&(k=="w"||k=="e"))vz.style.opacity=0; // tab top tip + chart below replace the header chart (2026-11-25 mix)
+   if(HOME_PHOTOS&&(k=="w"||k=="e")&&f)vz.style.opacity=Math.max(0,1-op*2.5); // tab top tip + chart below replace the header chart (2026-11-25 mix)
    pg.style.top=lerp(h0,FP?44:HOME_PHOTOS&&(k=="w"||k=="e")?118:isB?232:isD?200:186,f?op:0)+"px";
    pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=OK=="s"||OK=="f"?1-cl(op/0.25):1;
   const ch=document.getElementById("chip");if(ch){const hc=document.querySelector(`.card[data-k="${HK}"]`),A=HK=="f"?AMB:BLUE,u=t-0.5,v=Math.max(0,u-0.4),g=ez(u/0.4)*(0.7+0.3*Math.cos(2*Math.PI*v/1.2)*Math.exp(-v/1.2)),al=n=>Math.round(Math.min(255,Math.max(0,n*g))).toString(16).padStart(2,"0");
    ch.style.opacity=(u<0||op>0.02)?0:1;ch.style.boxShadow=`0 0 0 1px ${A}88,0 0 ${16*g}px ${A}${al(170)}`;if(op==0)hc.style.boxShadow=`0 0 0 ${1.5*g}px ${A}${al(200)},0 10px ${30*g}px -6px ${A}${al(150)}`;else if(HK!=OK)hc.style.boxShadow="none"}
-  if(t>TL.close+TL.cd){OK="";TL.tap=TL.close=1e9;cardEls.forEach(c=>{c.style.zIndex="";c.style.boxShadow="none";c.scrollTop=0})}
+  if(t>TL.close+TL.cd){OK="";TL.tap=TL.close=1e9;cardEls.forEach(c=>{c.style.zIndex="";c.style.boxShadow="none";c.scrollTop=0});window._offNext&&window._offNext()}
   requestAnimationFrame(render)}
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
