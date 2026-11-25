@@ -9,6 +9,7 @@ document.documentElement.dir=AR?"rtl":"ltr";document.documentElement.lang=AR?"ar
 const cutW=(t,n)=>{t=String(t||"").trim();if(t.length<=n)return esc(t);const w=t.slice(0,n+1).replace(/\s+\S*$/,"").replace(/[\s·,\-–]+$/,"");return esc(w&&w.length<t.length&&/\s/.test(t.slice(0,n+1))?w:t.slice(0,n-1)+"…")};
 const RS="⃁",tx=(e,a)=>AR?a:e,_nf=new Intl.NumberFormat("en-US"),fmt=n=>_nf.format(Math.round(n)),M=v=>`<bdi dir="ltr">${RS}${typeof v=="number"?fmt(v):v}</bdi>`;
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const HOME_PHOTOS=1; // Beshr 2026-11-25 video 4: Home Store/Forsa photo + short line; 0 = old rotating charts
 const G="#64748B",LN="#E2E8F0",ink="#0F172A",GR="#16A34A",NAVY="#0F2A4A",BLUE="#2563EB",AMB="#F59E0B",ACC={w:NAVY,e:NAVY,s:GR,f:AMB},fl="";
 const e3=x=>x<0?0:x>1?1:1-Math.pow(1-x,3),lerp=(a,b,p)=>a+(b-a)*p,cl=x=>x<0?0:x>1?1:x,ez=e3;
 const pad=n=>String(n).padStart(2,"0"),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -344,10 +345,15 @@ function cards(m){
  const drop=m.G2.find(g=>g.drop),top=m.G2.filter(g=>g.last&&g.best&&g.last.price-g.best.price>=.5).sort((a,b)=>(b.last.price-b.best.price)-(a.last.price-a.best.price))[0]||m.G2[0];
  // Beshr 2026-11-25: no store name (e.g. "Panda") as the Store card's main text: show the basket (shopping list total at the cheapest prices), else the item count
  const bk=(m.list||[]).filter(g=>g.best),bkT=p2(bk.reduce((a,g)=>a+g.best.price*Math.max(1,+(m.shopQty||{})[g.k]||1),0));
+ // Beshr 2026-11-25 (video 4): Home = short line + product photo. Store leads with a "found cheaper" find from his own items, else the basket
+ const fnd=top&&top.last&&top.best&&top.last.price-top.best.price>=.5&&top.last.store!=top.best.store?top:null;
+ const tile=(src,ic,chip)=>`<span class="hph">${src?`<img src="${esc(src)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('i'),{innerHTML:window.PH('${ic}')}))">`:`<i>${PH(ic)}</i>`}</span>${chip?`<span class="hchip"><bdi>${chip}</bdi></span>`:""}`;
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",sub:bk.length?tx("Shopping list total","مجموع قائمة التسوق"):tx("With saved prices","بأسعار محفوظة"),v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
-  chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(drop.item,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(top.item,22),ACC.s,p):""};
+  photo:()=>tile(fnd?fnd.photo:(bk[0]||top||{}).photo,"basket"),chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(drop.item,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(top.item,22),ACC.s,p):""};
+ if(fnd){s.line=`<span class="hfc">${PH("sparkle")}${tx("Found cheaper","لقيناه أرخص")}</span>`;s.v=`<span style="color:${GR}">${M(p2(fnd.best.price))}</span> <s class="hst">${M(p2(fnd.last.price))}</s>`;s.sub=`${cutW(fnd.item,16)} · <bdi>${esc(fnd.best.store)}</bdi>`}
  const d=bestDeal(m),tp=d&&topPick([d]),hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",sub:d?tx("Best deal now","أفضل صفقة الحين"):tx("No deals yet","ما فيه صفقات للحين"),v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
+  photo:()=>tile(d&&d.image,"fire"),
   chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(tp?[`▼ ${d.pct}%`,hot||(dKind(d)=="new"?tx("New","جديد"):esc(d.source||""))].join(" · "):(d.source||"")),AMB,p):""};
  // ---- chart pools (Beshr 2026-11-24): each card rotates through its charts from the approved chart pool, built from his real numbers ----
  const sm=a=>a.reduce((x,y)=>x+y,0),LV=m.items.filter(i=>i.g=="Living"||i.g=="Personal"),lvPlan=sm(LV.map(i=>m.planOf(i.k))),lvSpent=sm(LV.map(i=>m.spent[i.k]||0)),allPlan=sm(m.items.map(i=>m.planOf(i.k))),monOut=sm(m.monthEx.map(x=>x.amount)),monIn=sm(m.inc.filter(x=>x.date.startsWith(m.mon)).map(x=>x.amount));
@@ -371,6 +377,7 @@ function cards(m){
  {const cnt={};m.G2.forEach(g=>{if(g.best)cnt[g.best.store]=(cnt[g.best.store]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
   if(cs.length>1)S.push({line:tx("Where it's cheapest","وين الأرخص"),chart:p=>K.rows(cs.map(([n,v],i)=>[cutW(n,9),String(v),i?LN:ACC.s,v/cs[0][1]]),p)})}
  {const h=m.G2.find(g=>g.hist.length>2);if(h)S.push({line:tx(`${cutW(h.item,18)} price`,`سعر ${cutW(h.item,18)}`),chart:p=>K.line(h.hist,ACC.s,p,{area:0,mark:0})})}
+ if(d&&d.market>d.price){f.v=`${M(d.price)} <s class="hst">${M(d.market)}</s>`;const pc=d.pct||Math.round((1-d.price/d.market)*100);f.sub=`${cutW(d.name,18)} · ${tx(`${pc}% below market`,`أقل ${pc}٪ من السوق`)}`;f.line=`<span class="hchip"><bdi>${[esc(d.source||""),dKind(d)=="new"?tx("New","جديد"):tx("Used","مستعمل")].filter(Boolean).join(" · ")}</bdi></span>`}
  const F=[{line:f.line,chart:f.chart}];if(tp)f.fixed=1;
  if(d&&d.market>d.price&&d.price)F.push({line:tx("Price vs market","السعر والسوق"),chart:p=>K.track(d.price/d.market,AMB,p,M(d.price),tx("market ","السوق ")+M(d.market))});
  {const cnt={};m.deals.forEach(x=>{const c=dCat(x);cnt[c]=(cnt[c]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3),cn=c=>({electronics:tx("Tech","تقنية"),appliances:tx("Home","البيت"),food:tx("Food","أكل")})[c]||(DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):tx("Other","أخرى"));
@@ -403,7 +410,8 @@ function cards(m){
  // F1 deal score ring (replaces the half gauge)
  {const i=F.findIndex(x=>x.score);if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5))),r=21,L=2*Math.PI*r;const ch={line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>sv(172,50,`<g transform="translate(118,25)"><circle r="${r}" fill="none" stroke="#E8A400" stroke-opacity=".2" stroke-width="7"/><circle r="${r}" fill="none" stroke="#E8A400" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L*sc/10*p} ${L}" transform="rotate(-90)" ${sc>=8?'style="filter:drop-shadow(0 0 4px #F59E0B)"':""}/><text y="6" text-anchor="middle" font-size="17" font-weight="600" fill="${ink}">${sc}</text></g><text x="88" y="30" text-anchor="end" font-size="11" fill="${G}">${tx("out of 10","من 10")}</text>`)};
   const gi=F.findIndex(x=>x.line==ch.line);if(gi>0)F[gi]=ch;else F.push(ch)}}
- w.pool=W;e.pool=E;s.pool=S;f.pool=f.fixed?F.slice(0,1):F;
+ // Beshr 2026-11-25 (video 4, "let's try it"): Store and Forsa show a product photo instead of rotating charts. Old pools kept: set HOME_PHOTOS=0 to go back
+ w.pool=W;e.pool=E;s.pool=HOME_PHOTOS?[{line:s.line,chart:s.photo,hero:"photo"}]:S;f.pool=HOME_PHOTOS?[{line:f.line,chart:f.photo,hero:"photo"}]:f.fixed?F.slice(0,1):F;
  const livingLeft=m.items.filter(i=>i.g=="Living"||i.g=="Personal").reduce((a,i)=>a+m.planOf(i.k)-(m.spent[i.k]||0),0),newDeals=m.deals.filter(x=>x.foundAt>Date.now()-864e5).length;
  const H={w:livingLeft>0?tx(`${RS}${fmt(livingLeft)} left for living`,`باقي ${RS}${fmt(livingLeft)} للمعيشة`):"",e:m.todayEx.length?m.todayEx.length==1?tx("1 cost today","مصروف واحد اليوم"):tx(`${m.todayEx.length} costs today`,`${m.todayEx.length} مصاريف اليوم`):tx("Nothing spent today","ما صرفت شي اليوم"),s:m.list.length?(m.list.length==1?tx("1 item in your list","غرض واحد بقائمتك"):tx(`${m.list.length} items in your list`,`${m.list.length} أغراض بقائمتك`)):tx("Start a shopping list","ابدأ قائمة تسوق"),f:newDeals?(newDeals==1?tx("1 new deal today","صفقة جديدة اليوم"):tx(`${newDeals} new deals today`,`${newDeals} صفقة جديدة اليوم`)):""};
  return {w,e,s,f,H}}
@@ -456,7 +464,9 @@ function start(m,soft){
    {const fo=f&&FP?1-cl(op/0.4):1,bk=c.querySelector(".cbk");if(bk){bk.style.opacity=f&&FP?cl((op-0.5)/0.4):0;c.querySelector(".ctab").style.opacity=f&&FP?1-cl((op-0.4)/0.3):1}c.querySelector(".big").style.opacity=fo;{const bs=c.querySelector(".bsub");if(bs)bs.style.opacity=fo}c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
    const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",XR=(window.AW||393)-220,W=f?lerp(172,isB?(window.AW||393)-64:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(XR,16,op):XR,Y=f?lerp(48,98,op):48;
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
-   const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
+   const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=Q.hero=="photo"?Q.chart():isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
+   // video 4: Home shows number + one line only; Wallet/Expenses charts appear as the card opens
+   if(HOME_PHOTOS&&(k=="w"||k=="e"))vz.style.opacity=f?cl((op-0.2)/0.5):0;
    pg.style.top=lerp(h0,FP?44:isB?232:isD?200:186,f?op:0)+"px";
    pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=OK=="s"||OK=="f"?1-cl(op/0.25):1;

@@ -480,3 +480,10 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .sgr{display:flex;justify-content:space-between;gap:8px;padding:5px 0 0 38px;font-size:14px;color:#334155}[dir=rtl] .sgr{padding:5px 38px 0 0}.sgr small{color:#64748B}.sgr b{font-weight:500;color:#64748B}
 .slclr.sgbk{background:#EEF2F7;color:#0F2A4A}
 .dkmore{border:0;background:none;padding:0;margin-inline-start:4px;color:#2563EB;font:600 13px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}
+/* Home photo tiles (Beshr 2026-11-25, video 4) */
+.hph{width:56px;height:56px;border-radius:12px;overflow:hidden;background:#fff;border:1px solid #E2E8F0;display:grid;place-items:center;flex:none}
+.hph img{width:100%;height:100%;object-fit:cover}.hph i{font-size:28px;color:#94A3B8;line-height:0}.hph i svg{width:28px;height:28px}
+.vz2:has(.hph){flex-direction:column;justify-content:flex-start;gap:4px;padding-top:2px}[dir=rtl] .vz2:has(.hph){align-items:flex-start}
+.hchip{font-size:12px;font-weight:600;color:#92400E;background:#fff;border-radius:6px;padding:1px 6px;white-space:nowrap}
+.hfc{display:inline-flex;align-items:center;gap:3px;color:#B45309;font-weight:700}.hfc svg{width:14px;height:14px}
+.hst{font-size:15px;font-weight:500;color:#64748B}
