@@ -206,6 +206,7 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 #wtour .nx{background:${BLUE};color:#fff;font-weight:600;min-width:84px}
 
 /* ---- Shortcut guide ---- */
+.wgd.pg .st{display:none}.wgd.pg .st.cur{display:block}.wgd.pg .done{display:none}.wgd.pg .gs{padding-bottom:90px}.wgd .gft{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #E2E8F0}.wgd .gft button{height:44px;border:0;border-radius:12px;font:600 15px inherit;font-family:inherit;padding:0 18px}.wgd .gl{background:#F1F5F9;color:#0F172A}.wgd .gn{background:#2563EB;color:#fff;flex:1}.wgd .gc{font-size:13px;color:#64748B;min-width:52px;text-align:center}
 .wgd{position:fixed;inset:0;z-index:9050;background:#F1F5F9;display:flex;flex-direction:column;font-family:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased;color:#0F172A;transform:translateY(100%);transition:transform .38s cubic-bezier(.3,.7,.2,1)}
 .wgd[dir=rtl]{font-family:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",sans-serif}
 .wgd.on{transform:none}
@@ -442,9 +443,15 @@ function guide(ctx){
   <div class="gi">${T("Each time you pay with Apple Pay, your Shortcut opens the app with the payment and <b>the cost is saved by itself</b>. Set it up once, about 3 minutes.","كل ما تدفع بـ Apple Pay، الاختصار يفتح التطبيق مع الدفعة و<b>ينحفظ المصروف لحاله</b>. جهّزه مرة وحدة، تقريباً ٣ دقايق.")}${lk}</div>
   ${S.map((s,i)=>`<div class="st"><div class="sh"><span class="sn">${i+1}</span><div><b>${s[0]}</b><p>${s[1]}</p></div></div>${s[3]?lk:""}<div class="ios">${s[2]}</div></div>`).join("")}
   <div class="done">${T("Illustrations, not real screenshots. Your iPhone may look a little different.","رسومات توضيحية، مو صور حقيقية. جوالك ممكن يختلف شوي.")}</div></div>`;
+ if(ctx&&ctx.first){w.classList.add("pg");w.insertAdjacentHTML("beforeend",`<div class="gft"><button class="gl">${T("Later","بعدين")}</button><span class="gc"></span><button class="gn">${T("Next","التالي")}</button></div>`)}
  document.body.appendChild(w);requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add("on")));
  const close=()=>{w.classList.remove("on");setTimeout(()=>w.remove(),380);ctx&&ctx.done&&ctx.done()};
  w.querySelector(".wgh button").onclick=close;
+ // first run (Beshr 2026-11-25): guide opens by itself after setup, one short step per screen, with Later
+ if(ctx&&ctx.first){const st=[...w.querySelectorAll(".st")],gi=w.querySelector(".gi"),gs=w.querySelector(".gs");let i=0;
+  const show=()=>{st.forEach((x,k)=>x.classList.toggle("cur",k==i));gi.style.display=i?"none":"";w.querySelector(".gc").textContent=T(`${i+1} of ${st.length}`,`${i+1} من ${st.length}`);w.querySelector(".gn").textContent=i==st.length-1?T("Done","تم"):T("Next","التالي");gs.scrollTop=0};
+  w.querySelector(".gl").onclick=()=>{window.track&&window.track("shortcut_later","guide","s"+(i+1));close()};
+  w.querySelector(".gn").onclick=()=>{if(i==st.length-1)return close();i++;show()};show()}
  w.addEventListener("click",async e=>{const b=e.target.closest("[data-cp]");if(!b)return;try{await navigator.clipboard.writeText(link);b.textContent=T("Copied","انتسخ")}catch(_){b.textContent=T("Hold to copy","اضغط مطولاً")}setTimeout(()=>b.textContent=T("Copy","انسخ"),1600)});
  return {close,el:w};
 }

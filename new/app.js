@@ -38,7 +38,7 @@ const ITEMS=[["Must pay","rent","Rent"],["Must pay","iqama","Iqama"],["Must pay"
  ["Saving","ef","Emergency fund"],["Saving","debt","Debt"],["Saving","goals","Goals"]].map(([g,k,s])=>({g,k,s}));
 const AR_N={bills:"فواتير",rent:"الإيجار",iqama:"الإقامة",car:"قسط السيارة",util:"الفواتير",phone:"الجوال",family:"العائلة",food:"مطاعم",coffee:"قهوة",grocery:"بقالة",market:"سوبرماركت",fuel:"بنزين",carcare:"صيانة السيارة",smoke:"تدخين",fun:"ترفيه",shop:"تسوق",flex:"أخرى",ef:"صندوق الطوارئ",debt:"الديون",goals:"الأهداف"};
 const LOG_CATS=["coffee","food","grocery","market","smoke","fun","fuel","carcare","shop","flex","util","phone","family","car","rent","iqama","debt"];
-let BY={},D={};const nm=k=>(BY[k]&&BY[k].custom)?BY[k].s:(AR?(AR_N[k]||(BY[k]||{}).s||k):((BY[k]||{}).s||k));
+let BY={},D={};const nm=k=>(BY[k]&&BY[k].custom)?BY[k].s:(AR?(AR_N[k]||(BY[k]||{}).s||k):((BY[k]||{}).s||(k.charAt(0).toUpperCase()+k.slice(1))));
 // clean long names (ads, receipts) into short product names
 const clean=t=>{t=norm(String(t||"").replace(/[^\p{L}\p{N}\s.+\-]/gu," "));const L=t.toLowerCase();
  if(/ps\s?5|playstation\s*5|بلايستيشن\s*5|سوني\s*5/.test(L))return "PS5";const ip=L.match(/iphone\s*(\d+)(\s*pro)?(\s*max)?/);if(ip)return ("iPhone "+ip[1]+(ip[2]?" Pro":"")+(ip[3]?" Max":"")).trim();
@@ -813,7 +813,7 @@ ${q}`;
    save:a=>wobSave(m,a),skip:async()=>{await put("settings","profile",Object.assign({},m.prof,{setup:{at:Date.now(),skipped:true}}));await wobCache()},
    done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"||how=="home"){try{localStorage.setItem(how=="tour"?"w-tour-next":"w-guide-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
  if(!soft&&!window._wobShown&&!m.income&&!m.prof.setup)setTimeout(()=>wobSetup(false),250);
- try{if(!soft&&localStorage.getItem("w-guide-next")){localStorage.removeItem("w-guide-next");setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en"}),700)}else if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en",done:()=>setTimeout(()=>WOB.guide({lang:AR?"ar":"en"}),450)}),700)}}catch(e){}
+ try{if(!soft&&localStorage.getItem("w-guide-next")){localStorage.removeItem("w-guide-next");setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en",first:1}),700)}else if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en",done:()=>setTimeout(()=>WOB.guide({lang:AR?"ar":"en",first:1}),450)}),700)}}catch(e){}
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}
