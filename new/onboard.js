@@ -402,7 +402,7 @@ function guide(ctx){
    T("Shortcuts app: <b>Automation</b>, <b>New Automation</b>, <b>Message</b>.","تطبيق الاختصارات: <b>أتمتة</b>، <b>أتمتة جديدة</b>، <b>رسالة</b>."),
    T("Message Contains: <b>SAR</b>. Pick <b>Run Immediately</b>. Next.","الرسالة تحتوي على: <b>SAR</b>. اختر <b>التشغيل فورًا</b>. التالي."),
    T("Pick <b>Wallet bank messages</b>, then <b>Done</b>.","اختر <b>رسائل البنك للمحفظة</b>، ثم <b>تم</b>.")];
- const btns=AND?`<button class="gb" data-a="url">${T("1 · Copy URL","١ · نسخ الرابط")}</button><button class="gb l" data-a="body">${T("2 · Copy Body","٢ · نسخ المحتوى")}</button>`
+ const btns=AND?`<button class="gb" data-a="url">${T("1 · Copy URL","1 · نسخ الرابط")}</button><button class="gb l" data-a="body">${T("2 · Copy Body","2 · نسخ المحتوى")}</button>`
   :`<button class="gb" data-a="add">${PH("plus-circle")}${T("Add the Shortcut","أضف الاختصار")}</button>`;
  const w=document.createElement("div");w.className="wgd";w.dir=AR?"rtl":"ltr";w.setAttribute("role","dialog");w.setAttribute("aria-modal","true");
  w.innerHTML=`<div class="wgh"><b>${T("Connect bank messages","ربط رسائل البنك")}</b><button aria-label="${T("Close","إغلاق")}">${PH("x")}</button></div><div class="gs">
