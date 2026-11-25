@@ -187,7 +187,7 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wit .xsms.on{opacity:1;transform:none}.wit .xsms>span{width:26px;height:26px;border-radius:7px;background:${GR};color:#fff;display:grid;place-items:center;font-size:15px;flex:none}
 .wit .xsms p{margin:0;font-size:14px;color:#1F2937}.wit .xsms b{display:block;font-size:13px}
 .wit .x3{display:flex;gap:8px;margin-bottom:12px}
-.wit .x3 div{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;text-align:center;font-size:13px;font-weight:600;color:#BFD2E6;transition:all .3s}
+.wit .x3 div{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;text-align:center;font-size:13px;font-weight:600;color:#E8EFF7;transition:all .3s}
 .wit .x3 em{display:block;font-style:normal;font-size:18px}
 .wit .x3 div.on{background:#fff;border-color:#fff;color:${NAVY}}.wit .x3 div.on em{color:${BLUE}}
 .wit .xr{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #F1F5F9}.wit .xr:first-child{border:0}
@@ -348,26 +348,31 @@ function setup(ctx){
 }
 
 /* ================= intro (replaces the spotlight tour) =================
-   Beshr 2026-11-25: after the wallet questions, 3 short screens on what the app is for:
+   Beshr 2026-11-25: after the wallet questions, 4 short screens (bill photo added 2026-11-25) on what the app is for:
    bank messages add themselves (1-2-3), shoppers' bills find the cheapest, one Forsa search checks every store.
    Figures are a labelled example, not his data. ctx.done() (if given) runs after the last screen. */
 function tour(ctx){
  css();AR=(ctx&&ctx.lang)=="ar";if(document.querySelector(".wob"))return;
  const root=document.createElement("div");root.className="wob wit";root.dir=AR?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");
- root.innerHTML=`<div class="top"><div class="wbar"><button class="bk" aria-label="${T("Back","رجوع")}">${PH("caret-left")}</button><div class="seg"><i></i><i></i><i></i></div><span></span></div><div class="tw"><div class="kk"></div><h1></h1><p class="ld"></p></div><div class="wwv">${WAVE}</div></div><div class="body"><div class="stage"></div></div><div class="foot"><button class="cta"></button><button class="wlnk">${T("Skip","تخطّ")}</button></div>`;
+ root.innerHTML=`<div class="top"><div class="wbar"><button class="bk" aria-label="${T("Back","رجوع")}">${PH("caret-left")}</button><div class="seg"><i></i><i></i><i></i><i></i></div><span></span></div><div class="tw"><div class="kk"></div><h1></h1><p class="ld"></p></div><div class="wwv">${WAVE}</div></div><div class="body"><div class="stage"></div></div><div class="foot"><button class="cta"></button><button class="wlnk">${T("Skip","تخطّ")}</button></div>`;
  document.body.appendChild(root);requestAnimationFrame(()=>root.classList.add("on"));
  const $=s=>root.querySelector(s),ex=`<div class="xeg">${T("Example","مثال")}</div>`;
  const row=(ic,n,sub,v,nw)=>`<div class="xr${nw?" nw":""}"><span class="ic">${PH(ic)}</span><div><b>${n}<i class="xa">${T("Auto","تلقائي")}</i></b><small>${sub}</small></div><b>${M(v)}</b></div>`;
  const bar=(n,v,w,g)=>`<div class="xb"><span>${n}</span><i><u style="--w:${w}%;background:${g?GR:"#94A3B8"}"></u></i><b${g?` style="color:${GR}"`:""}>${M(v)}</b></div>`;
  const V=[
-  {kk:T("1 of 3 · Expenses","1 من 3 · المصاريف"),h:T("Bank messages add themselves","رسائل البنك تنضاف لحالها"),ld:T("No typing. Every card purchase is logged.","بدون كتابة. كل شراء بالبطاقة ينسجّل."),
+  {kk:T("1 of 4 · Expenses","1 من 4 · المصاريف"),h:T("Bank messages add themselves","رسائل البنك تنضاف لحالها"),ld:T("No typing. Every card purchase is logged.","بدون كتابة. كل شراء بالبطاقة ينسجّل."),
    html:()=>`<div class="xsms"><span>${PH("receipt")}</span><p><b>${T("Bank","البنك")}</b>${T("Purchase SAR 45.00 at Panda","شراء 45.00 ريال من بنده")}</p></div>
    <div class="x3">${[T("SMS arrives","توصل الرسالة"),T("Shortcut sends it","الاختصار يرسلها"),T("Expense added","ينضاف المصروف")].map((s,i)=>`<div><em>${i+1}</em>${s}</div>`).join("")}</div>
    <div class="cd">${row("basket",T("Panda","بنده"),T("Groceries · from bank SMS","بقالة · من رسالة البنك"),45,1)}${row("coffee",T("Coffee shop","مقهى"),T("Coffee · from bank SMS","قهوة · من رسالة البنك"),18)}</div>`},
-  {kk:T("2 of 3 · Store","2 من 3 · المتجر"),h:T("Shoppers' bills find the cheapest","فواتير الناس تكشف الأرخص"),ld:T("Everyone adds bills. Everyone saves.","الكل يضيف فواتيره، والكل يوفّر."),
+  {kk:T("2 of 4 · Store","2 من 4 · المتجر"),h:T("Shoppers' bills find the cheapest","فواتير الناس تكشف الأرخص"),ld:T("Everyone adds bills. Everyone saves.","الكل يضيف فواتيره، والكل يوفّر."),
    html:()=>`${ex}<div class="xq l">${T("I paid","دفعت")} ${M(40)} ${T("for Fairy 3L","على فيري 3 لتر")}</div><div class="xq r">${T("Same item:","نفس الغرض:")} ${M(20)} ${T("at Lulu","في لولو")}</div>
    <div class="cd xc">${bar(T("Lulu","لولو"),20,50,1)}${bar(T("Panda","بنده"),29,72)}${bar(T("Danube","الدانوب"),40,100)}<div class="xt">${PH("users")} ${T("Add your bills to keep prices fresh.","أضف فواتيرك عشان تبقى الأسعار محدّثة.")}</div></div>`},
-  {kk:T("3 of 3 · Forsa","3 من 3 · فرصة"),h:T("One search checks every store","بحث واحد يفحص كل المتاجر"),ld:T("Buy smart, or flip it for profit.","اشترِ بذكاء، أو اقلبها بربح."),
+  // Beshr 2026-11-25: show how easy adding a bill is (photo -> we read it -> prices saved)
+  {kk:T("3 of 4 · Add a bill","3 من 4 · أضف فاتورة"),h:T("Snap a bill, done","صوّر الفاتورة، وخلاص"),ld:T("Tap Add bill, take a photo. We read every item and price.","اضغط أضف فاتورة وصوّرها. نقرأ كل غرض وسعره."),
+   html:()=>`${ex}<div class="xsms"><span>${PH("camera")}</span><p><b>${T("Bill photo","صورة الفاتورة")}</b>${T("Lulu · 3 items","لولو · 3 أغراض")}</p></div>
+   <div class="x3">${[T("Take a photo","صوّر"),T("We read it","نقرأها"),T("Prices saved","تنحفظ الأسعار")].map((s,i)=>`<div><em>${i+1}</em>${s}</div>`).join("")}</div>
+   <div class="cd">${[["basket",T("Rice 5kg","رز 5 كيلو"),39],["basket",T("Fairy 3L","فيري 3 لتر"),20],["coffee",T("Nescafé Gold","نسكافيه قولد"),21]].map(([ic,n,v])=>`<div class="xr nw"><span class="ic">${PH(ic)}</span><div><b>${n}</b><small>${T("Lulu · saved","لولو · انحفظ")}</small></div><b>${M(v)}</b></div>`).join("")}</div>`},
+  {kk:T("4 of 4 · Forsa","4 من 4 · فرصة"),h:T("One search checks every store","بحث واحد يفحص كل المتاجر"),ld:T("Buy smart, or flip it for profit.","اشترِ بذكاء، أو اقلبها بربح."),
    html:()=>`${ex}<div class="xs">${PH("magnifying-glass")}<span class="xty" data-t="${T("iPhone 15 Pro","آيفون 15 برو")}"></span></div>
    <div class="xsrc">${["Haraj","Amazon","Noon","Extra","Jarir","OpenSooq"].map(s=>`<span>${s}</span>`).join("")}</div>
    <div class="cd xd"><div class="xdr"><b>${T("iPhone 15 Pro 256GB","آيفون 15 برو 256")}</b><span class="xpc">▼ 22%</span></div><div class="xdr"><b class="xbig">${M(2650)}</b><s>${M(3400)}</s></div>
@@ -377,14 +382,16 @@ function tour(ctx){
   if(i==0){later(()=>{st.querySelector(".xsms").classList.add("on");st.querySelectorAll(".x3 div")[0].classList.add("on")},350);later(()=>st.querySelectorAll(".x3 div")[1].classList.add("on"),1150);
    later(()=>{st.querySelector(".xsms").classList.remove("on");st.querySelectorAll(".x3 div")[2].classList.add("on");st.querySelector(".xr.nw").classList.add("on")},1900)}
   if(i==1)[".xq.l",".xq.r",".xc"].forEach((s,k)=>later(()=>st.querySelector(s).classList.add("on"),300+k*700));
-  if(i==2){const el=st.querySelector(".xty"),tx=el.dataset.t;for(let k=1;k<=tx.length;k++)later(()=>el.textContent=tx.slice(0,k),200+k*45);const t0=300+tx.length*45;
+  if(i==2){later(()=>{st.querySelector(".xsms").classList.add("on");st.querySelectorAll(".x3 div")[0].classList.add("on")},350);later(()=>st.querySelectorAll(".x3 div")[1].classList.add("on"),1100);
+   later(()=>{st.querySelectorAll(".x3 div")[2].classList.add("on")},1800);st.querySelectorAll(".xr.nw").forEach((r,k)=>later(()=>r.classList.add("on"),1900+k*350))}
+  if(i==3){const el=st.querySelector(".xty"),tx=el.dataset.t;for(let k=1;k<=tx.length;k++)later(()=>el.textContent=tx.slice(0,k),200+k*45);const t0=300+tx.length*45;
    st.querySelectorAll(".xsrc span").forEach((s,k)=>later(()=>s.classList.add("on"),t0+k*150));later(()=>st.querySelector(".xd").classList.add("on"),t0+1000)}};
  const paint=dir=>{const v=V[i];$(".seg").querySelectorAll("i").forEach((s,k)=>s.classList.toggle("on",k<=i));$(".bk").hidden=i==0;
-  const fill=()=>{$(".kk").textContent=v.kk;$("h1").textContent=v.h;$(".ld").textContent=v.ld;$(".stage").innerHTML=v.html();$(".cta").textContent=i<2?T("Next","التالي"):ctx&&ctx.done?T("Set up bank messages","جهّز رسائل البنك"):T("Done","تم");$(".wlnk").style.visibility=i<2?"":"hidden";play()};
+  const fill=()=>{$(".kk").textContent=v.kk;$("h1").textContent=v.h;$(".ld").textContent=v.ld;$(".stage").innerHTML=v.html();$(".cta").textContent=i<V.length-1?T("Next","التالي"):ctx&&ctx.done?T("Set up bank messages","جهّز رسائل البنك"):T("Done","تم");$(".wlnk").style.visibility=i<V.length-1?"":"hidden";play()};
   if(!dir)return fill();const tw=$(".tw"),st=$(".stage");tw.classList.add("out");st.classList.add("out");setTimeout(()=>{fill();st.classList.remove("out");tw.classList.remove("out")},200)};
  const end=()=>{tm.forEach(clearTimeout);root.classList.remove("on");setTimeout(()=>{root.remove();ctx&&ctx.done&&ctx.done()},260)};
  root.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
-  if(b.classList.contains("cta")){window.track&&window.track(i>=2?"tour_done":"tour_step","tour","s"+(i+1));if(i>=2)return end();i++;return paint(1)}
+  if(b.classList.contains("cta")){window.track&&window.track(i>=V.length-1?"tour_done":"tour_step","tour","s"+(i+1));if(i>=V.length-1)return end();i++;return paint(1)}
   if(b.classList.contains("bk")&&i>0){i--;return paint(-1)}
   if(b.classList.contains("wlnk")){window.track&&window.track("tour_skip","tour","s"+(i+1));end()}});
  paint();return {end};

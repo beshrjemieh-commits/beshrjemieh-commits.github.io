@@ -553,3 +553,10 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 .a2h ol svg{display:inline-block!important;margin:0 2px}
 .sempty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:40px 24px;color:#64748B}.sempty>svg{width:40px;height:40px;color:#94A3B8}.sempty b{font-size:17px;color:#0F172A}.sempty small{font-size:14px;line-height:1.4}
 .sebill{margin-top:8px;display:inline-flex;align-items:center;gap:8px;border:0;background:#2563EB;color:#fff;font-family:inherit;font-size:15px;font-weight:600;padding:12px 18px;border-radius:14px}.sebill svg{width:18px;height:18px}
+/* v181 (Beshr: Add button covered similar items, sheet would not scroll): product sheet = scrolling body + fixed button bar under it, never on top */
+#sheet:has(.pscroll){display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
+#sheet .pscroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -16px;padding:0 16px 12px;touch-action:pan-y}
+#sheet .pscroll .simr{touch-action:pan-x pan-y}
+#sheet:has(.pscroll) #pbar{position:static;flex:none;box-shadow:none;padding-bottom:calc(12px + var(--sab,env(safe-area-inset-bottom)))}
+#sheet{bottom:var(--kb,0px);max-height:calc(100% - 56px - var(--kb,0px))}
+#sheet:has(.pscroll)>.go{position:static;flex:none;box-shadow:none;margin:8px 0 calc(12px + var(--sab,env(safe-area-inset-bottom)))}
