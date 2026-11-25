@@ -485,7 +485,7 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .hph{width:56px;height:56px;border-radius:12px;overflow:hidden;background:#fff;border:1px solid #E2E8F0;display:grid;place-items:center;flex:none}
 .hph img{width:100%;height:100%;object-fit:cover}.hph i{font-size:28px;color:#94A3B8;line-height:0}.hph i svg{width:28px;height:28px}
 .vz2:has(.hph){flex-direction:column;justify-content:flex-start;gap:4px;padding-top:2px}[dir=rtl] .vz2:has(.hph){align-items:flex-start}
-.hchip{font-size:12px;font-weight:600;color:#92400E;background:#fff;border-radius:6px;padding:1px 6px;white-space:nowrap}
+.hchip{white-space:nowrap;font-size:12px;font-weight:600;color:#92400E;background:#fff;border-radius:6px;padding:1px 6px;white-space:nowrap}
 .hfc{display:inline-flex;align-items:center;gap:3px;color:#B45309;font-weight:700}.hfc svg{width:14px;height:14px}
 .hst{font-size:15px;font-weight:500;color:#64748B}
 /* Store: top deal first (Beshr 2026-11-25) */
@@ -507,4 +507,4 @@ html.l2 .c-w .big,html.l2 .c-e .big{font-size:38px;font-weight:700;letter-spacin
 html.l2 .card .big{font-weight:700}
 html.l2:not([lang=ar]) .card .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
 html.l2 .card.hnew{box-shadow:0 0 0 2px #F59E0B,0 0 22px rgba(245,158,11,.55)}
-html.l2 .hnewb{margin-inline-start:6px;vertical-align:1px;background:#16A34A;color:#fff;font-size:11px;font-weight:600;border-radius:8px;padding:1px 7px;z-index:3}
+html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;background:#0F2A4A;color:#fff;font-size:11px;font-weight:600;border-radius:8px;padding:1px 7px;z-index:3}
