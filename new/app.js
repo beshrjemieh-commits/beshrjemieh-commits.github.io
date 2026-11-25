@@ -889,7 +889,7 @@ ${q}`;
   dAdd("click",ev=>{const x=ev.target.closest("[data-xid]"),a=ev.target.closest("[data-act]");if(!x&&!a)return;if(!sh.contains(ev.target)&&!OK)return;ev.stopPropagation();ev.preventDefault();
    if(x)return editCost(x.dataset.xid);const k=a.dataset.act,id=a.dataset.id||"";if(k=="bal")editBal();else if(k=="inc")editInc();else if(k=="debt")editDebt(id);else if(k=="goal")editGoal(id)},true); }
  // ---- bank messages, fully automatic: the Shortcut (iPhone) or MacroDroid (Android) sends each bank SMS to log_sms with the user's key; guide = WOB.guide (new/onboard.js) ----
- const SMS_URL=SB_URL+"/rest/v1/rpc/log_sms?apikey="+SB_KEY,SHORTCUT_LINK="";// iCloud link of the shared "Wallet bank messages" Shortcut (Beshr makes it once)
+ const SMS_URL=SB_URL+"/rest/v1/rpc/log_sms?apikey="+SB_KEY,SHORTCUT_LINK="https://www.icloud.com/shortcuts/c05947a42c94452caf97b23cd288c21c";// iCloud link of the shared "Wallet bank messages" Shortcut (Beshr makes it once)
  const smsGuide=first=>window.WOB&&WOB.guide({lang:AR?"ar":"en",first,smsUrl:SMS_URL,shortcut:SHORTCUT_LINK,
   getKey:async()=>{const r=await sb.rpc("my_sms_key");if(r.error)throw r.error;return r.data||""},
   newKey:async()=>{const r=await sb.rpc("rotate_sms_key");if(r.error)throw r.error;return r.data||""},
