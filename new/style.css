@@ -496,3 +496,15 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .tdb small svg{width:13px;height:13px;vertical-align:-2px}
 .tdadd{width:38px;height:38px;border-radius:50%;border:0;background:#2563EB;color:#fff;font-size:22px;line-height:1;cursor:pointer;flex:none}.tdadd.on{background:#16A34A;font-size:18px}
 .slsv2{font-size:12.5px;font-weight:600;color:#16A34A;margin-inline-start:6px}
+/* Look 2 (Beshr 2026-11-25: Text 2 + Background 3 + Tabs 6). Remove html.l2 to get the old look back. */
+html.l2 body{background:linear-gradient(#16365E,#0F2A4A)}
+html.l2 body:before{content:"";position:fixed;inset:-25%;pointer-events:none;z-index:0;
+ background:radial-gradient(circle at 80% 55%,rgba(22,163,74,.26),transparent 32%),radial-gradient(circle at 15% 80%,rgba(59,91,140,.85),transparent 38%);
+ animation:l2drift 24s ease-in-out infinite alternate}
+@keyframes l2drift{to{transform:translate(-8%,-6%) rotate(8deg)}}
+@media (prefers-reduced-motion:reduce){html.l2 body:before{animation:none}}
+html.l2 .c-w .big,html.l2 .c-e .big{font-size:38px;font-weight:700;letter-spacing:-.03em}
+html.l2 .card .big{font-weight:700}
+html.l2:not([lang=ar]) .card .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+html.l2 .card.hnew{box-shadow:0 0 0 2px #F59E0B,0 0 22px rgba(245,158,11,.55)}
+html.l2 .hnewb{margin-inline-start:6px;vertical-align:1px;background:#16A34A;color:#fff;font-size:11px;font-weight:600;border-radius:8px;padding:1px 7px;z-index:3}
