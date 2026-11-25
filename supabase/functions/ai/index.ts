@@ -2,6 +2,7 @@
 // The wallet page's shim.js calls this to provide claude.use("sample") outside claude.ai:
 // one Claude round per request; the page runs any tool loop itself.
 // Secrets: ANTHROPIC_API_KEY (required), ALLOWED_EMAILS (optional, comma separated: only these accounts may use AI).
+// SQL: public.ai_tick() counts calls per account per day (wallet/security-fixes.sql in project files).
 import Anthropic from "npm:@anthropic-ai/sdk@1.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
@@ -35,6 +36,12 @@ Deno.serve(async (req) => {
   if (!user) return fail("session_expired", "Sign in again.", 401);
   const allowed = (Deno.env.get("ALLOWED_EMAILS") ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   if (allowed.length && !allowed.includes((user.email ?? "").toLowerCase())) return fail("not_granted", "AI is not enabled for this account.", 403);
+
+  // Daily AI cap per account (SQL function ai_tick, Security lead 2026-11-25): a stranger who signs up
+  // can't run up Beshr's Claude bill. Until the SQL is run, ai_tick is missing and AI keeps working.
+  const asUser = createClient(Deno.env.get("SUPABASE_URL")!, anon, { auth: { persistSession: false }, global: { headers: { Authorization: `Bearer ${jwt}` } } });
+  const { data: okToday, error: tickErr } = await asUser.rpc("ai_tick");
+  if (!tickErr && okToday === false) return fail("rate_limited", "Daily AI limit reached. Try again tomorrow.", 429);
 
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) return fail("sampling_disabled", "AI is not set up yet (missing ANTHROPIC_API_KEY).", 503);
