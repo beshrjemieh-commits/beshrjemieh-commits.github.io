@@ -8,7 +8,7 @@
  async function flush(){if(busy||!q.length)return;if(!ok()){q=[];return}const sb=window._sb;if(!sb||!inst)return;busy=true;
   try{while(q.length){const p=q.splice(0,20);const ver=((document.querySelector('script[src*="app.js?v="]')||{}).src||"").split("v=")[1]||"";
    const {error}=await sb.rpc("log_events",{p,p_install:inst,p_ver:clean(ver),p_lang:(document.documentElement.lang=="ar"?"ar":"en")});if(error){q=[];break}}}catch(e){q=[]}busy=false}
- window.track=(name,screen,item)=>{if(!ok())return;if(q.length>=200)q.shift();q.push({name:clean(name),screen:clean(screen),item:clean(item)})};
+ window.track=(name,screen,item)=>{if(!ok())return;if(q.length>=200)q.shift();const nz=v=>clean(v)||null;q.push({name:clean(name)||"event",screen:nz(screen),item:nz(item)})};
  window.trackOn=on=>{try{localStorage.setItem(K,on?"on":"off")}catch(e){}if(!on)q=[]};window.trackIsOn=ok;
  setInterval(flush,30000);document.addEventListener("visibilitychange",()=>{if(document.hidden)flush()});
 })();
