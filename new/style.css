@@ -560,3 +560,10 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 #sheet:has(.pscroll) #pbar{position:static;flex:none;box-shadow:none;padding-bottom:calc(12px + var(--sab,env(safe-area-inset-bottom)))}
 #sheet{bottom:var(--kb,0px);max-height:calc(100% - 56px - var(--kb,0px))}
 #sheet:has(.pscroll)>.go{position:static;flex:none;box-shadow:none;margin:8px 0 calc(12px + var(--sab,env(safe-area-inset-bottom)))}
+/* v187 Friend activity (admin only) */
+.fakey{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 10px;font-size:12px;color:#64748B}.fakey span{display:inline-flex;align-items:center;gap:4px}.fakey svg{width:14px;height:14px}
+.fa{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:10px 12px;margin:0 0 8px}
+.fah{display:flex;justify-content:space-between;align-items:center;gap:8px}.fah b{font-size:15px;color:#0F172A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fan{font-size:13px;font-weight:600;color:#0F2A4A}
+.fam{font-size:12px;color:#64748B;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fas{display:flex;gap:6px;margin:8px 0 6px}.fas span{width:30px;height:30px;border-radius:8px;background:#E2E8F0;color:#94A3B8;display:grid;place-items:center}.fas span.on{background:#DCFCE7;color:#16A34A}.fas svg{width:16px;height:16px}
+.fanx{font-size:13px;color:#0F172A}.fanx b{color:#2563EB;font-weight:600}.fanx.ok{color:#16A34A;font-weight:600}
