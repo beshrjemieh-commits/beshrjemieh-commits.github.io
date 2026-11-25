@@ -419,7 +419,7 @@ function guide(ctx){
  w.innerHTML=`<div class="wgh"><b>${T("Connect bank messages","ربط رسائل البنك")}</b><button aria-label="${T("Close","إغلاق")}">${PH("x")}</button></div><div class="gs">
   <div class="gi">${T("Your bank purchase messages <b>add themselves</b>. Codes (OTP) are never saved. About 1 minute, once.","رسائل مشترياتك من البنك <b>تنضاف لحالها</b>. الرموز (OTP) ما تنحفظ أبداً. دقيقة وحدة، مرة وحدة بس.")}</div>
   <div class="gst"><i></i><span>${T("Waiting for your first bank message…","ننتظر أول رسالة من البنك…")}</span></div>
-  <video class="vid" src="new/media/sms-${AND?"android":"ios"}-${L}.mp4" autoplay muted loop playsinline preload="auto" aria-label="${T("How-to video","فيديو الطريقة")}"></video>
+  <video class="vid" src="new/media/sms-${AND?"android":"ios"}-${L}.mp4?v=2" autoplay muted loop playsinline preload="auto" aria-label="${T("How-to video","فيديو الطريقة")}"></video>
   ${btns}
   <div class="st"><ol>${steps.map(x=>`<li>${x}</li>`).join("")}</ol></div>
   <div class="st"><div class="gr"><button class="gb l s" data-a="test">${T("Send a test","أرسل تجربة")}</button><button class="gb l s" data-a="new">${T("New key","مفتاح جديد")}</button></div><div class="gout"></div></div>
