@@ -359,7 +359,7 @@ function cards(m){
  // walk-through 2026-11-25: the share ring shows everyday spending only (fixed bills like rent or car payment no longer lead it)
  const MP=new Set(m.items.filter(i=>i.g=="Must pay").map(i=>i.k)),mc=Object.entries(m.spent).filter(([k,v])=>!MP.has(k)&&v>0).sort((a,b)=>b[1]-a[1]);{const monOut=sm(mc.map(x=>x[1]));if(monOut>0&&mc.length){const t2=mc.slice(0,2),cs=[ACC.e,"#8FB0D3"],oth=monOut-sm(t2.map(x=>x[1]));
   E.push({line:tx(`Mostly ${nm(mc[0][0])}`,`أغلبها ${nm(mc[0][0])}`),chart:p=>K.donut(t2.map((x,i)=>[x[1]/monOut,cs[i]]).concat(oth>0?[[oth/monOut,LN]]:[]),p,t2.map((x,i)=>[`${nm(x[0])} ${Math.round(x[1]/monOut*100)}%`,cs[i]]).concat(oth>0?[[tx("Other","أخرى"),"#CBD5E1"]]:[]))})}}
- if(lvPlan>0){const dn=new Date().getDate(),dl=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();E.push({line:lvSpent<=lvPlan?tx(`${RS}${fmt(lvPlan-lvSpent)} left`,`باقي ${RS}${fmt(lvPlan-lvSpent)}`):tx("Over the month plan","فوق خطة الشهر"),chart:p=>K.track(cl(lvSpent/lvPlan),ACC.e,p,tx(`used ${Math.round(lvSpent/lvPlan*100)}%`,`صرفت ${Math.round(lvSpent/lvPlan*100)}٪`),tx(`day ${dn} of ${dl}`,`يوم ${dn} من ${dl}`))})}
+ if(lvPlan>0){const dn=new Date().getDate(),dl=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();E.push({line:lvSpent<=lvPlan?tx(`${RS}${fmt(lvPlan-lvSpent)} left`,`باقي ${RS}${fmt(lvPlan-lvSpent)}`):tx("Over the month plan","فوق خطة الشهر"),chart:p=>K.track(cl(lvSpent/lvPlan),ACC.e,p,(lvSpent/lvPlan>3?tx(`over plan by ${RS}${fmt(lvSpent-lvPlan)}`,`فوق الخطة بـ ${RS}${fmt(lvSpent-lvPlan)}`):tx(`used ${Math.round(lvSpent/lvPlan*100)}%`,`صرفت ${Math.round(lvSpent/lvPlan*100)}٪`)),tx(`day ${dn} of ${dl}`,`يوم ${dn} من ${dl}`))})}
  {const tw=wk(0,7),lw=wk(7,14),ch=Object.keys(lw).filter(k=>lw[k]>0&&LOG_CATS.slice(0,10).includes(k)).map(k=>[k,((tw[k]||0)-lw[k])/lw[k]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,3);
   if(ch.length>1)E.push({line:tx("This week vs last","هالأسبوع والماضي"),chart:p=>K.list(ch.map(([k,r])=>[nm(k),(r<=0?"▼":"▲")+Math.abs(Math.round(r*100))+"%",r<=0?GR:"#DC2626"]),p)})}
  const S=[{line:s.line,chart:s.chart}];
@@ -788,6 +788,7 @@ ${q}`;
    <button class="setb" id="ssms">${PH("receipt")}<span>${tx("Bank messages (automatic)","رسائل البنك (تلقائي)")}</span></button>
    <button class="setb" id="sguide">${PH("credit-card")}<span>${tx("Connect bank messages (Shortcut)","ربط رسائل البنك (اختصار)")}</span></button>
    <button class="setb" id="susage" role="switch" aria-checked="${window.trackIsOn&&window.trackIsOn()?"true":"false"}">${PH("chart-pie-slice")}<span>${tx("Share usage","مشاركة الاستخدام")}<small style="display:block;font-size:12px;color:#64748B;font-weight:400">${tx("Only which screens and buttons you use. Never amounts, names or messages.","بس أي شاشات وأزرار تستخدم. أبداً ما نشارك مبالغ أو أسماء أو رسائل.")}</small></span><b class="usw">${window.trackIsOn&&window.trackIsOn()?tx("On","شغّال"):tx("Off","مطفي")}</b></button>
+   <button class="setb" id="sinv">${PH("users")}<span>${tx("Invite a friend","ادعُ صديقًا")}</span></button>
    <button class="setb" id="stour">${PH("info")}<span>${tx("How to use the app","طريقة استخدام التطبيق")}</span></button>
    <button class="setb" id="sq">${PH("list")}<span>${tx("First-time questions","أسئلة البداية")}</span></button>
    <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
@@ -795,6 +796,9 @@ ${q}`;
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
    document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
+   {const iv=document.getElementById("sinv");if(iv)iv.onclick=async()=>{const url=location.origin+"/?ref="+(window.trackRef?window.trackRef():""),text=tx("Try my money app: it shows what you can spend today, cheaper shops and good deals.","جرّب تطبيق فلوسي: يوريك كم تقدر تصرف اليوم، أرخص المحلات، والعروض الحلوة.");
+    try{if(navigator.share){await navigator.share({title:tx("Smart wallet","المحفظة الذكية"),text,url});window.track&&window.track("invite_sent","settings","share");return}}catch(e){if(e&&e.name=="AbortError")return}
+    try{await navigator.clipboard.writeText(text+" "+url);window.track&&window.track("invite_sent","settings","copy");iv.querySelector("span").textContent=tx("Link copied","انتسخ الرابط")}catch(e){iv.querySelector("span").textContent=url}}}
    {const u=document.getElementById("susage");if(u)u.onclick=()=>{const on=!(window.trackIsOn&&window.trackIsOn());window.trackOn&&window.trackOn(on);u.setAttribute("aria-checked",on);u.querySelector(".usw").textContent=on?tx("On","شغّال"):tx("Off","مطفي")}}
    document.getElementById("ssms").onclick=()=>{close();setTimeout(smsSetup,350)};
    document.getElementById("sguide").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en"}),350)};
