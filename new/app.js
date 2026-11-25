@@ -36,9 +36,9 @@ const ITEMS=[["Must pay","rent","Rent"],["Must pay","iqama","Iqama"],["Must pay"
  ["Living","food","Eating out"],["Living","coffee","Coffee"],["Living","grocery","Grocery"],["Living","market","Supermarket"],["Living","fuel","Fuel"],["Living","carcare","Car care"],
  ["Personal","smoke","Smoking"],["Personal","fun","Fun"],["Personal","shop","Shopping"],["Personal","flex","Other"],
  ["Saving","ef","Emergency fund"],["Saving","debt","Debt"],["Saving","goals","Goals"]].map(([g,k,s])=>({g,k,s}));
-const AR_N={rent:"الإيجار",iqama:"الإقامة",car:"قسط السيارة",util:"الفواتير",phone:"الجوال",family:"العائلة",food:"مطاعم",coffee:"قهوة",grocery:"بقالة",market:"سوبرماركت",fuel:"بنزين",carcare:"صيانة السيارة",smoke:"تدخين",fun:"ترفيه",shop:"تسوق",flex:"أخرى",ef:"صندوق الطوارئ",debt:"الديون",goals:"الأهداف"};
+const AR_N={bills:"فواتير",rent:"الإيجار",iqama:"الإقامة",car:"قسط السيارة",util:"الفواتير",phone:"الجوال",family:"العائلة",food:"مطاعم",coffee:"قهوة",grocery:"بقالة",market:"سوبرماركت",fuel:"بنزين",carcare:"صيانة السيارة",smoke:"تدخين",fun:"ترفيه",shop:"تسوق",flex:"أخرى",ef:"صندوق الطوارئ",debt:"الديون",goals:"الأهداف"};
 const LOG_CATS=["coffee","food","grocery","market","smoke","fun","fuel","carcare","shop","flex","util","phone","family","car","rent","iqama","debt"];
-let BY={},D={};const nm=k=>(BY[k]&&BY[k].custom)?BY[k].s:(AR?(AR_N[k]||(BY[k]||{}).s||k):((BY[k]||{}).s||k));
+let BY={},D={};const nm=k=>(BY[k]&&BY[k].custom)?BY[k].s:(AR?(AR_N[k]||(BY[k]||{}).s||k):((BY[k]||{}).s||(k.charAt(0).toUpperCase()+k.slice(1))));
 // clean long names (ads, receipts) into short product names
 const clean=t=>{t=norm(String(t||"").replace(/[^\p{L}\p{N}\s.+\-]/gu," "));const L=t.toLowerCase();
  if(/ps\s?5|playstation\s*5|بلايستيشن\s*5|سوني\s*5/.test(L))return "PS5";const ip=L.match(/iphone\s*(\d+)(\s*pro)?(\s*max)?/);if(ip)return ("iPhone "+ip[1]+(ip[2]?" Pro":"")+(ip[3]?" Max":"")).trim();
@@ -232,7 +232,10 @@ const dTop=d=>{if(!d.price||!d.market||d.offer||dCond(d)[1]||d.pct<20||d.pct>75)
 const topPick=list=>{let best=null,bs=-1;list.forEach(d=>{if(d.status=="hidden")return;const v=dTop(d);if(v>bs){bs=v;best=d}});return best};
 const vChip=d=>{const v=dVerdict(d);return v?`<span class="vchip" style="--v:${v.c}">${v.t}${v.conf?`<small> · ${v.conf}</small>`:""}</span>`:""};
 const FKN=()=>({used:tx("Used · market","مستعمل · السوق"),new:tx("New · authorized sellers","جديد · وكلاء معتمدين")});
-function fTabs(m,k){const und=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),T=[{n:tx("All","الكل"),list:und}];
+// Beshr 2026-11-25: fewer Forsa deals, only sure ones: high confidence, 15%+ below market, no damage; at most 12 (top 5 by score if none pass)
+const dSure=d=>{const r=d.raw||{},c=+r.comps||0,conf=String(r.confidence||"")||(dKind(d)=="new"?(d.market?"high":""):(c>=8?"high":""));return d.market>0&&d.price>0&&d.pct>=15&&conf=="high"&&!dCond(d)[1]&&!(r.ended)&&!(r.reserved)};
+const bestDeal=m=>{const L0=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),LS=L0.filter(dSure),L=LS.length?LS:L0;return topPick(L)||L.sort(byScore)[0]};
+function fTabs(m,k){const all=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),sure=all.filter(dSure),und=(sure.length?sure:all).slice(0,sure.length?12:5),T=[{n:tx("All","الكل"),list:und}];
  (m.hunt.terms||[]).slice(0,12).forEach(t=>{const w=norm(t).toLowerCase().split(" ").filter(x=>x.length>1);if(!w.length)return;const l=und.filter(d=>{const h=(d.title+" "+d.category).toLowerCase();return w.every(x=>h.includes(x))});if(l.length)T.push({n:esc(clean(t)),list:l})});return T}
 const dealRow=(d,kept)=>`<div class="drow" data-did="${esc(d.id)}">`+dig(hd(`<span>${esc(d.name)}</span><small class="ds">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}${d.pct?` · ▼${d.pct}%`:""}</small>`,`<a class="fopen" href="${esc(dLink(d))}" target="_blank" rel="noopener">${tx("Open","افتح")}</a>`,"",d.image),
  r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,AMB]:null,d.offer?[esc(d.offer),"",null]:null,[tx("Where","وين"),esc([d.source,d.city].filter(Boolean).join(" · ")),null]].filter(Boolean)),
@@ -343,7 +346,7 @@ function cards(m){
  const bk=(m.list||[]).filter(g=>g.best),bkT=p2(bk.reduce((a,g)=>a+g.best.price*Math.max(1,+(m.shopQty||{})[g.k]||1),0));
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",sub:bk.length?tx("Shopping list total","مجموع قائمة التسوق"):tx("With saved prices","بأسعار محفوظة"),v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
   chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(drop.item,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(top.item,22),ACC.s,p):""};
- const tp=topPick(m.deals),d=tp||m.deals.slice().sort(byScore)[0],hot=tp?dHot(tp):"";
+ const d=bestDeal(m),tp=d&&topPick([d]),hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",sub:d?tx("Best deal now","أفضل صفقة الحين"):tx("No deals yet","ما فيه صفقات للحين"),v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
   chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(tp?[`▼ ${d.pct}%`,hot||(dKind(d)=="new"?tx("New","جديد"):esc(d.source||""))].join(" · "):(d.source||"")),AMB,p):""};
  // ---- chart pools (Beshr 2026-11-24): each card rotates through its charts from the approved chart pool, built from his real numbers ----
@@ -510,7 +513,7 @@ function start(m,soft){
    const sc=app.getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
   go.onclick=ev=>{ev.stopPropagation();const l=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(l.length)openFw(l,FT[ti].n,0)};
   // Beshr 2026-11-25: tapping Forsa on Home opens the single best match right now (the next best once that one is swiped); after it, the normal Forsa page
-  window._fBest=()=>{const L=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),b=topPick(L)||L.sort(byScore)[0];if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
+  window._fBest=()=>{const b=bestDeal(m);if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
   fw.querySelector(".cwb").onclick=()=>{fw.classList.remove("on");fw.setAttribute("aria-hidden","true");tab(ti)};
   let x0=null,dx=0,top=null;
   deck.addEventListener("pointerdown",e=>{top=[...deck.querySelectorAll(".dk")].pop();if(!top)return;x0=e.clientX;dx=0;top.style.transition="none";deck.setPointerCapture(e.pointerId)});
@@ -809,9 +812,9 @@ ${q}`;
  const wobSetup=preview=>{if(!window.WOB||document.querySelector(".wob"))return;window._wobShown=1;
   WOB.setup({lang:AR?"ar":"en",preview,salary:m.income,payday:m.payday,pools:wobPools(m),onLang:l=>{try{localStorage.setItem("w-lang",l)}catch(e){}},
    save:a=>wobSave(m,a),skip:async()=>{await put("settings","profile",Object.assign({},m.prof,{setup:{at:Date.now(),skipped:true}}));await wobCache()},
-   done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"){try{localStorage.setItem("w-tour-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
+   done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"||how=="home"){try{localStorage.setItem(how=="tour"?"w-tour-next":"w-guide-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
  if(!soft&&!window._wobShown&&!m.income&&!m.prof.setup)setTimeout(()=>wobSetup(false),250);
- try{if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),700)}}catch(e){}
+ try{if(!soft&&localStorage.getItem("w-guide-next")){localStorage.removeItem("w-guide-next");setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en",first:1}),700)}else if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en",done:()=>setTimeout(()=>WOB.guide({lang:AR?"ar":"en",first:1}),450)}),700)}}catch(e){}
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}

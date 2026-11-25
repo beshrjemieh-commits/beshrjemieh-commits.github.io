@@ -113,6 +113,7 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wob .say b{color:#fff;font-weight:600}
 .wob .wsb{display:flex;height:46px;border-radius:12px;overflow:hidden;gap:3px;margin:16px 0 14px}
 .wob .wsb i{height:100%;transition:flex-grow .9s cubic-bezier(.3,.7,.2,1);flex-basis:0;flex-grow:0.001}
+.wob .wday{display:flex;align-items:baseline;gap:8px;margin:14px 0 16px}.wob .wday b{font-size:40px;font-weight:700;color:#0F2A4A;letter-spacing:-.5px}.wob .wday span{font-size:15px;color:#64748B}.wob .wlg{display:flex;gap:14px;margin-top:10px;font-size:12px;color:#64748B}.wob .wlg span{display:flex;align-items:center;gap:6px}.wob .wlg .wsw{margin:0}
 .wob .lr{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-top:1px solid #F1F5F9}
 .wob .lr:first-of-type{border-top:0}
 .wob .lr .wsw{width:10px;height:10px;border-radius:3px;margin-top:6px;flex:none}
@@ -205,6 +206,7 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 #wtour .nx{background:${BLUE};color:#fff;font-weight:600;min-width:84px}
 
 /* ---- Shortcut guide ---- */
+.wgd.pg .st{display:none}.wgd.pg .st.cur{display:block}.wgd.pg .done{display:none}.wgd.pg .gs{padding-bottom:90px}.wgd .gft{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #E2E8F0}.wgd .gft button{height:44px;border:0;border-radius:12px;font:600 15px inherit;font-family:inherit;padding:0 18px}.wgd .gl{background:#F1F5F9;color:#0F172A}.wgd .gn{background:#2563EB;color:#fff;flex:1}.wgd .gc{font-size:13px;color:#64748B;min-width:52px;text-align:center}
 .wgd{position:fixed;inset:0;z-index:9050;background:#F1F5F9;display:flex;flex-direction:column;font-family:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased;color:#0F172A;transform:translateY(100%);transition:transform .38s cubic-bezier(.3,.7,.2,1)}
 .wgd[dir=rtl]{font-family:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",sans-serif}
 .wgd.on{transform:none}
@@ -299,8 +301,8 @@ function setup(ctx){
  css();AR=ctx.lang=="ar";
  const pools=ctx.pools||{},pick=a=>a&&a.length?a[Math.floor(Math.random()*a.length)]:null;
  const S={i:0,knew:null,salary:ctx.salary?String(ctx.salary):"",payday:ctx.payday||27,bills:["rent","util","phone","market"].map(k=>({k,amt:BILL[k][3],name:""})),addB:false,
-  goals:[{k:"trip",target:4600,months:6,name:""}],addG:false,flash:(a=>{if(!a||!a.length)return null;a=a.slice().sort((x,y)=>(1-y.price/y.was)-(1-x.price/x.was));const big=a.filter(x=>1-x.price/x.was>=.4);return big.length?big[Math.floor(Date.now()/864e5)%big.length]:a[0]})(pools.flash),fAns:null,forsa:pick(pools.forsa),dAns:null};
- const N=7,root=document.createElement("div");root.className="wob";root.dir=AR?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");
+  goals:[],addG:false,flash:(a=>{if(!a||!a.length)return null;a=a.slice().sort((x,y)=>(1-y.price/y.was)-(1-x.price/x.was));const big=a.filter(x=>1-x.price/x.was>=.4);return big.length?big[Math.floor(Date.now()/864e5)%big.length]:a[0]})(pools.flash),fAns:null,forsa:pick(pools.forsa),dAns:null};
+ const N=3,root=document.createElement("div");root.className="wob";root.dir=AR?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-modal","true");
  root.innerHTML=`<div class="top"><div class="wbar"><button class="bk" aria-label="${T("Back","رجوع")}">${PH("caret-left")}</button><div class="seg">${"<i></i>".repeat(N-1)}</div><button class="lg">${AR?"English":"العربية"}</button></div><div class="tw"><div class="kk"></div><h1></h1><p class="ld"></p></div><div class="wwv">${WAVE}</div></div><div class="body"><div class="stage"></div></div><div class="foot"><button class="cta"></button><button class="wlnk"></button></div>`;
  document.body.appendChild(root);requestAnimationFrame(()=>root.classList.add("on"));
  const $=s=>root.querySelector(s),stage=$(".stage");
@@ -310,34 +312,19 @@ function setup(ctx){
   const gt=sum(gs.map(g=>g.give));return {sal,bills,gs,gt,spend:Math.max(0,sal-bills-gt)}};
  const bName=b=>b.k=="custom"&&b.name?b.name:BILL[b.k][AR?1:0],gName=g=>g.k=="other"&&g.name?g.name:GOAL[g.k][AR?1:0];
  const V=[
-  {kk:T("Welcome","أهلاً"),h:T("Let's make your money make sense.","خلّنا نخلي فلوسك واضحة."),ld:T("Six quick questions. One minute.","ستة أسئلة سريعة. دقيقة وحدة."),cta:T("Start","ابدأ"),ok:()=>S.knew!=null,
-   html:()=>`<div class="cd tab"><span class="ctb">${PH("wallet")}</span><div class="ck">${T("Wallet","المحفظة")}</div><div class="q">${T("First, honestly: last month, could you say where all of your salary went?","أول شيء، بصراحة: الشهر الماضي، تقدر تقول وين راح راتبك كله؟")}</div>${[T("Yes, all of it","إيه، كله"),T("Some of it","بعضه"),T("Honestly, no","بصراحة، لا")].map((a,i)=>`<button class="op${S.knew==i?" on":""}" data-knew="${i}">${a}</button>`).join("")}</div>`},
-  {kk:T("1 of 6","١ من ٦"),h:T("How much lands in your account each month?","كم ينزل في حسابك كل شهر؟"),ld:T("Your salary after deductions.","راتبك بعد الخصومات."),cta:T("Continue","متابعة"),ok:()=>+S.salary>0,
+  {kk:T("1 of 2","1 من 2"),h:T("How much lands in your account each month?","كم ينزل في حسابك كل شهر؟"),ld:T("Your salary after deductions.","راتبك بعد الخصومات."),cta:T("Continue","متابعة"),ok:()=>+S.salary>0,
    html:()=>`<div class="cd tab"><span class="ctb">${PH("wallet")}</span><div class="ck">${T("Salary","الراتب")}</div><label class="wamt"><b>${RS}</b><input id="wsal" inputmode="numeric" placeholder="0" value="${S.salary?fm(S.salary):""}" aria-label="${T("Salary","الراتب")}"></label>
    <div class="pd"><span>${T("It arrives on the","ينزل")}</span><span class="stp"><button data-pd="-1" aria-label="-">−</button><b id="wpd">${ord(S.payday)}</b><button data-pd="1" aria-label="+">+</button></span></div></div>`},
-  {kk:T("2 of 6","٢ من ٦"),h:T("Your biggest monthly bills","أكبر فواتيرك الشهرية"),ld:T("Change the amounts and add any bill you pay every month.","عدّل المبالغ وأضف أي فاتورة تدفعها كل شهر."),cta:T("Continue","متابعة"),ok:()=>true,
+  {kk:T("2 of 2","2 من 2"),h:T("Your biggest monthly bills","أكبر فواتيرك الشهرية"),ld:T("Change the amounts and add any bill you pay every month.","عدّل المبالغ وأضف أي فاتورة تدفعها كل شهر."),cta:T("See my month","شوف شهري"),ok:()=>true,
    html:()=>`<div class="cd tab"><span class="ctb">${PH("receipt")}</span><div class="ck">${T("Must pay","التزامات")}<small id="wbt">${M(sum(S.bills.map(b=>b.amt)))}</small></div><div style="margin-top:10px">${S.bills.map((b,i)=>`<div class="row"><span class="ic">${PH(BILL[b.k][2])}</span><span class="wnm">${b.k=="custom"?`<input class="n" data-bn="${i}" placeholder="${T("Name it","سمّها")}" value="${esc(b.name)}" maxlength="40">`:BILL[b.k][AR?1:0]}</span><span class="v"><input data-ba="${i}" inputmode="numeric" value="${b.amt?fm(b.amt):""}" placeholder="0" aria-label="${esc(bName(b))}"></span><button class="wx" data-bx="${i}" aria-label="${T("Remove","حذف")}">${PH("x")}</button></div>`).join("")}</div>
    ${S.addB?`<div class="pills">${Object.keys(BILL).filter(k=>k=="custom"||!S.bills.some(b=>b.k==k)).map(k=>`<button class="pill" data-pb="${k}">${BILL[k][AR?1:0]}</button>`).join("")}</div>`:`<button class="add" data-ab="1">+ ${T("Add another bill","أضف فاتورة ثانية")}</button>`}</div>`},
-  {kk:T("3 of 6","٣ من ٦"),h:T("What are you saving for?","وش توفّر له؟"),ld:T("Most important first. The app works out how much a month.","الأهم أولاً. التطبيق يحسب كم شهرياً."),cta:T("Continue","متابعة"),ok:()=>S.goals.some(g=>+g.target>0),
-   html:()=>S.goals.map((g,i)=>`<div class="cd tab"><span class="ctb">${PH("target")}</span><div class="ck">${g.k=="other"?`<input class="n" style="flex:1;border:0;border-bottom:1px dashed #CBD5E1;outline:0;font-size:16px;font-weight:600;background:none" data-gn="${i}" placeholder="${T("Name it","سمّها")}" value="${esc(g.name)}" maxlength="40">`:gName(g)}${S.goals.length>1?`<button class="wx" data-gx="${i}" aria-label="${T("Remove","حذف")}">${PH("x")}</button>`:""}</div>
-    <label class="wamt" style="margin-top:12px"><b>${RS}</b><input data-gt="${i}" inputmode="numeric" value="${g.target?fm(g.target):""}" placeholder="0" style="font-size:30px"></label>
-    <div class="gl"><span>${T("When","متى")}</span><input type="range" min="1" max="36" value="${g.months}" data-gm="${i}" aria-label="${T("How many months","كم شهر")}"><b id="wgm${i}">${T(`in ${g.months} months · ${monAt(g.months)}`,`بعد ${g.months} شهر · ${monAt(g.months)}`)}</b></div></div>`).join("")
-    +(S.addG?`<div class="cd"><div class="pills">${Object.keys(GOAL).filter(k=>k=="other"||!S.goals.some(g=>g.k==k)).map(k=>`<button class="pill" data-pg="${k}">${GOAL[k][AR?1:0]}</button>`).join("")}</div></div>`:S.goals.length<4?`<button class="add" style="color:#BFD2E6" data-ag="1">+ ${T("Add a goal","أضف هدف")}</button>`:"")},
-  {kk:T("4 of 6 · Quick one","٤ من ٦ · سؤال سريع"),h:T("Today’s flash sale","تخفيض اليوم السريع"),ld:T("Real prices shoppers paid this week.","أسعار حقيقية دفعها متسوقين هالأسبوع."),cta:T("Continue","متابعة"),ok:()=>S.fAns!=null||!S.flash,
-   html:()=>flashHTML(S.flash,S.fAns,ctx.fv||window.__FSV||"G")},
-  {kk:T("5 of 6 · Forsa","٥ من ٦ · فرصة"),h:T("Used or new?","مستعمل ولا جديد؟"),ld:T("Forsa hunts both. Which one would you grab?","فرصة تدور على الاثنين. أيهم تاخذ؟"),cta:T("Continue","متابعة"),ok:()=>S.dAns!=null||!S.forsa,
-   html:()=>{const p=S.forsa;if(!p)return "";const hn=S.dAns=="new"?(p.new.name||p.name):(p.used.name||p.name);const u=p.used,n=p.new,pu=Math.round((1-u.price/u.market)*100),pn=Math.round((1-n.price/n.was)*100);
-    const card=(k,d,badge,pc,line)=>`<button class="wdk${S.dAns==k||S.dAns=="both"?" on":""}" data-da="${k}"><span class="bdg ${k=="used"?"u":"n"}">${badge}</span><span class="tick"></span><span class="wph">${d.photo?`<img src="${esc(d.photo)}" alt="">`:PH("device-mobile")}</span><div class="wnm">${esc(d.title||d.name||p.name)}</div><div class="src">${esc(d.source)}${d.city?" · "+esc(d.city):""}</div><div class="pp"><b>${M(d.price)}</b><s>${M(k=="used"?d.market:d.was)}</s></div><div class="pc">${line(pc)}</div></button>`;
-    return `<div class="two">${card("used",u,T("Used","مستعمل"),pu,pc=>T(`${pc}% below market`,`أقل من السوق ${pc}%`))}${card("new",n,T("New","جديد"),pn,pc=>T(`${pc}% off · authorized seller`,`خصم ${pc}% · وكيل معتمد`))}</div>
-    <button class="both${S.dAns=="both"?" on":""}" data-da="both">${T("Show me both","وريني الاثنين")}</button>
-    <div class="say">${S.dAns?T(`Forsa will hunt <b>${esc(hn)}</b> for you${S.dAns=="both"?", used and new":S.dAns=="used"?", used first":", new first"}. Swipe right on a deal to keep it.`,`فرصة بتدور لك على <b>${esc(hn)}</b>${S.dAns=="both"?"، مستعمل وجديد":S.dAns=="used"?"، المستعمل أولاً":"، الجديد أولاً"}. اسحب يمين على العرض عشان تحتفظ فيه.`):""}</div>`}},
-  {kk:T("6 of 6","٦ من ٦"),h:T("Here is your month.","هذا شهرك."),ld:"",cta:T("Show me around","وريني التطبيق"),ok:()=>true,
+  {kk:T("Your month","شهرك"),h:T("Here is your month.","هذا شهرك."),ld:"",cta:T("Show me around","وريني التطبيق"),ok:()=>true,
    html:()=>{const F=fit(),sal=F.sal||1,nx=new Date(),pd=new Date(nx.getFullYear(),nx.getMonth()+(nx.getDate()>=S.payday?1:0),S.payday),days=Math.max(1,Math.round((pd-new Date(pd.getFullYear(),pd.getMonth()-1,S.payday))/864e5));
     const L=[[NAVY,T("Bills","الفواتير"),F.bills,""],["#5B82B0",T("Goals","الأهداف"),F.gt,F.gs.map(g=>`${esc(gName(g))}: ${T("ready by","جاهز في")} ${g.ready?monAt(g.ready):"—"}`).join(" · ")],["#BFD2E6",T("Yours to spend","لك تصرفه"),F.spend,T(`about ${M(Math.round(F.spend/days))} a day`,`تقريباً ${M(Math.round(F.spend/days))} يومياً`)]];
-    return `<div class="cd tab"><span class="ctb">${PH("chart-pie-slice")}</span><div class="ck">${T("Monthly budget","الميزانية الشهرية")}<small>${M(F.sal)}</small></div>
+    return `<div class="cd tab"><span class="ctb">${PH("chart-pie-slice")}</span><div class="ck">${T("Yours to spend","لك تصرفه")}</div>
+    <div class="wday"><b data-c="${Math.round(F.spend/days)}">${M(0)}</b><span>${T("a day","يومياً")}</span></div>
     <div class="wsb">${L.map(l=>`<i data-g="${l[2]/sal}" style="background:${l[0]}"></i>`).join("")}</div>
-    ${L.map(l=>`<div class="lr"><i class="wsw" style="background:${l[0]}"></i><span>${l[1]}${l[3]?`<small>${l[3]}</small>`:""}</span><b data-c="${Math.round(l[2])}">${M(0)}</b></div>`).join("")}
-    <div class="bn"><div><small>${T("Before","قبل")}</small><s>“${[T("Yes, all of it","إيه، كله"),T("Some of it","بعضه"),T("Honestly, no","بصراحة، لا")][S.knew||0]}”</s></div><div class="nw"><small>${T("Now","الحين")}</small>${T(`Every riyal of ${M(F.sal)} has a job`,`كل ريال من ${M(F.sal)} له مهمة`)}</div></div></div>`}}
+    <div class="wlg">${L.filter(l=>l[2]>0).map(l=>`<span><i class="wsw" style="background:${l[0]}"></i>${l[1]}</span>`).join("")}</div></div>`}}
  ];
  const anim=()=>{root.querySelectorAll(".wsb i").forEach((b,i)=>setTimeout(()=>b.style.flexGrow=Math.max(.001,+b.dataset.g),80+i*120));
   root.querySelectorAll("[data-c]").forEach(el=>{const to=+el.dataset.c,t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/900),e=1-Math.pow(1-p,3);el.innerHTML=M(Math.round(to*e));if(p<1)requestAnimationFrame(f)})(t0)})};
@@ -349,7 +336,7 @@ function setup(ctx){
   const tw=$(".tw");tw.classList.add("out");stage.classList.add("out");setTimeout(()=>{fill();$(".body").scrollTop=0;stage.classList.remove("out");stage.classList.add("in");if(dir<0){stage.style.transform=getComputedStyle(stage).transform}
    requestAnimationFrame(()=>requestAnimationFrame(()=>{stage.classList.remove("in");stage.style.transform="";tw.classList.remove("out")}))},200)}
  const okBtn=()=>{$(".cta").disabled=!V[S.i].ok()};
- const go=d=>{if(busy)return;let n=S.i+d;while((n==4&&!S.flash)||(n==5&&!S.forsa))n+=d;if(n<0)return;if(n>=V.length)return finish("tour");S.i=n;paint(d)};
+ const go=d=>{if(busy)return;let n=S.i+d;if(n<0)return;if(n>=V.length)return finish("tour");S.i=n;paint(d)};
  async function finish(how){if(busy)return;busy=true;const F=fit();
   const ans={knew:S.knew,salary:+S.salary||0,payday:S.payday,bills:S.bills.filter(b=>+b.amt>0).map(b=>({k:b.k,amt:+b.amt,name:b.name})),goals:F.gs.map(g=>({name:gName(g),target:+g.target,months:g.months,give:Math.round(g.give)})),
    flash:S.fAns=="yes"?S.flash:null,forsa:S.dAns?{name:(S.dAns=="new"?S.forsa.new.name:S.forsa.used.name)||S.forsa.name,kind:S.dAns}:null};
@@ -383,16 +370,11 @@ function setup(ctx){
 }
 
 /* ================= tour ================= */
+// Beshr 2026-11-25: 3-step tour, one short line each (Quality lead cuts)
 const STEPS=[
- ["#gear","gear-six",["Settings","Language, arrange Home, bank messages, and this tour again. Share usage: only which screens you use, never amounts or names."],["الإعدادات","اللغة، ترتيب الرئيسية، رسائل البنك، وهذا الشرح مرة ثانية. مشاركة الاستخدام: بس أي شاشات تستخدم، أبداً مبالغ أو أسماء."]],
- [".srch","sparkle",["Search or ask","Find any item, or ask about your money: “How much did I spend on coffee?”"],["ابحث أو اسأل","دوّر أي غرض، أو اسأل عن فلوسك: «كم صرفت على القهوة؟»"]],
- ['.card[data-k="w"]',"wallet",["Wallet","Your money now and days to salary. Tap it for your monthly budget."],["المحفظة","فلوسك الحين وكم باقي على الراتب. اضغطها لميزانيتك الشهرية."]],
- ['.card[data-k="e"]',"receipt",["Expenses","Where your money went this month. Tap a slice of the ring for details."],["المصاريف","وين راحت فلوسك هالشهر. اضغط جزء من الدائرة للتفاصيل."]],
- ['.card[data-k="s"]',"shopping-cart",["Store","The cheapest shop for what you buy. Tap + on an item to build your shopping list."],["المتجر","أرخص محل للي تشتريه. اضغط + على الغرض عشان تبني قائمة التسوق."]],
- ['.card[data-k="f"]',"fire",["Forsa","Deals below market, used and new. Swipe right to keep one, left to hide it."],["فرصة","عروض أقل من السوق، مستعمل وجديد. اسحب يمين تحتفظ فيه، يسار تخفيه."]],
- [".abar .ab:nth-child(1)","plus-circle",["Add expense","Log a cost in two taps, or paste a bank message."],["أضف مصروف","سجّل مصروف بضغطتين، أو الصق رسالة البنك."]],
- [".abar .ab:nth-child(2)","camera",["Add bill","Take a photo of a receipt. Prices are saved and cheaper shops found."],["أضف فاتورة","صوّر الفاتورة. الأسعار تنحفظ ونلقى لك محلات أرخص."]],
- [".abar .ab:nth-child(3)","fire",["New hunt","Tell Forsa what you are looking for. New deals arrive during the day."],["صيد جديد","قول لفرصة وش تدور عليه. العروض الجديدة توصل خلال اليوم."]]];
+ ['.card[data-k="w"]',"wallet",["Wallet","Your money now. Tap for your budget."],["المحفظة","فلوسك الحين. اضغط لميزانيتك."]],
+ [".abar .ab:nth-child(1)","plus-circle",["Add expense","Log a cost in two taps."],["أضف مصروف","سجّل مصروف بضغطتين."]],
+ ['.card[data-k="f"]',"fire",["Forsa","Only sure deals below market."],["فرصة","بس العروض المضمونة الأرخص من السوق."]]];
 function tour(ctx){
  css();AR=(ctx&&ctx.lang)=="ar";if(document.getElementById("wtour"))return;
  const steps=STEPS.filter(s=>document.querySelector(s[0]));if(!steps.length)return;
@@ -461,9 +443,15 @@ function guide(ctx){
   <div class="gi">${T("Each time you pay with Apple Pay, your Shortcut opens the app with the payment and <b>the cost is saved by itself</b>. Set it up once, about 3 minutes.","كل ما تدفع بـ Apple Pay، الاختصار يفتح التطبيق مع الدفعة و<b>ينحفظ المصروف لحاله</b>. جهّزه مرة وحدة، تقريباً ٣ دقايق.")}${lk}</div>
   ${S.map((s,i)=>`<div class="st"><div class="sh"><span class="sn">${i+1}</span><div><b>${s[0]}</b><p>${s[1]}</p></div></div>${s[3]?lk:""}<div class="ios">${s[2]}</div></div>`).join("")}
   <div class="done">${T("Illustrations, not real screenshots. Your iPhone may look a little different.","رسومات توضيحية، مو صور حقيقية. جوالك ممكن يختلف شوي.")}</div></div>`;
+ if(ctx&&ctx.first){w.classList.add("pg");w.insertAdjacentHTML("beforeend",`<div class="gft"><button class="gl">${T("Later","بعدين")}</button><span class="gc"></span><button class="gn">${T("Next","التالي")}</button></div>`)}
  document.body.appendChild(w);requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add("on")));
  const close=()=>{w.classList.remove("on");setTimeout(()=>w.remove(),380);ctx&&ctx.done&&ctx.done()};
  w.querySelector(".wgh button").onclick=close;
+ // first run (Beshr 2026-11-25): guide opens by itself after setup, one short step per screen, with Later
+ if(ctx&&ctx.first){const st=[...w.querySelectorAll(".st")],gi=w.querySelector(".gi"),gs=w.querySelector(".gs");let i=0;
+  const show=()=>{st.forEach((x,k)=>x.classList.toggle("cur",k==i));gi.style.display=i?"none":"";w.querySelector(".gc").textContent=T(`${i+1} of ${st.length}`,`${i+1} من ${st.length}`);w.querySelector(".gn").textContent=i==st.length-1?T("Done","تم"):T("Next","التالي");gs.scrollTop=0};
+  w.querySelector(".gl").onclick=()=>{window.track&&window.track("shortcut_later","guide","s"+(i+1));close()};
+  w.querySelector(".gn").onclick=()=>{if(i==st.length-1)return close();i++;show()};show()}
  w.addEventListener("click",async e=>{const b=e.target.closest("[data-cp]");if(!b)return;try{await navigator.clipboard.writeText(link);b.textContent=T("Copied","انتسخ")}catch(_){b.textContent=T("Hold to copy","اضغط مطولاً")}setTimeout(()=>b.textContent=T("Copy","انسخ"),1600)});
  return {close,el:w};
 }
