@@ -269,7 +269,7 @@ function flashHTML(f,ans,v){
  return `<div class="cd tab fcard${ans?" done":""}"><span class="ctb">${PH("shopping-cart")}</span><div class="ck">${T("Store","المتجر")}<span class="bdg">${PH("fire")} ${T("Flash sale","تخفيض سريع")}</span></div>${body}
   <div class="fbtns"><button class="fadd${ans=="yes"?" on":""}" data-fa="yes">${ans=="yes"?`<span class="fck"></span>${T("Added to your list","انضاف لقائمتك")}`:`${PH("plus-circle")} ${T("Add to my shopping list","أضفه لقائمة التسوق")}`}</button>
   <button class="fno${ans=="no"?" on":""}" data-fa="no">${T("Not for me","ما يناسبني")}</button></div></div>
-  <div class="say">${ans=="yes"?T(`<b>Store</b> will always point you to the cheapest shop for it.`,`<b>المتجر</b> بيوريك دايماً أرخص محل له.`):ans=="no"?T("No problem. Store learns what you like from your receipts.","ولا يهمك. المتجر يتعلم اللي تحبه من فواتيرك."):""}</div>`}
+  <div class="say">${ans=="yes"?T(`<b>Store</b> shows you the lowest price we've seen for it, and where.`,`<b>المتجر</b> يوريك أقل سعر شفناه له، ووين.`):ans=="no"?T("No problem. Store learns what you like from your receipts.","ولا يهمك. المتجر يتعلم اللي تحبه من فواتيرك."):""}</div>`}
 function flashAnim(root){const el=root.querySelector(".fnew");if(!el)return;const bars=root.querySelectorAll(".fdb i");
  if(el.dataset.done||root.querySelector(".fadd.on,.fno.on")){bars.forEach(i=>{i.style.transition="none";i.style.width=i.dataset.w});return}
  el.dataset.done=1;const a=+el.dataset.from,b=+el.dataset.to,t0=performance.now();
