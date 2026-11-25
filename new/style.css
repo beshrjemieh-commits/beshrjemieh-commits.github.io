@@ -461,3 +461,8 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 /* 2026-11-25 walk-through: back chevron on Store/Forsa full pages (replaces the tab icon once open) */
 .cbk{position:absolute;top:0;inset-inline-start:0;margin-inline-start:var(--cp,0px);width:44px;height:44px;display:grid;place-items:center;font-size:24px;line-height:0;color:#2563EB;opacity:0;z-index:3;pointer-events:none}
 #chip{transition:opacity .25s}
+/* Share usage switch row (2026-11-25) */
+#susage{height:auto;min-height:48px;padding:10px 14px;justify-content:flex-start;text-align:start;gap:10px}
+#susage>span{flex:1;min-width:0}
+#susage .usw{flex:none;font-size:13px;padding:4px 10px;border-radius:12px;background:#DBEAFE;color:#1D4ED8}
+#susage[aria-checked="false"] .usw{background:#E2E8F0;color:#64748B}

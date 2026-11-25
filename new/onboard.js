@@ -384,7 +384,7 @@ function setup(ctx){
 
 /* ================= tour ================= */
 const STEPS=[
- ["#gear","gear-six",["Settings","Language, arrange Home, bank messages, and this tour again."],["الإعدادات","اللغة، ترتيب الرئيسية، رسائل البنك، وهذا الشرح مرة ثانية."]],
+ ["#gear","gear-six",["Settings","Language, arrange Home, bank messages, and this tour again. Share usage is on: only which screens you use, never amounts or names."],["الإعدادات","اللغة، ترتيب الرئيسية، رسائل البنك، وهذا الشرح مرة ثانية. مشاركة الاستخدام شغّالة: بس أي شاشات تستخدم، أبداً مبالغ أو أسماء."]],
  [".srch","sparkle",["Search or ask","Find any item, or ask about your money: “How much did I spend on coffee?”"],["ابحث أو اسأل","دوّر أي غرض، أو اسأل عن فلوسك: «كم صرفت على القهوة؟»"]],
  ['.card[data-k="w"]',"wallet",["Wallet","Your money now and days to salary. Tap it for your monthly budget."],["المحفظة","فلوسك الحين وكم باقي على الراتب. اضغطها لميزانيتك الشهرية."]],
  ['.card[data-k="e"]',"receipt",["Expenses","Where your money went this month. Tap a slice of the ring for details."],["المصاريف","وين راحت فلوسك هالشهر. اضغط جزء من الدائرة للتفاصيل."]],
@@ -408,9 +408,9 @@ function tour(ctx){
   // wide screens (tablet/computer): a phone-width tip next to its target, arrow kept on the target
   const tw=Math.min(innerWidth-32,400),cx=r.left+r.width/2,tl=Math.max(16,Math.min(innerWidth-16-tw,cx-tw/2));tip.style.left=tl+"px";tip.style.right="auto";tip.style.width=tw+"px";
   tip.style.setProperty("--ax",Math.max(24,Math.min(tw-40,cx-16-(tl-16)))+"px")}
- function next(){i++;if(i>=steps.length)return end();show()}
+ function next(){i++;window.track&&window.track(i>=steps.length?"tour_done":"tour_step","tour","s"+i);if(i>=steps.length)return end();show()}
  function end(){w.style.transition="opacity .25s";w.style.opacity=0;setTimeout(()=>w.remove(),260);ctx&&ctx.done&&ctx.done()}
- w.querySelector(".nx").onclick=e=>{e.stopPropagation();next()};w.querySelector(".wsk").onclick=e=>{e.stopPropagation();end()};
+ w.querySelector(".nx").onclick=e=>{e.stopPropagation();next()};w.querySelector(".wsk").onclick=e=>{e.stopPropagation();window.track&&window.track("tour_skip","tour","s"+(i+1));end()};
  w.addEventListener("click",e=>{if(!tip.contains(e.target))next()});
  addEventListener("resize",()=>document.getElementById("wtour")&&show());
  show();return {next,end};

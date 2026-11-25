@@ -61,7 +61,7 @@ const grpName=k=>{const g=PG.find(x=>x[0]==k)||PG.at(-1);return tx(g[1],g[2])};
 const byGroup=(list,fn)=>PG.map(([k])=>[k,list.filter(x=>x.grp==k)]).filter(([,a])=>a.length).map(([k,a])=>`<h5 class="gh">${grpName(k)} · ${a.length}</h5>`+a.map(fn).join("")).join("");
 // ---------- data ----------
 const SB_URL="https://rvqjjbgeossfygaglohe.supabase.co",SB_KEY="sb_publishable_DSFK-TyIwyuAzYjF0mWWNA_vOedk4zz";
-const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,lock:async(n,t,fn)=>fn()}});
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,lock:async(n,t,fn)=>fn()}});window._sb=sb;
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 async function put(coll,id,data){const {error}=await sb.from("app_docs").upsert({coll,id,data,updated_at:new Date().toISOString()},{onConflict:"user_id,coll,id"});if(error)throw error}
 async function del(coll,id){const {error}=await sb.from("app_docs").delete().eq("coll",coll).eq("id",id);if(error)throw error}
@@ -313,7 +313,7 @@ function build(m){
  // Beshr 2026-11-24: top box = what he saves by buying each item on his shopping list at its cheapest store (all his items when the list is empty)
  const ALLG=CATS.flatMap(c=>c.mine).filter(x=>x.hi&&x.hi.price>x.lo.price);
  // one save after quick taps, always the latest list (two fast + taps could save out of order)
- let shopT=0;window._saveShop=msg=>{clearTimeout(shopT);shopT=setTimeout(()=>put("settings","shopping",{keys:m.shopKeys.slice(),qty:Object.fromEntries(m.shopKeys.map(k=>[k,m.shopQty[k]||1]))}).then(()=>msg&&window._toast(msg)).catch(()=>window._toast(tx("Couldn't save","ما انحفظ"))),350)};
+ let shopT=0;window._saveShop=msg=>{window.track&&window.track("list_change","store","");clearTimeout(shopT);shopT=setTimeout(()=>put("settings","shopping",{keys:m.shopKeys.slice(),qty:Object.fromEntries(m.shopKeys.map(k=>[k,m.shopQty[k]||1]))}).then(()=>msg&&window._toast(msg)).catch(()=>window._toast(tx("Couldn't save","ما انحفظ"))),350)};
  window._shopRefresh=()=>{window._ptSync&&window._ptSync();m.list=m.shopKeys.map(k=>m.G2.find(g=>g.k==k)).filter(Boolean);const el=document.getElementById("shoptop");if(el)el.innerHTML=m._shopTop();const ls=document.getElementById("slsheet");if(ls){ls.innerHTML=m._listRows();const h=document.querySelector("#sheet .sln-n");if(h)h.textContent=m.list.length}};
  // top box + shopping list as one block, rebuilt in place when he adds/removes (no page reload: Beshr saw a jump + lag)
  const HI=new Map(ALLG.map(x=>[x.k,x])),QY=k=>Math.max(1,+m.shopQty[k]||1);
@@ -465,7 +465,7 @@ function start(m,soft){
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
   if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav,.fkind,.achips"))return;
-  if(!OK){OK=c.dataset.k;TL.tap=t;TL.close=1e9;c.scrollTop=0;if(OK=="f"&&window._fBest)window._fBest();return}
+  if(!OK){OK=c.dataset.k;window.track&&window.track("open","home",{w:"wallet",e:"expenses",s:"store",f:"forsa"}[OK]);TL.tap=t;TL.close=1e9;c.scrollTop=0;if(OK=="f"&&window._fBest)window._fBest();return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
  try{document.documentElement.style.setProperty("--fire",PHurl("fire"))}catch(e){}
@@ -494,7 +494,7 @@ function start(m,soft){
   const save=(d,st)=>{const raw=Object.assign({},d.raw);delete raw.id;delete raw.shared;raw.status=st;put("deals",d.id,raw).catch(()=>toast(tx("Couldn't save","ما انحفظ")))};
   const fling=(dir)=>{const el=[...deck.querySelectorAll(".dk")].pop(),d=q[0];if(!el||!d)return;const w=dir>0?1:-1;
    el.style.transition="transform .32s cubic-bezier(.3,.6,.2,1),opacity .32s";el.style.transform=`translate(${w*460}px,-30px) rotate(${w*22}deg)`;el.style.opacity="0";
-   q.shift();qAll=qAll.filter(x=>x!==d);d.status=w>0?"saved":"hidden";save(d,d.status);
+   q.shift();qAll=qAll.filter(x=>x!==d);d.status=w>0?"saved":"hidden";save(d,d.status);window.track&&window.track(w>0?"save":"hide","forsa",d.kind||"");
    if(w>0){const ke=fc.querySelector(".kempty");if(ke)ke.remove();showKept()}
    FT.forEach((t,i)=>{const b=fc.querySelector(`.ftabs [data-ft="${i}"] span`);if(b)b.textContent=t.list.filter(x=>x.status!="saved"&&x.status!="hidden").length});
    try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}if(dMode==2){setTimeout(()=>fw.querySelector(".cwb").click(),380);return}setTimeout(()=>{chips();draw();deck.querySelectorAll(".dk").forEach(x=>{x.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)"})},300)};
@@ -533,7 +533,7 @@ function start(m,soft){
   try{seen.push(key);localStorage.setItem("w-smsseen",JSON.stringify(seen.slice(-30)))}catch(e){}
   const tot=its.reduce((x,y)=>x+y.amount,0);reload();setTimeout(()=>{const ap=document.getElementById("app");ap.insertAdjacentHTML("beforeend",`<button class="smsbar">${PH("receipt")}<span>${tx(`Logged ${RS}${p2(tot)}`,`انسجّل ${RS}${p2(tot)}`)} · ${esc(its[0].note).slice(0,22)}</span><b>${tx("Undo","تراجع")}</b></button>`);const bar=ap.querySelector(".smsbar");const kill=setTimeout(()=>bar.remove(),8000);
    bar.onclick=async()=>{clearTimeout(kill);bar.remove();try{for(const id of ids)await del("expenses",id);seen=seen.filter(x=>x!=key);localStorage.setItem("w-smsseen",JSON.stringify(seen))}catch(e){toast(tx("Couldn't undo","ما قدرت أتراجع"));return}toast(tx("Removed","انحذف"));reload()}},1200)};
- const addCost=async(amount,cat,note,date)=>{const d=/^\d{4}-\d{2}-\d{2}$/.test(date||"")&&date<=ymd(new Date())?date:ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
+ const addCost=async(amount,cat,note,date)=>{window.track&&window.track("add_cost","expenses","");const d=/^\d{4}-\d{2}-\d{2}$/.test(date||"")&&date<=ymd(new Date())?date:ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now()})};
  const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
   // fetch fresh data and redraw in place, keeping the same card/window open (no page reload, no loading screen)
   load().then(R=>{saveCache(R);const keep=[...document.querySelectorAll("#app>.toast")];start(model(R),1);const a=document.getElementById("app");keep.forEach(t=>a.appendChild(t))}).catch(()=>setTimeout(()=>location.reload(),300))};
@@ -560,7 +560,7 @@ function start(m,soft){
   ()=>show(ACC.e,`<h3><span style="color:${ACC.e};line-height:0">${PH("receipt")}</span>${tx("Add bill","أضف فاتورة")}</h3><div class="pick"><label><span>${PH("camera")}</span>${tx("Take photo","صوّر")}<input type="file" accept="image/*" capture="environment" hidden></label><label><span>${PH("file-arrow-up")}</span>${tx("Upload file","ارفع ملف")}<input type="file" accept="image/*,application/pdf" hidden></label></div><div class="bres"></div>`,()=>{
    const out=sh.querySelector(".bres");sh.querySelectorAll(".pick input").forEach(inp=>inp.onchange=async()=>{const f=inp.files&&inp.files[0];inp.value="";if(!f)return;
     sh.querySelector(".pick").style.display="none";out.innerHTML=`<span class="think" style="justify-content:center;margin:18px 0"><i></i>${tx("Reading your bill","أقرأ فاتورتك")}</span>`;
-    try{const r=await readBill(f),items=r.items;
+    try{const r=await readBill(f),items=r.items;window.track&&window.track("bill_read","bills","");
      if(!items.length){out.innerHTML=`<div class="empty">${tx("Couldn't find items on this bill. Try a clearer photo.","ما لقيت أغراض في الفاتورة. جرّب صورة أوضح.")}</div>`;sh.querySelector(".pick").style.display="";return}
      out.innerHTML=`<input class="txt bst" value="${esc(r.store)}" placeholder="${tx("Store","المتجر")}"><div class="bmeta">${esc(r.date)}${r.total?` · ${tx("Total","المجموع")} ${M(r.total)}`:""}</div><div class="blist">${items.map((x,i)=>`<label class="bit"><input type="checkbox" checked data-i="${i}"><span>${esc(x.item)}${x.size?` <small class="ds">${esc(x.size)}</small>`:""}</span><b>${M(x.price.toFixed(x.price%1?2:0))}</b></label>`).join("")}</div><button class="go" id="bsv">${tx(`Save ${items.length} prices`,`احفظ ${items.length} سعر`)}</button>`;
      const b=document.getElementById("bsv"),cnt=()=>{const n=out.querySelectorAll(".bit input:checked").length;b.textContent=tx(`Save ${n} prices`,`احفظ ${n} سعر`);b.disabled=!n};out.querySelectorAll(".bit input").forEach(c=>c.onchange=cnt);
@@ -579,7 +579,7 @@ function start(m,soft){
      try{await put("settings","hunt",h);window._huntDirty=1}catch(e){toast(tx("Couldn't save","ما انحفظ"))}return}
     if(t){q.value=t.dataset.ht;q.focus()}};
    b.onclick=async()=>{const v=norm(q.value);if(!v)return;b.disabled=true;const h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(x=>x.toLowerCase()!=v.toLowerCase()).concat(v);h.requestedAt=Date.now();try{await put("settings","hunt",h);close();toast(tx("Hunt saved. Results come at the next check.","انحفظ. النتائج بالفحص الجاي."));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}})];
- document.querySelectorAll(".abar .ab").forEach((b,i)=>b.onclick=()=>{if(!OK)ACT[i]()});
+ document.querySelectorAll(".abar .ab").forEach((b,i)=>b.onclick=()=>{if(!OK){window.track&&window.track("tap","home",["add_expense","add_bill","new_hunt"][i]);ACT[i]()}});
  // ---- search or ask (Beshr 2026-11-24): a question about his money goes to the AI with his numbers; item search stays below as a fallback ----
  const askData=()=>{const t=new Date(),d=n=>{const x=new Date(t);x.setDate(x.getDate()-n);return ymd(x)},sum=a=>Math.round(a.reduce((s,x)=>s+x.amount,0)*100)/100;
   const L=[`Today: ${m.today} (${t.toLocaleDateString("en-GB",{weekday:"long"})}). Now ${t.toTimeString().slice(0,5)}.`,
@@ -787,6 +787,7 @@ ${q}`;
    <div class="setl">${PH("translate")}<span>${tx("Language","اللغة")}</span></div><div class="cwseg" style="margin:0 0 16px"><button data-l="en" class="${AR?"":"on"}">English</button><button data-l="ar" class="${AR?"on":""}">العربية</button></div>
    <button class="setb" id="ssms">${PH("receipt")}<span>${tx("Bank messages (automatic)","رسائل البنك (تلقائي)")}</span></button>
    <button class="setb" id="sguide">${PH("credit-card")}<span>${tx("Connect bank messages (Shortcut)","ربط رسائل البنك (اختصار)")}</span></button>
+   <button class="setb" id="susage" role="switch" aria-checked="${window.trackIsOn&&window.trackIsOn()?"true":"false"}">${PH("chart-pie-slice")}<span>${tx("Share usage","مشاركة الاستخدام")}<small style="display:block;font-size:12px;color:#64748B;font-weight:400">${tx("Only which screens and buttons you use. Never amounts, names or messages.","بس أي شاشات وأزرار تستخدم. أبداً ما نشارك مبالغ أو أسماء أو رسائل.")}</small></span><b class="usw">${window.trackIsOn&&window.trackIsOn()?tx("On","شغّال"):tx("Off","مطفي")}</b></button>
    <button class="setb" id="stour">${PH("info")}<span>${tx("How to use the app","طريقة استخدام التطبيق")}</span></button>
    <button class="setb" id="sq">${PH("list")}<span>${tx("First-time questions","أسئلة البداية")}</span></button>
    <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
@@ -794,6 +795,7 @@ ${q}`;
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
    document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
+   {const u=document.getElementById("susage");if(u)u.onclick=()=>{const on=!(window.trackIsOn&&window.trackIsOn());window.trackOn&&window.trackOn(on);u.setAttribute("aria-checked",on);u.querySelector(".usw").textContent=on?tx("On","شغّال"):tx("Off","مطفي")}}
    document.getElementById("ssms").onclick=()=>{close();setTimeout(smsSetup,350)};
    document.getElementById("sguide").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en"}),350)};
    document.getElementById("stour").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),400)};
