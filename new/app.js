@@ -888,23 +888,16 @@ ${q}`;
     arm(async()=>{await del("goals",id);done(tx("Deleted","انحذف"))})})};
   dAdd("click",ev=>{const x=ev.target.closest("[data-xid]"),a=ev.target.closest("[data-act]");if(!x&&!a)return;if(!sh.contains(ev.target)&&!OK)return;ev.stopPropagation();ev.preventDefault();
    if(x)return editCost(x.dataset.xid);const k=a.dataset.act,id=a.dataset.id||"";if(k=="bal")editBal();else if(k=="inc")editInc();else if(k=="debt")editDebt(id);else if(k=="goal")editGoal(id)},true); }
- // ---- bank messages, fully automatic (Beshr 2026-11-24): the iPhone Shortcut sends each bank SMS to log_sms with his personal key; nothing opens ----
- const smsSetup=async()=>{const url=SB_URL+"/rest/v1/rpc/log_sms?apikey="+SB_KEY;
-  show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("receipt")}</span>${tx("Bank messages","رسائل البنك")}</h3><div id="smss"><span class="think"><i></i>${tx("Getting your key","أجيب مفتاحك")}</span></div>`,()=>{});
-  let key="";try{const r=await sb.rpc("my_sms_key");if(r.error)throw r.error;key=r.data||""}catch(e){}
-  const box=document.getElementById("smss");if(!box)return;
-  if(!key){box.innerHTML=`<p class="ds">${tx("One setup step is still missing in Supabase. Paste the setup code there first, then open this again.","باقي خطوة إعداد في Supabase. الصق كود الإعداد هناك أول، بعدين افتح هذي مرة ثانية.")}</p>`;return}
-  const row=(l,v,id)=>`<div class="smsk"><small>${l}</small><code dir="ltr">${esc(v)}</code><button class="go2" data-cp="${id}">${tx("Copy","نسخ")}</button></div>`;
-  box.innerHTML=`<p class="ds" style="margin:0 0 10px">${tx("Your Shortcut sends each bank message here and the cost is saved by itself. Nothing opens.","الاختصار يرسل كل رسالة بنك هنا وينحفظ المصروف لحاله. ما يفتح شي.")}</p>${row(tx("1 · Address (URL)","١ · العنوان (URL)"),url,"u")}${row(tx("2 · Your key (k)","٢ · مفتاحك (k)"),key,"k")}<button class="go" id="smst">${tx("Send a test message","أرسل رسالة تجربة")}</button><div id="smsr" class="ds" style="margin-top:8px;text-align:center"></div>`;
-  box.onclick=async ev=>{const c=ev.target.closest("[data-cp]");if(!c)return;try{await navigator.clipboard.writeText(c.dataset.cp=="u"?url:key);toast(tx("Copied","انتسخ"))}catch(e){toast(tx("Couldn't copy, hold the text to copy it","ما انتسخ، اضغط مطولاً على النص"))}};
-  document.getElementById("smst").onclick=async()=>{const out=document.getElementById("smsr");out.textContent=tx("Sending…","أرسل…");
-   try{const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({k:key,msg:"Purchase\nAmount: SAR 1\nAt: TEST CHECK "+Date.now()})});const j=await r.json();if(!r.ok)throw j;
-    out.textContent=String(j).startsWith("Logged")?tx("It works. The test cost was saved and removed again.","شغّال. انحفظ مصروف التجربة وانحذف."):String(j);
-    await sb.from("app_docs").delete().eq("coll","expenses").like("data->>note","TEST CHECK%")}catch(e){out.textContent=tx("Didn't work: ","ما اشتغل: ")+((e&&e.message)||"")}}};
+ // ---- bank messages, fully automatic: the Shortcut (iPhone) or MacroDroid (Android) sends each bank SMS to log_sms with the user's key; guide = WOB.guide (new/onboard.js) ----
+ const SMS_URL=SB_URL+"/rest/v1/rpc/log_sms?apikey="+SB_KEY,SHORTCUT_LINK="";// iCloud link of the shared "Wallet bank messages" Shortcut (Beshr makes it once)
+ const smsGuide=first=>window.WOB&&WOB.guide({lang:AR?"ar":"en",first,smsUrl:SMS_URL,shortcut:SHORTCUT_LINK,
+  getKey:async()=>{const r=await sb.rpc("my_sms_key");if(r.error)throw r.error;return r.data||""},
+  newKey:async()=>{const r=await sb.rpc("rotate_sms_key");if(r.error)throw r.error;return r.data||""},
+  test:async k=>{const r=await fetch(SMS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({k,msg:"Purchase\nAmount: SAR 1\nAt: TEST CHECK "+Date.now()})});const j=await r.json();
+   try{await sb.from("app_docs").delete().eq("coll","expenses").like("data->>note","TEST CHECK%")}catch(e){}return r.ok?String(j):""}});
  document.getElementById("gear").onclick=()=>{if(OK)return;show(NAVY,`<h3><span style="color:${NAVY};line-height:0">${PH("gear-six")}</span>${tx("Settings","الإعدادات")}</h3>
    <div class="setl">${PH("translate")}<span>${tx("Language","اللغة")}</span></div><div class="cwseg" style="margin:0 0 16px"><button data-l="en" class="${AR?"":"on"}">English</button><button data-l="ar" class="${AR?"on":""}">العربية</button></div>
-   <button class="setb" id="ssms">${PH("receipt")}<span>${tx("Bank messages (automatic)","رسائل البنك (تلقائي)")}</span></button>
-   <button class="setb" id="sguide">${PH("credit-card")}<span>${tx("Connect bank messages (Shortcut)","ربط رسائل البنك (اختصار)")}</span></button>
+   <button class="setb" id="sguide">${PH("receipt")}<span>${tx("Bank messages (automatic)","رسائل البنك (تلقائي)")}</span></button>
    <button class="setb" id="susage" role="switch" aria-checked="${window.trackIsOn&&window.trackIsOn()?"true":"false"}">${PH("chart-pie-slice")}<span>${tx("Share usage","مشاركة الاستخدام")}<small style="display:block;font-size:12px;color:#64748B;font-weight:400">${tx("Only which screens and buttons you use. Never amounts, names or messages.","بس أي شاشات وأزرار تستخدم. أبداً ما نشارك مبالغ أو أسماء أو رسائل.")}</small></span><b class="usw">${window.trackIsOn&&window.trackIsOn()?tx("On","شغّال"):tx("Off","مطفي")}</b></button>
    <button class="setb" id="sinv">${PH("users")}<span>${tx("Invite a friend","ادعُ صديقًا")}</span></button>
    <button class="setb" id="stour">${PH("info")}<span>${tx("How to use the app","طريقة استخدام التطبيق")}</span></button>
@@ -918,8 +911,7 @@ ${q}`;
     try{if(navigator.share){await navigator.share({title:tx("Smart wallet","المحفظة الذكية"),text,url});window.track&&window.track("invite_sent","settings","share");return}}catch(e){if(e&&e.name=="AbortError")return}
     try{await navigator.clipboard.writeText(text+" "+url);window.track&&window.track("invite_sent","settings","copy");const sp=iv.querySelector("span");sp.textContent=tx("Link copied","انتسخ الرابط");setTimeout(()=>sp.textContent=tx("Invite a friend","ادعُ صديقًا"),2000)}catch(e){iv.querySelector("span").textContent=url}}}
    {const u=document.getElementById("susage");if(u)u.onclick=()=>{const on=!(window.trackIsOn&&window.trackIsOn());window.trackOn&&window.trackOn(on);u.setAttribute("aria-checked",on);u.querySelector(".usw").textContent=on?tx("On","شغّال"):tx("Off","مطفي")}}
-   document.getElementById("ssms").onclick=()=>{close();setTimeout(smsSetup,350)};
-   document.getElementById("sguide").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en"}),350)};
+   document.getElementById("sguide").onclick=()=>{close();setTimeout(()=>smsGuide(0),350)};
    document.getElementById("stour").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),400)};
    document.getElementById("sq").onclick=()=>{close();setTimeout(()=>wobSetup(true),350)};
    document.getElementById("sout").onclick=async()=>{try{localStorage.removeItem("w-cache");await sb.auth.signOut()}catch(e){}location.reload()}})};
@@ -929,7 +921,7 @@ ${q}`;
    save:a=>wobSave(m,a),skip:async()=>{await put("settings","profile",Object.assign({},m.prof,{setup:{at:Date.now(),skipped:true}}));await wobCache()},
    done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"||how=="home"){try{localStorage.setItem(how=="tour"?"w-tour-next":"w-guide-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
  if(!soft&&!window._wobShown&&!m.income&&!m.prof.setup)setTimeout(()=>wobSetup(false),250);
- try{if(!soft&&localStorage.getItem("w-guide-next")){localStorage.removeItem("w-guide-next");setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en",first:1}),700)}else if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en",done:()=>setTimeout(()=>WOB.guide({lang:AR?"ar":"en",first:1}),450)}),700)}}catch(e){}
+ try{if(!soft&&localStorage.getItem("w-guide-next")){localStorage.removeItem("w-guide-next");setTimeout(()=>smsGuide(1),700)}else if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en",done:()=>setTimeout(()=>smsGuide(1),450)}),700)}}catch(e){}
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}

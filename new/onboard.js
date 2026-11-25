@@ -2,7 +2,7 @@
    Light mode, original look (white top + navy wave, corner-tab cards, IBM Plex, Phosphor icons), English + Arabic.
    window.WOB.setup(ctx)  first-time questions (6 steps + "Here is your month"); ctx.save(answers) stores them, ctx.done(how) after
    window.WOB.tour(ctx)   3-screen intro: bank messages add themselves, shoppers' bills find the cheapest, one Forsa search
-   window.WOB.guide(ctx)  12 drawn steps to set up Beshr's original Shortcut (Wallet tap -> Text -> Copy -> open app with ?sms=) */
+   window.WOB.guide(ctx)  bank-message setup: how-to video + 5 steps (iPhone Shortcut / Android MacroDroid) */
 (function(){
 const PH=n=>window.PH?window.PH(n):"";
 const RS="⃁",nf=new Intl.NumberFormat("en-US"),fm=n=>nf.format(Math.round(+n||0)),M=v=>`<bdi dir="ltr">${RS}${typeof v=="number"?(v%1?v.toFixed(2):fm(v)):v}</bdi>`;
@@ -209,7 +209,7 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wit .xpc{background:${GR};color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:2px 6px}
 .wit .xad{display:flex;gap:8px;margin-top:10px;padding:9px 10px;border-radius:10px;background:#FFFBEB;border-inline-start:3px solid ${AMB};font-size:14px;color:#334155}.wit .xad svg{color:#B45309;font-size:18px;flex:none;margin-top:1px}.wit .xad b{display:block;color:#0F172A}
 /* ---- Shortcut guide ---- */
-.wgd.pg .st{display:none}.wgd.pg .st.cur{display:block}.wgd.pg .done{display:none}.wgd.pg .gs{padding-bottom:90px}.wgd .gft{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #E2E8F0}.wgd .gft button{height:44px;border:0;border-radius:12px;font:600 15px inherit;font-family:inherit;padding:0 18px}.wgd .gl{background:#F1F5F9;color:#0F172A}.wgd .gn{background:#2563EB;color:#fff;flex:1}.wgd .gc{font-size:13px;color:#64748B;min-width:52px;text-align:center}
+.wgd.pg .gs{padding-bottom:90px}.wgd .gft{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #E2E8F0}.wgd .gft button{height:44px;border:0;border-radius:12px;font:600 15px inherit;font-family:inherit;padding:0 18px}.wgd .gl{background:#F1F5F9;color:#0F172A}.wgd .gn{background:#2563EB;color:#fff;flex:1}.wgd .gc{font-size:13px;color:#64748B;min-width:52px;text-align:center}
 .wgd{position:fixed;inset:0;z-index:9050;background:#F1F5F9;display:flex;flex-direction:column;font-family:"Riyal","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased;color:#0F172A;transform:translateY(100%);transition:transform .38s cubic-bezier(.3,.7,.2,1)}
 .wgd[dir=rtl]{font-family:"Riyal","IBM Plex Sans Arabic","IBM Plex Sans",sans-serif}
 .wgd.on{transform:none}
@@ -221,41 +221,12 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wgd .gi{background:#fff;border-radius:16px;padding:14px;font-size:15px;line-height:1.5;color:#334155;margin-bottom:12px}
 .wgd[dir=rtl] .gi{line-height:1.7}
 .wgd .gi b{color:${NAVY}}
-.wgd .lk{display:flex;align-items:center;gap:8px;margin-top:10px;background:#F1F5F9;border-radius:10px;padding:8px 8px 8px 12px}
-.wgd .lk code{flex:1;min-width:0;font:500 13px Riyal,"IBM Plex Sans",sans-serif;color:${BLUE};direction:ltr;text-align:left;overflow-wrap:anywhere}
-.wgd .lk button{height:32px;padding:0 12px;border:0;border-radius:9px;background:${BLUE};color:#fff;font:600 13px inherit;cursor:pointer;flex:none}
-.wgd .st{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px}
-.wgd .sh{display:flex;gap:10px;align-items:flex-start}
-.wgd .sn{width:28px;height:28px;border-radius:14px;background:${NAVY};color:#fff;font-size:14px;font-weight:600;display:grid;place-items:center;flex:none}
-.wgd .sh b{display:block;font-size:16px;font-weight:600;color:${NAVY};line-height:1.35;padding-top:3px}
-.wgd .sh p{margin:3px 0 0;font-size:14px;color:${G};line-height:1.45}
-.wgd[dir=rtl] .sh p{line-height:1.7}
-.wgd .ios{margin:12px auto 0;width:252px;border-radius:30px;border:7px solid #1E293B;background:#F2F2F7;overflow:hidden;position:relative;font:13px "Riyal",-apple-system,"SF Pro Text","IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;color:#000}
-.wgd .ios .sbar{display:flex;justify-content:space-between;padding:8px 16px 4px;font-size:11px;font-weight:600;direction:ltr}
-.wgd .ios .nav{display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;font-size:13px}
-.wgd .ios .nav b{font-weight:600}
-.wgd .ios .nav .a{color:#007AFF}
-.wgd .ios .wbig{font-size:22px;font-weight:700;padding:0 12px 8px}
-.wgd .ios .grp{background:#fff;border-radius:10px;margin:0 10px 8px;overflow:hidden}
-.wgd .ios .it{display:flex;align-items:center;gap:8px;padding:9px 10px;border-top:.5px solid #E5E5EA;min-height:18px}
-.wgd .ios .it:first-child{border-top:0}
-.wgd .ios .it i{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;color:#fff;font-size:13px;font-style:normal;flex:none}
-.wgd .ios .it span{flex:1}
-.wgd .ios .it .hl{flex:none}
-.wgd .ios .it em{font-style:normal;color:#8E8E93}
-.wgd .ios .act{background:#fff;border-radius:10px;margin:0 10px 8px;padding:9px 10px;line-height:1.6}
-.wgd .ios .act .an{display:flex;align-items:center;gap:6px;font-weight:600}
-.wgd .ios .act .an i{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;color:#fff;font-size:11px;font-style:normal}
-.wgd .ios .tok{display:inline-block;padding:0 5px;border-radius:5px;background:#E1EDFF;color:#007AFF;line-height:1.5}
-.wgd .ios .tok.y{background:#FFF1D6;color:#B26B00}
-.wgd .ios .tabs{display:flex;justify-content:space-around;border-top:.5px solid #D1D1D6;background:#F9F9F9;padding:6px 0 10px;font-size:10px;color:#8E8E93}
-.wgd .ios .tabs span{text-align:center}
-.wgd .ios .tabs .on{color:#007AFF}
-.wgd .ios .sp{height:12px}
-.wgd .ios .wsrch{margin:0 10px 8px;background:#E3E3E8;border-radius:9px;padding:6px 10px;color:#8E8E93}
-.wgd .ios .ban{margin:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;gap:8px;align-items:center}
-.wgd .hl{position:relative;outline:2px solid ${BLUE};outline-offset:2px;border-radius:7px}
-.wgd .hl::after{content:attr(data-n);position:absolute;top:-10px;inset-inline-end:-8px;background:${BLUE};color:#fff;font:600 10px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;padding:2px 6px;border-radius:8px;white-space:nowrap;z-index:2}
+.wgd .vid{display:block;margin:0 auto 12px;width:min(78vw,300px);aspect-ratio:392/852;max-height:42vh;border-radius:22px;background:#E2E8F0;box-shadow:0 6px 20px rgba(15,42,74,.14);object-fit:contain}
+.wgd .gb{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border:0;border-radius:14px;background:${BLUE};color:#fff;font:600 16px inherit;font-family:inherit;cursor:pointer;margin-bottom:10px}
+.wgd .gb.l{background:#EEF2F7;color:${NAVY}}.wgd .gb.s{height:40px;font-size:14px;margin:0}
+.wgd .gr{display:flex;gap:8px;margin-top:4px}
+.wgd ol{margin:0;padding-inline-start:20px;font-size:15px;line-height:1.55;color:#334155}.wgd ol li{margin:3px 0}.wgd ol b{color:${NAVY}}
+.wgd .gout{min-height:20px;margin-top:8px;font-size:14px;text-align:center;color:${G}}.wgd .gout.ok{color:${GR}}
 .wgd .done{text-align:center;padding:18px 14px;color:${G};font-size:14px}
 `;
 let cssOn=false;const css=()=>{if(cssOn)return;cssOn=true;const s=document.createElement("style");s.textContent=CSS;document.head.appendChild(s)};
@@ -415,61 +386,52 @@ function tour(ctx){
  paint();return {end};
 }
 
-/* ================= Shortcut guide (Beshr's original: Wallet tap -> Text -> Copy -> open app) ================= */
+/* ================= Bank-message guide (2026-11-25): 5 steps + how-to video; the Shortcut sends each bank SMS to log_sms with the user's key ================= */
+// ctx: lang, first, done, getKey(), newKey(), test(key), smsUrl, shortcut (iCloud link of the shared Shortcut)
 function guide(ctx){
- css();AR=(ctx&&ctx.lang)=="ar";const link=(ctx&&ctx.link)||"https://beshrjemieh-commits.github.io/?sms=";
- const A=(e,a)=>AR?`${a}`:e; // iPhone labels in the phone's language
- const sb=`<div class="sbar"><span>9:41</span><span>●●● ▮</span></div>`;
- const tabs=on=>`<div class="tabs">${[[A("Shortcuts","الاختصارات")],[A("Automation","الأتمتة")],[A("Gallery","المعرض")]].map((t,k)=>`<span class="${k==on?"on hl":""}"${k==on?` data-n="${T("Tap","اضغط")}"`:""}>${t[0]}</span>`).join("")}</div>`;
- const act=(c,ic,n,body)=>`<div class="act"><div class="an"><i style="background:${c}">${ic}</i>${n}</div>${body||""}</div>`;
- const tok=(t,y)=>`<span class="tok${y?" y":""}">${t}</span>`;
- const hl=(html,n)=>`<span class="hl" data-n="${n}">${html}</span>`;
- const TEXT=act("#F5A623","≡",A("Text","نص"),`<div dir="ltr" style="text-align:left">Purchase<br>Amount: SAR ${tok(A("Amount","المبلغ"))}<br>At: ${tok(A("Merchant","التاجر"))}</div>`);
- const COPY=act("#0A84FF","⧉",`${A("Copy","نسخ")} ${tok("≡ "+A("Text","نص"),1)} ${A("to Clipboard","إلى الحافظة")}`);
- const ENC=act("#8E8E93","%",`${A("URL Encode","ترميز URL")} ${tok("≡ "+A("Text","نص"),1)}`);
- const OPEN=(h)=>act("#0A84FF","↗",A("Open","فتح"),`<div style="direction:ltr;text-align:left;word-break:break-all">${h?hl(`beshrjemieh-commits.github.io/?sms=${tok(A("URL Encoded Text","نص URL مرمَّز"),1)}`,T("Type + pick","اكتب واختر")):`beshrjemieh-commits.github.io/?sms=${tok(A("URL Encoded Text","نص URL مرمَّز"),1)}`}</div>`);
- const nav=(l,c,r)=>`<div class="nav"><span class="a">${l||""}</span><b>${c||""}</b><span class="a">${r||""}</span></div>`;
- const S=[
-  [T("Open the Shortcuts app","افتح تطبيق الاختصارات"),T("It is already on your iPhone. Tap Automation at the bottom.","موجود في جوالك. اضغط الأتمتة تحت."),
-   `${sb}<div class="wbig">${A("Shortcuts","الاختصارات")}</div><div class="grp"><div class="it"><i style="background:#5E5CE6">✦</i><span>${A("My Shortcuts","اختصاراتي")}</span></div></div><div style="height:120px"></div>${tabs(1)}`],
-  [T("Tap + to make a new automation","اضغط + عشان تسوي أتمتة جديدة"),T("The + is at the top right.","علامة + فوق على اليمين."),
-   `${sb}${nav("","",hl("+",T("Tap","اضغط")))}<div class="wbig">${A("Automation","الأتمتة")}</div><div class="grp"><div class="it"><span style="color:#8E8E93">${A("No automations yet","ما فيه أتمتة")}</span></div></div><div style="height:96px"></div>${tabs(1)}`],
-  [T("Choose Wallet","اختر المحفظة (Wallet)"),T("Scroll down the list and tap Wallet. This runs each time you pay with Apple Pay.","انزل في القائمة واضغط المحفظة. هذا يشتغل كل ما تدفع بـ Apple Pay."),
-   `${sb}${nav(A("Cancel","إلغاء"),A("New Automation","أتمتة جديدة"))}<div class="wsrch">${A("Search","بحث")}</div><div class="grp"><div class="it"><i style="background:#34C759">✉</i><span>${A("Message","رسالة")}</span></div><div class="it"><i style="background:#FF9500">☀</i><span>${A("Sunset","الغروب")}</span></div><div class="it">${hl(`<i style="background:#000">▤</i>`,T("Tap","اضغط"))}<span>${A("Wallet","المحفظة")}</span></div><div class="it"><i style="background:#FF3B30">⏰</i><span>${A("Alarm","المنبه")}</span></div></div><div class="sp"></div>`],
-  [T("Pick your cards, then Run Immediately","اختر بطاقاتك، ثم تشغيل فوراً"),T("Tick every card you pay with. Choose Run Immediately so it never asks. Tap Next.","علّم كل البطاقات اللي تدفع فيها. اختر تشغيل فوراً عشان ما يسألك. اضغط التالي."),
-   `${sb}${nav(A("Back","رجوع"),A("Wallet","المحفظة"),hl(A("Next","التالي"),"3"))}<div class="grp"><div class="it"><span>${A("When I tap","عندما ألمس")}</span>${hl(`<em style="color:#007AFF">${A("Any Card","أي بطاقة")}</em>`,"1")}</div><div class="it"><span>${A("At","في")}</span><em>${A("Any Merchant","أي تاجر")}</em></div></div><div class="grp"><div class="it"><span>${A("Run After Confirmation","التشغيل بعد التأكيد")}</span></div><div class="it">${hl(`<span>✓ ${A("Run Immediately","تشغيل فوراً")}</span>`,"2")}</div></div><div class="sp"></div>`],
-  [T("Tap New Blank Automation","اضغط أتمتة فارغة جديدة"),T("You will add three small actions after this.","بعدها بتضيف ثلاث إجراءات صغيرة."),
-   `${sb}${nav(A("Back","رجوع"),A("When I tap any card","عندما ألمس أي بطاقة"))}<div class="grp"><div class="it">${hl(`<span style="color:#007AFF">＋ ${A("New Blank Automation","أتمتة فارغة جديدة")}</span>`,T("Tap","اضغط"))}</div></div><div style="height:110px"></div>`],
-  [T("Add the action “Text”","أضف الإجراء «نص» (Text)"),T("Tap Add Action, type Text in the search, tap Text.","اضغط إضافة إجراء، اكتب «نص» في البحث، اضغط نص."),
-   `${sb}${nav("",A("New Automation","أتمتة جديدة"),A("Done","تم"))}<div class="wsrch">${hl(`🔍 ${A("Text","نص")}`,"1")}</div><div class="grp"><div class="it">${hl(`<i style="background:#F5A623">≡</i>`,"2")}<span>${A("Text","نص")}</span></div><div class="it"><i style="background:#F5A623">≡</i><span>${A("Get Text from Input","الحصول على النص من المدخل")}</span></div></div><div style="height:70px"></div>`],
-  [T("Write the message","اكتب الرسالة"),T("Type Purchase, then Amount: SAR and tap Shortcut Input → Amount. On a new line At: and tap Shortcut Input → Merchant.","اكتب Purchase، ثم Amount: SAR واضغط مدخل الاختصار ← المبلغ. في سطر جديد At: واضغط مدخل الاختصار ← التاجر."),
-   `${sb}${nav("",A("New Automation","أتمتة جديدة"),A("Done","تم"))}${act("#F5A623","≡",A("Text","نص"),`<div dir="ltr" style="text-align:left">Purchase<br>Amount: SAR ${hl(tok(A("Amount","المبلغ")),"1")}<br>At: ${hl(tok(A("Merchant","التاجر")),"2")}</div>`)}<div class="grp"><div class="it"><span style="color:#8E8E93">${A("Shortcut Input","مدخل الاختصار")}</span></div><div class="it"><span>${A("Amount","المبلغ")}</span></div><div class="it"><span>${A("Merchant","التاجر")}</span></div></div>`],
-  [T("Add “Copy to Clipboard”","أضف «نسخ إلى الحافظة»"),T("Search Copy, tap Copy to Clipboard. It picks Text by itself. If it says Shortcut Input, tap it and choose Text.","ابحث «نسخ»، اضغط نسخ إلى الحافظة. يختار النص لحاله. لو كتب مدخل الاختصار، اضغطه واختر نص."),
-   `${sb}${nav("",A("New Automation","أتمتة جديدة"),A("Done","تم"))}${TEXT}<div style="text-align:center;color:#8E8E93">↓</div><div class="hl" data-n="${T("New","جديد")}" style="margin:0 10px 8px;border-radius:10px">${COPY.replace('class="act"','class="act" style="margin:0"')}</div>`],
-  [T("Add “URL Encode”","أضف «ترميز URL» (URL Encode)"),T("Search Encode, tap URL Encode. It should say Text.","ابحث «ترميز»، اضغط ترميز URL. لازم يكون مكتوب نص."),
-   `${sb}${nav("",A("New Automation","أتمتة جديدة"),A("Done","تم"))}${TEXT.replace("<br>At:"," · At:")}${COPY}<div class="hl" data-n="${T("New","جديد")}" style="margin:0 10px 8px;border-radius:10px">${ENC.replace('class="act"','class="act" style="margin:0"')}</div>`],
-  [T("Add “Open URLs” with your app link","أضف «فتح عناوين URL» مع رابط التطبيق"),T("Search Open URLs, tap it. Paste the link below, then tap right after it and pick URL Encoded Text.","ابحث «فتح عناوين URL»، اضغطه. الصق الرابط اللي تحت، بعدين اضغط بعده مباشرة واختر نص URL مرمَّز."),
-   `${sb}${nav("",A("New Automation","أتمتة جديدة"),A("Done","تم"))}${COPY}${ENC}${OPEN(1)}`,1],
-  [T("Tap Done","اضغط تم"),T("Your automation is saved. It looks like this:","انحفظت الأتمتة. شكلها كذا:"),
-   `${sb}${nav("",A("Automation","الأتمتة"),"")}<div class="grp"><div class="it"><i style="background:#000">▤</i><span>${A("When I tap any card","عندما ألمس أي بطاقة")}<br><em>${A("Text, Copy to Clipboard, URL Encode, Open URLs","نص، نسخ إلى الحافظة، ترميز URL، فتح عناوين URL")}</em></span></div></div><div style="height:96px"></div>${tabs(1)}`],
-  [T("Sign in once in Safari","سجّل دخولك مرة وحدة في سفاري"),T("The Shortcut opens the link in Safari, so open the app link in Safari and sign in once. Then pay with Apple Pay: the cost is saved by itself, with Undo.","الاختصار يفتح الرابط في سفاري، فافتح رابط التطبيق في سفاري وسجّل دخولك مرة وحدة. بعدها ادفع بـ Apple Pay: المصروف ينحفظ لحاله، مع تراجع."),
-   `${sb}<div class="ban"><i style="width:26px;height:26px;border-radius:7px;background:${NAVY};display:grid;place-items:center;color:#fff;font-style:normal">▣</i><div style="font-size:12px;line-height:1.4"><b>${T("Saved","انحفظ")} ${M(45)} · Albaik</b><br><span style="color:#2563EB">${T("Undo","تراجع")}</span></div></div><div style="height:130px;display:grid;place-items:center;color:#8E8E93">beshrjemieh-commits.github.io</div>`]];
+ ctx=ctx||{};css();AR=ctx.lang=="ar";const AND=/Android/i.test(navigator.userAgent),L=AR?"ar":"en";
+ let key="";const getK=()=>Promise.resolve(ctx.getKey?ctx.getKey():"").then(k=>key=k||"").catch(()=>"");getK();
+ const body=k=>JSON.stringify({k,msg:"[sms_message]"});
+ const steps=AND?[T("Tap <b>Copy URL</b> below, install <b>MacroDroid</b> and open it.","اضغط <b>نسخ الرابط</b> تحت، نزّل <b>MacroDroid</b> وافتحه."),
+   T("<b>Add Macro</b>. Trigger: <b>SMS Received</b> from your bank.","<b>إضافة ماكرو</b>. المُشغِّل: <b>SMS واردة</b> من بنكك."),
+   T("Action: <b>HTTP Request</b>, method POST. Paste the URL.","الإجراء: <b>HTTP Request</b>، الطريقة POST. الصق الرابط."),
+   T("Come back, tap <b>Copy Body</b>, paste it in Body (JSON). OK.","ارجع، اضغط <b>نسخ المحتوى</b>، والصقه في المحتوى (JSON). موافق."),
+   T("Name it <b>Wallet bank messages</b> and Save.","سمّه <b>رسائل البنك للمحفظة</b> واحفظ.")]
+  :[T("Tap <b>Add the Shortcut</b> below. Your key is copied.","اضغط <b>أضف الاختصار</b> تحت. ينسخ مفتاحك."),
+   T("<b>Set Up Shortcut</b>, paste your key, <b>Add Shortcut</b>.","<b>إعداد الاختصار</b>، الصق المفتاح، <b>إضافة اختصار</b>."),
+   T("Shortcuts app: <b>Automation</b>, <b>New Automation</b>, <b>Message</b>.","تطبيق الاختصارات: <b>أتمتة</b>، <b>أتمتة جديدة</b>، <b>رسالة</b>."),
+   T("Message Contains: <b>SAR</b>. Pick <b>Run Immediately</b>. Next.","الرسالة تحتوي على: <b>SAR</b>. اختر <b>التشغيل فورًا</b>. التالي."),
+   T("Pick <b>Wallet bank messages</b>, then <b>Done</b>.","اختر <b>رسائل البنك للمحفظة</b>، ثم <b>تم</b>.")];
+ const btns=AND?`<button class="gb" data-a="url">${T("1 · Copy URL","١ · نسخ الرابط")}</button><button class="gb l" data-a="body">${T("2 · Copy Body","٢ · نسخ المحتوى")}</button>`
+  :`<button class="gb" data-a="add">${PH("plus-circle")}${T("Add the Shortcut","أضف الاختصار")}</button>`;
  const w=document.createElement("div");w.className="wgd";w.dir=AR?"rtl":"ltr";w.setAttribute("role","dialog");w.setAttribute("aria-modal","true");
- const lk=`<div class="lk"><code>${esc(link)}</code><button data-cp="1">${T("Copy","انسخ")}</button></div>`;
  w.innerHTML=`<div class="wgh"><b>${T("Connect bank messages","ربط رسائل البنك")}</b><button aria-label="${T("Close","إغلاق")}">${PH("x")}</button></div><div class="gs">
-  <div class="gi">${T("Each time you pay with Apple Pay, your Shortcut opens the app with the payment and <b>the cost is saved by itself</b>. Set it up once, about 3 minutes.","كل ما تدفع بـ Apple Pay، الاختصار يفتح التطبيق مع الدفعة و<b>ينحفظ المصروف لحاله</b>. جهّزه مرة وحدة، تقريباً ٣ دقايق.")}${lk}</div>
-  ${S.map((s,i)=>`<div class="st"><div class="sh"><span class="sn">${i+1}</span><div><b>${s[0]}</b><p>${s[1]}</p></div></div>${s[3]?lk:""}<div class="ios">${s[2]}</div></div>`).join("")}
-  <div class="done">${T("Illustrations, not real screenshots. Your iPhone may look a little different.","رسومات توضيحية، مو صور حقيقية. جوالك ممكن يختلف شوي.")}</div></div>`;
- if(ctx&&ctx.first){w.classList.add("pg");w.insertAdjacentHTML("beforeend",`<div class="gft"><button class="gl">${T("Later","بعدين")}</button><span class="gc"></span><button class="gn">${T("Next","التالي")}</button></div>`)}
+  <div class="gi">${T("Your bank purchase messages <b>add themselves</b>. Codes (OTP) are never saved. About 1 minute, once.","رسائل مشترياتك من البنك <b>تنضاف لحالها</b>. الرموز (OTP) ما تنحفظ أبداً. دقيقة وحدة، مرة وحدة بس.")}</div>
+  <video class="vid" src="new/media/sms-${AND?"android":"ios"}-${L}.mp4" autoplay muted loop playsinline preload="auto" aria-label="${T("How-to video","فيديو الطريقة")}"></video>
+  ${btns}
+  <div class="st"><ol>${steps.map(x=>`<li>${x}</li>`).join("")}</ol></div>
+  <div class="st"><div class="gr"><button class="gb l s" data-a="test">${T("Send a test","أرسل تجربة")}</button><button class="gb l s" data-a="new">${T("New key","مفتاح جديد")}</button></div><div class="gout"></div></div>
+  <div class="done">${T("Your phone may look a little different.","جوالك ممكن يختلف شوي.")}</div></div>`;
+ if(ctx.first)w.insertAdjacentHTML("beforeend",`<div class="gft"><button class="gl">${T("Later","بعدين")}</button><span class="gc"></span><button class="gn">${T("Done","تم")}</button></div>`);
  document.body.appendChild(w);requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add("on")));
- const close=()=>{w.classList.remove("on");setTimeout(()=>w.remove(),380);ctx&&ctx.done&&ctx.done()};
+ const out=w.querySelector(".gout"),say=(t,ok)=>{out.textContent=t;out.classList.toggle("ok",!!ok)};
+ const close=()=>{const v=w.querySelector("video");v&&v.pause();w.classList.remove("on");setTimeout(()=>w.remove(),380);ctx.done&&ctx.done()};
  w.querySelector(".wgh button").onclick=close;
- // first run (Beshr 2026-11-25): guide opens by itself after setup, one short step per screen, with Later
- if(ctx&&ctx.first){const st=[...w.querySelectorAll(".st")],gi=w.querySelector(".gi"),gs=w.querySelector(".gs");let i=0;
-  const show=()=>{st.forEach((x,k)=>x.classList.toggle("cur",k==i));gi.style.display=i?"none":"";w.querySelector(".gc").textContent=T(`${i+1} of ${st.length}`,`${i+1} من ${st.length}`);w.querySelector(".gn").textContent=i==st.length-1?T("Done","تم"):T("Next","التالي");gs.scrollTop=0};
-  w.querySelector(".gl").onclick=()=>{window.track&&window.track("shortcut_later","guide","s"+(i+1));close()};
-  w.querySelector(".gn").onclick=()=>{if(i==st.length-1)return close();i++;show()};show()}
- w.addEventListener("click",async e=>{const b=e.target.closest("[data-cp]");if(!b)return;try{await navigator.clipboard.writeText(link);b.textContent=T("Copied","انتسخ")}catch(_){b.textContent=T("Hold to copy","اضغط مطولاً")}setTimeout(()=>b.textContent=T("Copy","انسخ"),1600)});
+ if(ctx.first){w.querySelector(".gl").onclick=()=>{window.track&&window.track("shortcut_later","guide","s1");close()};w.querySelector(".gn").onclick=close}
+ const copy=async t=>{try{await navigator.clipboard.writeText(t);return true}catch(e){return false}};
+ w.addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
+  if(a=="test"){say(T("Sending…","أرسل…"));if(!key)await getK();const r=key&&ctx.test?await ctx.test(key).catch(()=>""):"";
+   return say(String(r).startsWith("Logged")?T("It works. The test cost was saved and removed again.","شغّال. انحفظ مصروف التجربة وانحذف."):T("Not working yet. Ask for help in the app chat.","ما اشتغل للحين. اطلب مساعدة."),String(r).startsWith("Logged"))}
+  if(a=="new"){if(!ctx.newKey)return;if(!b.dataset.sure){b.dataset.sure=1;b.textContent=T("Sure? Tap again","متأكد؟ اضغط مرة ثانية");return say(T("The old key and Shortcut will stop working.","المفتاح والاختصار القديم بيوقفون."))}delete b.dataset.sure;b.textContent=T("New key","مفتاح جديد");const k=await Promise.resolve(ctx.newKey()).catch(()=>"");if(!k)return say(T("Couldn't make a new key.","ما قدرت أسوي مفتاح جديد."));key=k;
+   return say(T("New key made. The old one stopped working. Set up the Shortcut again.","انسوى مفتاح جديد. القديم وقف. جهّز الاختصار مرة ثانية."),1)}
+  if(!key){say(T("One moment…","لحظة…"));await getK();if(!key)return say(T("Your key isn't ready. Try again in a minute.","مفتاحك مو جاهز. جرّب بعد دقيقة."))}
+  if(a=="url")return say(await copy(ctx.smsUrl||"")?T("URL copied. Paste it in MacroDroid.","انتسخ الرابط. الصقه في MacroDroid."):ctx.smsUrl);
+  if(a=="body")return say(await copy(body(key))?T("Body copied. Paste it in MacroDroid.","انتسخ المحتوى. الصقه في MacroDroid."):body(key));
+  // iPhone: copy the key on this tap only, then open the shared Shortcut at once (Security lead 2026-11-25)
+  const ok=await copy(key);window.track&&window.track("shortcut_add","guide",ok?"copied":"nocopy");
+  if(!ok)return say(T("Couldn't copy. Your key: ","ما انتسخ. مفتاحك: ")+key);
+  say(T("Key copied. Paste it now in the Shortcut.","انتسخ المفتاح. الصقه الحين في الاختصار."),1);
+  if(ctx.shortcut)setTimeout(()=>{location.href=ctx.shortcut},250)});
  return {close,el:w};
 }
 window.WOB={setup,tour,guide};
