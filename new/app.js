@@ -887,6 +887,7 @@ ${q}`;
  const SMS_URL=SB_URL+"/rest/v1/rpc/log_sms?apikey="+SB_KEY,SHORTCUT_LINK="https://www.icloud.com/shortcuts/c05947a42c94452caf97b23cd288c21c";// iCloud link of the shared "Wallet bank messages" Shortcut (Beshr makes it once)
  const smsGuide=first=>window.WOB&&WOB.guide({lang:AR?"ar":"en",first,smsUrl:SMS_URL,shortcut:SHORTCUT_LINK,
   getKey:async()=>{const r=await sb.rpc("my_sms_key");if(r.error)throw r.error;return r.data||""},
+  lastSms:async()=>{const r=await sb.from("app_docs").select("updated_at,data").in("coll",["expenses","income"]).eq("data->>src","sms").order("updated_at",{ascending:false}).limit(5);if(r.error)throw r.error;const x=(r.data||[]).find(d=>!String((d.data||{}).note||"").startsWith("TEST CHECK"));return x?new Date(x.updated_at).getTime():0},
   newKey:async()=>{const r=await sb.rpc("rotate_sms_key");if(r.error)throw r.error;return r.data||""},
   test:async k=>{const r=await fetch(SMS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({k,msg:"Purchase\nAmount: SAR 1\nAt: TEST CHECK "+Date.now()})});const j=await r.json();
    try{await sb.from("app_docs").delete().eq("coll","expenses").like("data->>note","TEST CHECK%")}catch(e){}return r.ok?String(j):""}});
