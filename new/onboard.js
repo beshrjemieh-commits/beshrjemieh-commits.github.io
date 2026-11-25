@@ -18,7 +18,7 @@ const CSS=`
 .wob button,.wob input{font:inherit;color:inherit}
 .wob svg{width:1em;height:1em;fill:currentColor}
 .wob .top{position:relative;background:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 14px;flex:none}
-.wob .top .wwv{position:absolute;left:0;right:0;top:calc(100% - 1px);height:28px;overflow:hidden;transform:scaleY(-1);pointer-events:none}
+.wob .top .wwv{position:absolute;left:0;right:0;top:calc(100% - 1px);height:28px;overflow:hidden;transform:scaleY(-1);pointer-events:none;direction:ltr}
 .wob .top .wwv svg{width:200%;height:100%;fill:#fff;animation:wobwv 16s linear infinite}
 @keyframes wobwv{to{transform:translateX(-50%)}}
 .wob .wbar{display:flex;align-items:center;gap:8px;height:32px}
@@ -38,6 +38,7 @@ const CSS=`
 .wob[dir=rtl] .ld{line-height:1.7}
 .wob .body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:40px 16px 12px;overscroll-behavior:contain}
 .wob .foot{flex:none;padding:8px 16px calc(14px + var(--sab,env(safe-area-inset-bottom,0px)))}
+body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padding-left:calc(16px + max(0px,(100vw - 560px)/2));padding-right:calc(16px + max(0px,(100vw - 560px)/2))}
 .wob .cta{width:100%;height:52px;border:0;border-radius:14px;background:#fff;color:${BLUE};font-weight:600;font-size:17px;cursor:pointer;box-shadow:0 10px 24px -12px rgba(0,0,0,.6);transition:opacity .2s,transform .1s}
 .wob .cta:active{transform:scale(.98)}
 .wob .cta[disabled]{opacity:.45}
@@ -404,7 +405,9 @@ function tour(ctx){
   const L=s[AR?3:2];tip.querySelector(".tn").textContent=T(`${i+1} of ${steps.length}`,`${i+1} من ${steps.length}`);tip.querySelector(".tt span").innerHTML=PH(s[1]);tip.querySelector(".tt b").textContent=L[0];tip.querySelector(".tx").textContent=L[1];
   w.querySelectorAll(".dots i").forEach((d,k)=>d.classList.toggle("on",k==i));w.querySelector(".nx").textContent=i==steps.length-1?T("Done","تم"):T("Next","التالي");
   const below=r.bottom+p+14,th=tip.offsetHeight||150,dn=below+th<vh-10;tip.className="tip "+(dn?"dn":"up");tip.style.top=(dn?below:Math.max(10,r.top-p-14-th))+"px";
-  tip.style.setProperty("--ax",Math.max(24,Math.min(innerWidth-56,r.left+r.width/2-16))+"px")}
+  // wide screens (tablet/computer): a phone-width tip next to its target, arrow kept on the target
+  const tw=Math.min(innerWidth-32,400),cx=r.left+r.width/2,tl=Math.max(16,Math.min(innerWidth-16-tw,cx-tw/2));tip.style.left=tl+"px";tip.style.right="auto";tip.style.width=tw+"px";
+  tip.style.setProperty("--ax",Math.max(24,Math.min(tw-40,cx-16-(tl-16)))+"px")}
  function next(){i++;if(i>=steps.length)return end();show()}
  function end(){w.style.transition="opacity .25s";w.style.opacity=0;setTimeout(()=>w.remove(),260);ctx&&ctx.done&&ctx.done()}
  w.querySelector(".nx").onclick=e=>{e.stopPropagation();next()};w.querySelector(".wsk").onclick=e=>{e.stopPropagation();end()};
