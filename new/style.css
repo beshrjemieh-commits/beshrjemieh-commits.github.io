@@ -503,8 +503,10 @@ html.l2 body:before{content:"";position:fixed;inset:-25%;pointer-events:none;z-i
  animation:l2drift 24s ease-in-out infinite alternate}
 @keyframes l2drift{to{transform:translate(-8%,-6%) rotate(8deg)}}
 @media (prefers-reduced-motion:reduce){html.l2 body:before{animation:none}}
-html.l2 .c-w .big,html.l2 .c-e .big{font-size:38px;font-weight:700;letter-spacing:-.03em}
-html.l2 .card .big{font-weight:700}
-html.l2:not([lang=ar]) .card .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+html.l2 .c-w .big,html.l2 .c-e .big{font-size:30px;font-weight:700;letter-spacing:-.02em}
+html.l2 .card[data-k=s] .big,html.l2 .card[data-k=f] .big{font-size:22px;font-weight:700}
+html.l2 .hd h1{font-size:26px}
+html.l2 .card .k{font-size:15px;letter-spacing:0;text-transform:none}
+html.l2 .card .tm{font-size:13px;letter-spacing:0;text-transform:none}
 html.l2 .card.hnew{box-shadow:0 0 0 2px #F59E0B,0 0 22px rgba(245,158,11,.55)}
 html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;background:#0F2A4A;color:#fff;font-size:11px;font-weight:600;border-radius:8px;padding:1px 7px;z-index:3}
