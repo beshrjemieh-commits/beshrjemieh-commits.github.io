@@ -1,7 +1,7 @@
 /* Smart Wallet: first-time questions, the "how to use" tour and the bank-message Shortcut guide.
    Light mode, original look (white top + navy wave, corner-tab cards, IBM Plex, Phosphor icons), English + Arabic.
    window.WOB.setup(ctx)  first-time questions (6 steps + "Here is your month"); ctx.save(answers) stores them, ctx.done(how) after
-   window.WOB.tour(ctx)   3-screen intro: bank messages add themselves, shoppers' bills find the cheapest, one Forsa search
+   window.WOB.tour(ctx)   3-screen intro: bank messages add themselves, shoppers' bills show the lowest prices, one Forsa search
    window.WOB.guide(ctx)  bank-message setup: how-to video + 5 steps (iPhone Shortcut / Android MacroDroid) */
 (function(){
 const PH=n=>window.PH?window.PH(n):"";
@@ -351,7 +351,7 @@ function setup(ctx){
 
 /* ================= intro (replaces the spotlight tour) =================
    Beshr 2026-11-25: after the wallet questions, 4 short screens (bill photo added 2026-11-25) on what the app is for:
-   bank messages add themselves (1-2-3), shoppers' bills find the cheapest, one Forsa search checks every store.
+   bank messages add themselves (1-2-3), shoppers' bills show the lowest prices, one Forsa search checks every store.
    Figures are a labelled example, not his data. ctx.done() (if given) runs after the last screen. */
 function tour(ctx){
  css();AR=(ctx&&ctx.lang)=="ar";if(document.querySelector(".wob"))return;
@@ -366,7 +366,7 @@ function tour(ctx){
    html:()=>`<div class="xsms"><span>${PH("receipt")}</span><p><b>${T("Bank","البنك")}</b>${T("Purchase SAR 45.00 at Panda","شراء 45.00 ريال من بنده")}</p></div>
    <div class="x3">${[T("SMS arrives","توصل الرسالة"),T("Shortcut sends it","الاختصار يرسلها"),T("Expense added","ينضاف المصروف")].map((s,i)=>`<div><em>${i+1}</em>${s}</div>`).join("")}</div>
    <div class="cd">${row("basket",T("Panda","بنده"),T("Groceries · from bank SMS","بقالة · من رسالة البنك"),45,1)}${row("coffee",T("Coffee shop","مقهى"),T("Coffee · from bank SMS","قهوة · من رسالة البنك"),18)}</div>`},
-  {kk:T("2 of 4 · Store","2 من 4 · المتجر"),h:T("Shoppers' bills find the cheapest","فواتير الناس تكشف الأرخص"),ld:T("Everyone adds bills. Everyone saves.","الكل يضيف فواتيره، والكل يوفّر."),
+  {kk:T("2 of 4 · Store","2 من 4 · المتجر"),h:T("Shoppers' bills show the lowest prices","فواتير الناس تكشف أقل الأسعار"),ld:T("Everyone adds bills. Everyone saves.","الكل يضيف فواتيره، والكل يوفّر."),
    html:()=>`${ex}<div class="xq l">${T("I paid","دفعت")} ${M(40)} ${T("for Fairy 3L","على فيري 3 لتر")}</div><div class="xq r">${T("Same item:","نفس الغرض:")} ${M(20)} ${T("at Lulu","في لولو")}</div>
    <div class="cd xc">${bar(T("Lulu","لولو"),20,50,1)}${bar(T("Panda","بنده"),29,72)}${bar(T("Danube","الدانوب"),40,100)}<div class="xt">${PH("users")} ${T("Add your bills to keep prices fresh. Shared with no name. Turn off in Settings.","أضف فواتيرك عشان تبقى الأسعار محدّثة. تنشارك بدون اسم، وتقدر توقفها من الإعدادات.")}</div></div>`},
   // Beshr 2026-11-25: show how easy adding a bill is (photo -> we read it -> prices saved)
