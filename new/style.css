@@ -471,3 +471,12 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 /* Beshr 2026-11-25 (option B): small grey label under each card's big number */
 .bsub{font-size:11px;font-weight:500;opacity:.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
 .card:has(.big[style*="white-space: normal"]) .bsub{display:none}
+/* shopping list split by store (Beshr 2026-11-25) */
+.slsplit{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;height:40px;border:1.5px solid #2563EB;border-radius:12px;background:#fff;color:#2563EB;font:600 14px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}.slsplit svg{width:18px;height:18px}
+.sgc{background:#F8FAFC;border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.sgh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sgh b{font-size:16px;font-weight:600}.sgh small{font-size:13px;color:#64748B}
+.sgi{width:30px;height:30px;border-radius:9px;background:#EEF2F7;color:#0F2A4A;display:grid;place-items:center;flex:none}.sgi svg{width:18px;height:18px}
+.sgcp{margin-inline-start:auto;height:32px;padding:0 14px;border:0;border-radius:10px;background:#2563EB;color:#fff;font:600 14px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}.sgcp.done{background:#16A34A}
+.sgr{display:flex;justify-content:space-between;gap:8px;padding:5px 0 0 38px;font-size:14px;color:#334155}[dir=rtl] .sgr{padding:5px 38px 0 0}.sgr small{color:#64748B}.sgr b{font-weight:500;color:#64748B}
+.slclr.sgbk{background:#EEF2F7;color:#0F2A4A}
+.dkmore{border:0;background:none;padding:0;margin-inline-start:4px;color:#2563EB;font:600 13px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}
