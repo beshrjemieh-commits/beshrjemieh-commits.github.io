@@ -64,6 +64,13 @@ const byGroup=(list,fn)=>PG.map(([k])=>[k,list.filter(x=>x.grp==k)]).filter(([,a
 // ---------- data ----------
 const SB_URL="https://rvqjjbgeossfygaglohe.supabase.co",SB_KEY="sb_publishable_DSFK-TyIwyuAzYjF0mWWNA_vOedk4zz";
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,lock:async(n,t,fn)=>fn()}});window._sb=sb;
+// Delete account (same steps as shim.js walletDeleteAccount): receipt photos, then delete_my_account(), fallback wipes app_docs; then local data + sign out
+async function delAccount(){const {data:{user}}=await sb.auth.getUser();if(!user)throw new Error("not signed in");
+ const bk=sb.storage.from("receipts");for(let i=0;i<50;i++){const {data,error}=await bk.list(user.id,{limit:1000});if(error||!data||!data.length)break;const {error:e2}=await bk.remove(data.map(f=>user.id+"/"+f.name));if(e2)break}
+ const {error}=await sb.rpc("delete_my_account");let partial=false;if(error){const {error:e3}=await sb.from("app_docs").delete().eq("user_id",user.id);if(e3)throw e3;partial=true}
+ try{Object.keys(localStorage).filter(k=>/^w-/.test(k)&&k!="w-lang").forEach(k=>localStorage.removeItem(k));sessionStorage.clear()}catch(e){}
+ try{await sb.auth.signOut({scope:"local"})}catch(e){}
+ return partial}
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 async function put(coll,id,data){const {error}=await sb.from("app_docs").upsert({coll,id,data,updated_at:new Date().toISOString()},{onConflict:"user_id,coll,id"});if(error)throw error}
 async function del(coll,id){const {error}=await sb.from("app_docs").delete().eq("coll",coll).eq("id",id);if(error)throw error}
@@ -909,6 +916,9 @@ ${q}`;
    <button class="setb" id="sq">${PH("list")}<span>${tx("First-time questions","أسئلة البداية")}</span></button>
    <button class="setb" id="sarr">${PH("pencil-simple")}<span>${tx("Arrange Home","ترتيب الرئيسية")}</span></button>
    <button class="setb" id="sout">${PH("sign-out")}<span>${tx("Sign out","تسجيل الخروج")}</span></button>
+   <button class="setb" id="sdel" style="color:#DC2626;background:#fff;border:1px solid #FECACA">${PH("trash")}<span>${tx("Delete account","حذف الحساب")}</span></button>
+   <div id="sdelc" hidden style="background:#FEF2F2;border-radius:12px;padding:12px;margin:4px 0 12px;color:#0F172A;font-size:14px;line-height:1.45"><b style="display:block;color:#DC2626;margin-bottom:4px">${tx("Delete your account?","تحذف حسابك؟")}</b><span id="sdelm" style="display:block;font-weight:600;margin-bottom:4px;direction:ltr;text-align:${AR?"right":"left"}"></span>${tx("All your costs, bills, photos and settings are deleted for good. This can't be undone.","كل مصاريفك وفواتيرك وصورك وإعداداتك تنحذف نهائياً. ما تقدر ترجعها.")}
+    <div style="display:flex;gap:8px;margin-top:10px"><button id="sdeln" style="flex:1;height:40px;border:0;border-radius:10px;background:#fff;color:#0F172A;font:600 14px inherit;font-family:inherit">${tx("Cancel","إلغاء")}</button><button id="sdely" style="flex:1;height:40px;border:0;border-radius:10px;background:#DC2626;color:#fff;font:600 14px inherit;font-family:inherit">${tx("Delete","احذف")}</button></div></div>
    <a class="seto" href="${location.pathname.includes('/new/')?'../':''}old.html">${tx("Open the old version","افتح النسخة القديمة")}</a>`,()=>{
    sh.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{try{localStorage.setItem("w-lang",b.dataset.l)}catch(e){}location.reload()});
    document.getElementById("sarr").onclick=()=>{close();setTimeout(arrange,350)};
@@ -919,6 +929,8 @@ ${q}`;
    document.getElementById("sguide").onclick=()=>{close();setTimeout(()=>smsGuide(0),350)};
    document.getElementById("stour").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),400)};
    document.getElementById("sq").onclick=()=>{close();setTimeout(()=>wobSetup(true),350)};
+   {const c=document.getElementById("sdelc");document.getElementById("sdel").onclick=()=>{sb.auth.getSession().then(({data})=>{const e=data&&data.session&&data.session.user&&data.session.user.email;const m=document.getElementById("sdelm");if(m)m.textContent=e||""}).catch(()=>{});c.hidden=false;c.scrollIntoView({block:"nearest",behavior:"smooth"})};document.getElementById("sdeln").onclick=()=>{c.hidden=true};
+    const y=document.getElementById("sdely");y.onclick=async()=>{if(y.disabled)return;y.disabled=true;y.textContent=tx("Deleting…","جاري الحذف…");try{if(await delAccount()){c.innerHTML=`<b style="display:block;color:#DC2626;margin-bottom:4px">${tx("Login not removed","ما انحذف تسجيل الدخول")}</b>${tx("Your data was deleted, but your login couldn't be removed. Try again later.","انحذفت بياناتك، بس ما قدرنا نحذف تسجيل الدخول. جرّب مرة ثانية بعدين.")}<button id="sdelok" style="display:block;width:100%;height:40px;margin-top:10px;border:0;border-radius:10px;background:#fff;color:#0F172A;font:600 14px inherit;font-family:inherit">${tx("OK","تمام")}</button>`;document.getElementById("sdelok").onclick=()=>location.replace(location.pathname);return}location.replace(location.pathname)}catch(e){y.disabled=false;y.textContent=tx("Couldn't delete. Try again","ما انحذف. جرّب مرة ثانية")}}}
    document.getElementById("sout").onclick=async()=>{try{localStorage.removeItem("w-cache");await sb.auth.signOut()}catch(e){}location.reload()}})};
  // ---- first-time questions, then the tour (new accounts: no salary and no setup saved yet) ----
  const wobSetup=preview=>{if(!window.WOB||document.querySelector(".wob"))return;window._wobShown=1;
