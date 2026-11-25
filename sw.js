@@ -1,6 +1,6 @@
 // Keeps the app shell on the phone so it opens instantly, even on weak 4G; data always comes live from Supabase.
 // 2026-11-22: blank white screen on slow 4G (Beshr). Before, every file waited for the network with no time limit.
-const CACHE = "wallet-v160";
+const CACHE = "wallet-v161";
 const SHELL = ["./", "index.html", "new/app.js", "new/onboard.js", "new/style.css", "old.html", "shim.js", "i18n.js", "home.js", "extras.js", "motion.js", "icons.js", "riyal.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 const CDN = /^https:\/\/(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 const WAIT = 1500; // ms to wait for the network before showing the saved copy

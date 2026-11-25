@@ -458,15 +458,3 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 .c-s .ctab,.c-f .ctab{margin-inline-start:var(--cp,0px)}
 /* hidden sheet never peeks below the app on screens taller than the app (Galaxy Fold) */
 #sheet{visibility:hidden;transition:transform .34s cubic-bezier(.3,.6,.2,1),visibility 0s .34s}#sheet.on{visibility:visible;transition:transform .42s cubic-bezier(.3,.6,.2,1),visibility 0s}
-/* Beshr 2026-11-25 option B: deal item pops out of the Store / Forsa card */
-.card .dpr{display:flex;align-items:baseline;gap:8px;margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.dpr s{color:#94A3B8;font-size:13px}.dpr b{font-size:22px;font-weight:600;color:#16A34A}
-.dpr i{font-style:normal;font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;background:#DCFCE7;color:#15803D;align-self:center}
-.c-f .dpr b{color:#D97706}.c-f .dpr i{background:#FDE68A;color:#92400E}
-.card:has(.dpr) .big{margin-top:6px!important}.card:has(.dpr) .tm{display:none}
-.pop{position:absolute;z-index:14;width:76px;height:88px;border-radius:16px;background:#fff;box-shadow:0 16px 26px -12px rgba(15,42,74,.6),0 0 0 1px rgba(15,42,74,.06);display:grid;place-items:center;overflow:hidden;transform:rotate(7deg);cursor:pointer;-webkit-tap-highlight-color:transparent;animation:popin .7s cubic-bezier(.34,1.56,.64,1) both}
-[dir=rtl] .pop{transform:rotate(-7deg);animation-name:popinr}
-.pop>svg{width:36px;height:36px;fill:#2563EB;opacity:.35}.pop-f>svg{fill:#D97706}
-.pop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#fff}.pop-s img{object-fit:contain;padding:8px}
-@keyframes popin{from{transform:translateY(18px) rotate(0) scale(.7)}to{transform:rotate(7deg)}}
-@keyframes popinr{from{transform:translateY(18px) rotate(0) scale(.7)}to{transform:rotate(-7deg)}}
