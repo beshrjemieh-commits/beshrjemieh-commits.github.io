@@ -232,7 +232,9 @@ const dTop=d=>{if(!d.price||!d.market||d.offer||dCond(d)[1]||d.pct<20||d.pct>75)
 const topPick=list=>{let best=null,bs=-1;list.forEach(d=>{if(d.status=="hidden")return;const v=dTop(d);if(v>bs){bs=v;best=d}});return best};
 const vChip=d=>{const v=dVerdict(d);return v?`<span class="vchip" style="--v:${v.c}">${v.t}${v.conf?`<small> · ${v.conf}</small>`:""}</span>`:""};
 const FKN=()=>({used:tx("Used · market","مستعمل · السوق"),new:tx("New · authorized sellers","جديد · وكلاء معتمدين")});
-function fTabs(m,k){const und=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),T=[{n:tx("All","الكل"),list:und}];
+// Beshr 2026-11-25: fewer Forsa deals, only sure ones: high confidence, 15%+ below market, no damage; at most 12 (top 5 by score if none pass)
+const dSure=d=>{const r=d.raw||{},c=+r.comps||0,conf=String(r.confidence||"")||(dKind(d)=="new"?(d.market?"high":""):(c>=8?"high":""));return d.market>0&&d.price>0&&d.pct>=15&&conf=="high"&&!dCond(d)[1]&&!(r.ended)&&!(r.reserved)};
+function fTabs(m,k){const all=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),sure=all.filter(dSure),und=(sure.length?sure:all).slice(0,sure.length?12:5),T=[{n:tx("All","الكل"),list:und}];
  (m.hunt.terms||[]).slice(0,12).forEach(t=>{const w=norm(t).toLowerCase().split(" ").filter(x=>x.length>1);if(!w.length)return;const l=und.filter(d=>{const h=(d.title+" "+d.category).toLowerCase();return w.every(x=>h.includes(x))});if(l.length)T.push({n:esc(clean(t)),list:l})});return T}
 const dealRow=(d,kept)=>`<div class="drow" data-did="${esc(d.id)}">`+dig(hd(`<span>${esc(d.name)}</span><small class="ds">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}${d.pct?` · ▼${d.pct}%`:""}</small>`,`<a class="fopen" href="${esc(dLink(d))}" target="_blank" rel="noopener">${tx("Open","افتح")}</a>`,"",d.image),
  r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,AMB]:null,d.offer?[esc(d.offer),"",null]:null,[tx("Where","وين"),esc([d.source,d.city].filter(Boolean).join(" · ")),null]].filter(Boolean)),
@@ -510,7 +512,7 @@ function start(m,soft){
    const sc=app.getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
   go.onclick=ev=>{ev.stopPropagation();const l=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(l.length)openFw(l,FT[ti].n,0)};
   // Beshr 2026-11-25: tapping Forsa on Home opens the single best match right now (the next best once that one is swiped); after it, the normal Forsa page
-  window._fBest=()=>{const L=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),b=topPick(L)||L.sort(byScore)[0];if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
+  window._fBest=()=>{const L0=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),LS=L0.filter(dSure),L=LS.length?LS:L0,b=topPick(L)||L.sort(byScore)[0];if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
   fw.querySelector(".cwb").onclick=()=>{fw.classList.remove("on");fw.setAttribute("aria-hidden","true");tab(ti)};
   let x0=null,dx=0,top=null;
   deck.addEventListener("pointerdown",e=>{top=[...deck.querySelectorAll(".dk")].pop();if(!top)return;x0=e.clientX;dx=0;top.style.transition="none";deck.setPointerCapture(e.pointerId)});
