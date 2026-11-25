@@ -466,3 +466,5 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 #susage>span{flex:1;min-width:0}
 #susage .usw{flex:none;font-size:13px;padding:4px 10px;border-radius:12px;background:#DBEAFE;color:#1D4ED8}
 #susage[aria-checked="false"] .usw{background:#E2E8F0;color:#64748B}
+/* QA 2026-11-25: one active chip per row in Forsa Added; "All" steps back when a category is picked */
+.achips.akind:has([data-acat].on) [data-ak="all"].on{background:#EEF2F7;color:#0F172A}
