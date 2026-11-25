@@ -67,9 +67,10 @@ const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,a
 // Delete account (same steps as shim.js walletDeleteAccount): receipt photos, then delete_my_account(), fallback wipes app_docs; then local data + sign out
 async function delAccount(){const {data:{user}}=await sb.auth.getUser();if(!user)throw new Error("not signed in");
  const bk=sb.storage.from("receipts");for(let i=0;i<50;i++){const {data,error}=await bk.list(user.id,{limit:1000});if(error||!data||!data.length)break;const {error:e2}=await bk.remove(data.map(f=>user.id+"/"+f.name));if(e2)break}
- const {error}=await sb.rpc("delete_my_account");if(error){const {error:e3}=await sb.from("app_docs").delete().eq("user_id",user.id);if(e3)throw e3}
+ const {error}=await sb.rpc("delete_my_account");let partial=false;if(error){const {error:e3}=await sb.from("app_docs").delete().eq("user_id",user.id);if(e3)throw e3;partial=true}
  try{Object.keys(localStorage).filter(k=>/^w-/.test(k)&&k!="w-lang").forEach(k=>localStorage.removeItem(k));sessionStorage.clear()}catch(e){}
- try{await sb.auth.signOut({scope:"local"})}catch(e){}}
+ try{await sb.auth.signOut({scope:"local"})}catch(e){}
+ return partial}
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 async function put(coll,id,data){const {error}=await sb.from("app_docs").upsert({coll,id,data,updated_at:new Date().toISOString()},{onConflict:"user_id,coll,id"});if(error)throw error}
 async function del(coll,id){const {error}=await sb.from("app_docs").delete().eq("coll",coll).eq("id",id);if(error)throw error}
@@ -929,7 +930,7 @@ ${q}`;
    document.getElementById("stour").onclick=()=>{close();setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),400)};
    document.getElementById("sq").onclick=()=>{close();setTimeout(()=>wobSetup(true),350)};
    {const c=document.getElementById("sdelc");document.getElementById("sdel").onclick=()=>{c.hidden=false;c.scrollIntoView({block:"nearest",behavior:"smooth"})};document.getElementById("sdeln").onclick=()=>{c.hidden=true};
-    const y=document.getElementById("sdely");y.onclick=async()=>{if(y.disabled)return;y.disabled=true;y.textContent=tx("Deleting…","جاري الحذف…");try{await delAccount();location.replace(location.pathname)}catch(e){y.disabled=false;y.textContent=tx("Couldn't delete. Try again","ما انحذف. جرّب مرة ثانية")}}}
+    const y=document.getElementById("sdely");y.onclick=async()=>{if(y.disabled)return;y.disabled=true;y.textContent=tx("Deleting…","جاري الحذف…");try{if(await delAccount()){c.innerHTML=`<b style="display:block;color:#DC2626;margin-bottom:4px">${tx("Login not removed","ما انحذف تسجيل الدخول")}</b>${tx("Your data was deleted, but your login couldn't be removed. Try again later.","انحذفت بياناتك، بس ما قدرنا نحذف تسجيل الدخول. جرّب مرة ثانية بعدين.")}<button id="sdelok" style="display:block;width:100%;height:40px;margin-top:10px;border:0;border-radius:10px;background:#fff;color:#0F172A;font:600 14px inherit;font-family:inherit">${tx("OK","تمام")}</button>`;document.getElementById("sdelok").onclick=()=>location.replace(location.pathname);return}location.replace(location.pathname)}catch(e){y.disabled=false;y.textContent=tx("Couldn't delete. Try again","ما انحذف. جرّب مرة ثانية")}}}
    document.getElementById("sout").onclick=async()=>{try{localStorage.removeItem("w-cache");await sb.auth.signOut()}catch(e){}location.reload()}})};
  // ---- first-time questions, then the tour (new accounts: no salary and no setup saved yet) ----
  const wobSetup=preview=>{if(!window.WOB||document.querySelector(".wob"))return;window._wobShown=1;
