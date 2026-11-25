@@ -3,6 +3,8 @@
 (function(){
 let AR=false;try{AR=localStorage.getItem("w-lang")==="ar"}catch(e){}
 document.documentElement.dir=AR?"rtl":"ltr";document.documentElement.lang=AR?"ar":"en";
+// QA 2026-11-25: short labels end on a whole word, never mid-word ("Almarai Fresh Mi"); one long word gets "…"
+const cutW=(t,n)=>{t=String(t||"").trim();if(t.length<=n)return esc(t);const w=t.slice(0,n+1).replace(/\s+\S*$/,"").replace(/[\s·,\-–]+$/,"");return esc(w&&w.length<t.length&&/\s/.test(t.slice(0,n+1))?w:t.slice(0,n-1)+"…")};
 const RS="⃁",tx=(e,a)=>AR?a:e,_nf=new Intl.NumberFormat("en-US"),fmt=n=>_nf.format(Math.round(n)),M=v=>`<bdi dir="ltr">${RS}${typeof v=="number"?fmt(v):v}</bdi>`;
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const G="#64748B",LN="#E2E8F0",ink="#0F172A",GR="#16A34A",NAVY="#0F2A4A",BLUE="#2563EB",AMB="#F59E0B",ACC={w:NAVY,e:NAVY,s:GR,f:AMB},fl="";
@@ -338,7 +340,7 @@ function cards(m){
  // Beshr 2026-11-25: no store name (e.g. "Panda") as the Store card's main text: show the basket (shopping list total at the cheapest prices), else the item count
  const bk=(m.list||[]).filter(g=>g.best),bkT=p2(bk.reduce((a,g)=>a+g.best.price*Math.max(1,+(m.shopQty||{})[g.k]||1),0));
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
-  chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),esc(drop.item).slice(0,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),esc(top.item).slice(0,22),ACC.s,p):""};
+  chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(drop.item,22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(top.item,22),ACC.s,p):""};
  const tp=topPick(m.deals),d=tp||m.deals.slice().sort(byScore)[0],hot=tp?dHot(tp):"";
  const f={t:tx("Forsa","فرصة"),ic:"fire",v:d?esc(d.name):"—",line:tp?`<span class="tpk">${PH("shield-check")}${tx("Top pick","أفضل فرصة")}</span>`:d&&d.pct?tx(`${d.pct}% below market`,`أقل ${d.pct}٪`):tx(`${m.deals.length} deals`,`${m.deals.length} صفقة`),
   chart:p=>d&&d.market?K.strike(fmt(d.market),fmt(d.price),esc(tp?[`▼ ${d.pct}%`,hot||(dKind(d)=="new"?tx("New","جديد"):esc(d.source||""))].join(" · "):(d.source||"")),AMB,p):""};
@@ -349,7 +351,7 @@ function cards(m){
  if(lvPlan>0){const left=Math.max(0,lvPlan-lvSpent),safe=left/Math.max(1,m.toPay);W.push({line:tx("Safe to spend today","تقدر تصرف اليوم"),chart:p=>K.gauge(cl(left/lvPlan),WC,p,`${M(safe)}<br>${tx("a day to payday","باليوم للراتب")}`)})}
  if(allPlan>0)W.push({line:tx("This month's plan","خطة هالشهر"),chart:p=>K.ring(cl(monOut/allPlan),WC,p,`${M(monOut)}<br>${tx("of","من")} ${M(allPlan)}`)});
  if(monIn>0)W.push({line:tx("Money in and out","الداخل والطالع"),chart:p=>K.twin([[tx("In","داخل"),M(monIn),1,"#4ADE80"],[tx("Out","طالع"),M(monOut),cl(monOut/monIn),WC]],p)});
- const dts=m.debts.filter(x=>x.total>0);if(dts.length)W.push({line:tx("Debt paid off","سداد الديون"),chart:p=>K.rows(dts.slice(0,3).map(x=>[esc(x.name).slice(0,9),Math.round(x.paid/x.total*100)+"%",WC,cl(x.paid/x.total)]),p)});
+ const dts=m.debts.filter(x=>x.total>0);if(dts.length)W.push({line:tx("Debt paid off","سداد الديون"),chart:p=>K.rows(dts.slice(0,3).map(x=>[cutW(x.name,9),Math.round(x.paid/x.total*100)+"%",WC,cl(x.paid/x.total)]),p)});
  const E=[{line:e.line,chart:e.chart,hero:"bars"}];
  if(m.usual>0){const mx=Math.max(m.todayDaily,m.usual)||1;E.push({line:m.todayDaily<=m.usual?tx("Calmer than usual","أهدى من المعتاد"):tx("Today vs usual","اليوم والمعتاد"),chart:p=>K.twin([[tx("Today","اليوم"),fmt(m.todayDaily),m.todayDaily/mx,ACC.e],[tx("Usual","المعتاد"),fmt(m.usual),m.usual/mx,LN]],p)})}
  const mc=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]);if(monOut>0&&mc.length){const t2=mc.slice(0,2),cs=[ACC.e,"#8FB0D3"],oth=monOut-sm(t2.map(x=>x[1]));
@@ -359,10 +361,10 @@ function cards(m){
   if(ch.length>1)E.push({line:tx("This week vs last","هالأسبوع والماضي"),chart:p=>K.list(ch.map(([k,r])=>[nm(k),(r<=0?"▼":"▲")+Math.abs(Math.round(r*100))+"%",r<=0?GR:"#DC2626"]),p)})}
  const S=[{line:s.line,chart:s.chart}];
  {const gp=m.G2.filter(g=>g.stores.length>1&&g.stores.at(-1).price>g.best.price).map(g=>[g,g.stores.at(-1).price-g.best.price]).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  if(gp.length>1)S.push({line:tx("Cheapest vs dearest","الأرخص والأغلى"),chart:p=>K.list(gp.map(([g,v])=>[esc(g.item).slice(0,16),"▼"+RS+p2(v),GR]),p)})}
+  if(gp.length>1)S.push({line:tx("Cheapest vs dearest","الأرخص والأغلى"),chart:p=>K.list(gp.map(([g,v])=>[cutW(g.item,16),"▼"+RS+p2(v),GR]),p)})}
  {const cnt={};m.G2.forEach(g=>{if(g.best)cnt[g.best.store]=(cnt[g.best.store]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  if(cs.length>1)S.push({line:tx("Where it's cheapest","وين الأرخص"),chart:p=>K.rows(cs.map(([n,v],i)=>[esc(n).slice(0,9),String(v),i?LN:ACC.s,v/cs[0][1]]),p)})}
- {const h=m.G2.find(g=>g.hist.length>2);if(h)S.push({line:tx(`${esc(h.item).slice(0,18)} price`,`سعر ${esc(h.item).slice(0,18)}`),chart:p=>K.line(h.hist,ACC.s,p,{area:0,mark:0})})}
+  if(cs.length>1)S.push({line:tx("Where it's cheapest","وين الأرخص"),chart:p=>K.rows(cs.map(([n,v],i)=>[cutW(n,9),String(v),i?LN:ACC.s,v/cs[0][1]]),p)})}
+ {const h=m.G2.find(g=>g.hist.length>2);if(h)S.push({line:tx(`${cutW(h.item,18)} price`,`سعر ${cutW(h.item,18)}`),chart:p=>K.line(h.hist,ACC.s,p,{area:0,mark:0})})}
  const F=[{line:f.line,chart:f.chart}];if(tp)f.fixed=1;
  if(d&&d.market>d.price&&d.price)F.push({line:tx("Price vs market","السعر والسوق"),chart:p=>K.track(d.price/d.market,AMB,p,M(d.price),tx("market ","السوق ")+M(d.market))});
  {const cnt={};m.deals.forEach(x=>{const c=dCat(x);cnt[c]=(cnt[c]||0)+1});const cs=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3),cn=c=>({electronics:tx("Tech","تقنية"),appliances:tx("Home","البيت"),food:tx("Food","أكل")})[c]||(DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):tx("Other","أخرى"));
@@ -385,13 +387,13 @@ function cards(m){
   E.push({line:fast?tx("Spending a bit fast","الصرف أسرع شوي"):tx("On pace with the plan","ماشي على الخطة"),chart:p=>{const n=Math.max(1,Math.ceil(cum.length*p)),pts=cum.slice(0,n).map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ");return sv(172,50,`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(dl-1)}" y2="${Y(lvPlan)}" stroke="#94A3B8" stroke-dasharray="4 3"/><polyline points="${pts}" fill="none" stroke="${fast?RED:ACC.e}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(n-1)}" cy="${Y(cum[n-1])}" r="3.5" fill="${fast?RED:ACC.e}"/>`)}})}
  // S1 price going crazy: the item whose price jumped or crashed the most
  {const cz=m.G2.filter(g=>g.hist&&g.hist.length>1&&g.hist[0]>0).map(g=>[g,(g.hist.at(-1)-g.hist[0])/g.hist[0]]).filter(x=>Math.abs(x[1])>=.15).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
-  if(cz){const [g,r]=cz,up=r>0,c=up?RED:GR;S.push({line:`⚡ ${esc(g.item).slice(0,14)} ${up?"▲":"▼"}${Math.abs(Math.round(r*100))}%`,chart:p=>K.line(g.hist,c,p,{area:0,mark:g.hist.length-1})})}}
+  if(cz){const [g,r]=cz,up=r>0,c=up?RED:GR;S.push({line:`⚡ ${cutW(g.item,14)} ${up?"▲":"▼"}${Math.abs(Math.round(r*100))}%`,chart:p=>K.line(g.hist,c,p,{area:0,mark:g.hist.length-1})})}}
  // S2 basket: at the cheapest stores vs the dearest
  {const L2=(m.list||[]).filter(g=>g.best&&g.stores&&g.stores.length),q=g=>Math.max(1,+(m.shopQty||{})[g.k]||1),lo=sm(L2.map(g=>g.best.price*q(g))),hi=sm(L2.map(g=>g.stores.at(-1).price*q(g)));
   if(L2.length&&hi>lo)S.push({line:tx(`Basket: save ${RS}${p2(hi-lo)}`,`السلة: توفّر ${RS}${p2(hi-lo)}`),chart:p=>K.twin([[tx("Cheap","أرخص"),M(p2(lo)),lo/hi,GR],[tx("Dear","أغلى"),M(p2(hi)),1,LN]],p)})}
  // S3 price thermometer: where today's price sits between its lowest and highest
  {const g=m.G2.find(g=>g.last&&g.best&&g.stores&&g.stores.length>1&&g.stores.at(-1).price>g.best.price);if(g){const lo=g.best.price,hi=g.stores.at(-1).price,f=cl((g.last.price-lo)/(hi-lo)),x=4+f*164;
-  S.push({line:tx(`${esc(g.item).slice(0,16)} today`,`${esc(g.item).slice(0,16)} اليوم`),chart:p=>sv(172,50,`<defs><linearGradient id="thg"><stop offset="0" stop-color="${GR}"/><stop offset=".5" stop-color="${AMB}"/><stop offset="1" stop-color="${RED}"/></linearGradient></defs><rect x="2" y="20" width="168" height="8" rx="4" fill="url(#thg)"/><path d="M${x},${17} l5,-7 h-10z" fill="${ink}" opacity="${e3(p*2-.5)}"/><text x="2" y="44" font-size="10" fill="${G}">${tx("low","أقل")} ${RS}${p2(lo)}</text><text x="170" y="44" font-size="10" fill="${G}" text-anchor="end">${tx("high","أعلى")} ${RS}${p2(hi)}</text>`)})}}
+  S.push({line:tx(`${cutW(g.item,16)} today`,`${cutW(g.item,16)} اليوم`),chart:p=>sv(172,50,`<defs><linearGradient id="thg"><stop offset="0" stop-color="${GR}"/><stop offset=".5" stop-color="${AMB}"/><stop offset="1" stop-color="${RED}"/></linearGradient></defs><rect x="2" y="20" width="168" height="8" rx="4" fill="url(#thg)"/><path d="M${x},${17} l5,-7 h-10z" fill="${ink}" opacity="${e3(p*2-.5)}"/><text x="2" y="44" font-size="10" fill="${G}">${tx("low","أقل")} ${RS}${p2(lo)}</text><text x="170" y="44" font-size="10" fill="${G}" text-anchor="end">${tx("high","أعلى")} ${RS}${p2(hi)}</text>`)})}}
  // F1 deal score ring (replaces the half gauge)
  {const i=F.findIndex(x=>x.score);if(d&&d.pct>0){const sc=Math.max(1,Math.min(10,Math.round(d.pct/5))),r=21,L=2*Math.PI*r;const ch={line:sc>=6?tx("Great deal","صفقة ممتازة"):tx("Deal score","تقييم الصفقة"),chart:p=>sv(172,50,`<g transform="translate(118,25)"><circle r="${r}" fill="none" stroke="#E8A400" stroke-opacity=".2" stroke-width="7"/><circle r="${r}" fill="none" stroke="#E8A400" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L*sc/10*p} ${L}" transform="rotate(-90)" ${sc>=8?'style="filter:drop-shadow(0 0 4px #F59E0B)"':""}/><text y="6" text-anchor="middle" font-size="17" font-weight="600" fill="${ink}">${sc}</text></g><text x="88" y="30" text-anchor="end" font-size="11" fill="${G}">${tx("out of 10","من 10")}</text>`)};
   const gi=F.findIndex(x=>x.line==ch.line);if(gi>0)F[gi]=ch;else F.push(ch)}}
