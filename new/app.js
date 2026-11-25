@@ -811,9 +811,9 @@ ${q}`;
  const wobSetup=preview=>{if(!window.WOB||document.querySelector(".wob"))return;window._wobShown=1;
   WOB.setup({lang:AR?"ar":"en",preview,salary:m.income,payday:m.payday,pools:wobPools(m),onLang:l=>{try{localStorage.setItem("w-lang",l)}catch(e){}},
    save:a=>wobSave(m,a),skip:async()=>{await put("settings","profile",Object.assign({},m.prof,{setup:{at:Date.now(),skipped:true}}));await wobCache()},
-   done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"){try{localStorage.setItem("w-tour-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
+   done:how=>{if(preview)return;if(window.__WOB_DEMO)return window.__WOB_DEMO(how);const ar=(()=>{try{return localStorage.getItem("w-lang")=="ar"}catch(e){return AR}})();if(how=="tour"||how=="home"){try{localStorage.setItem(how=="tour"?"w-tour-next":"w-guide-next","1")}catch(e){}}if(ar!=AR||how!="skip")location.reload()}})};
  if(!soft&&!window._wobShown&&!m.income&&!m.prof.setup)setTimeout(()=>wobSetup(false),250);
- try{if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en"}),700)}}catch(e){}
+ try{if(!soft&&localStorage.getItem("w-guide-next")){localStorage.removeItem("w-guide-next");setTimeout(()=>window.WOB&&WOB.guide({lang:AR?"ar":"en"}),700)}else if(!soft&&localStorage.getItem("w-tour-next")){localStorage.removeItem("w-tour-next");setTimeout(()=>window.WOB&&WOB.tour({lang:AR?"ar":"en",done:()=>setTimeout(()=>WOB.guide({lang:AR?"ar":"en"}),450)}),700)}}catch(e){}
  // ---- after a save, come back to the same place ----
  try{const u=JSON.parse(sessionStorage.getItem("w-ui")||"null");sessionStorage.removeItem("w-ui");
   if(u&&Date.now()-u.t<20000&&u.ok&&document.querySelector(`.card[data-k="${u.ok}"]`)){OK=u.ok;TL.tap=now()-5;TL.close=1e9;setTimeout(()=>{const c=document.querySelector(`.card[data-k="${u.ok}"]`);c.scrollTop=u.top||0;if(u.cw&&window._cwOpen)window._cwOpen(u.cw.k,u.cw.who)},60)}}catch(e){}
