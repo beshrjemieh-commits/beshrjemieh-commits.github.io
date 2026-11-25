@@ -468,3 +468,6 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 #susage[aria-checked="false"] .usw{background:#E2E8F0;color:#64748B}
 /* QA 2026-11-25: one active chip per row in Forsa Added; "All" steps back when a category is picked */
 .achips.akind:has([data-acat].on) [data-ak="all"].on{background:#EEF2F7;color:#0F172A}
+/* Beshr 2026-11-25 (option B): small grey label under each card's big number */
+.bsub{font-size:11px;font-weight:500;opacity:.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+.card:has(.big[style*="white-space: normal"]) .bsub{display:none}
