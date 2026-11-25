@@ -551,3 +551,5 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 .a2h small{font-size:13px;color:#64748B;text-align:center}.a2b{margin-top:8px;width:100%;border:0;background:#2563EB;color:#fff;font-family:inherit;font-size:16px;font-weight:600;padding:13px;border-radius:14px}
 .a2l{border:0;background:none;color:#2563EB;font-family:inherit;font-size:15px;font-weight:500;padding:6px}
 .a2h ol svg{display:inline-block!important;margin:0 2px}
+.sempty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:40px 24px;color:#64748B}.sempty>svg{width:40px;height:40px;color:#94A3B8}.sempty b{font-size:17px;color:#0F172A}.sempty small{font-size:14px;line-height:1.4}
+.sebill{margin-top:8px;display:inline-flex;align-items:center;gap:8px;border:0;background:#2563EB;color:#fff;font-family:inherit;font-size:15px;font-weight:600;padding:12px 18px;border-radius:14px}.sebill svg{width:18px;height:18px}
