@@ -276,6 +276,46 @@ function cmpSec(m){const EV=LOG_CATS.slice(0,10),day=n=>{const d=new Date();d.se
   <div class="cmh"><b>${tx("This week vs last week","هالأسبوع والأسبوع الماضي")}</b>${ch==null?"":`<span style="color:${ch>0?"#DC2626":GR}">${ch>0?"▲":"▼"} ${W0>=100&&ch>=-90&&ch<=200?Math.abs(ch)+"%":`${M(Math.round(W1))} ${tx(`(was ${M(Math.round(W0))})`,`(كان ${M(Math.round(W0))})`)}`}</span>`}</div>
   <div class="cmw" dir="ltr">${wk.map((v,i)=>`<div class="cmd"><span class="cmb"><i class="lw" style="height:${lw[i]/MX*70}px"></i><i class="tw" style="height:${v/MX*70}px"></i></span><small>${dn(6-i)}</small></div>`).join("")}</div>
   <div class="cml"><span><i class="tw"></i>${tx("Last 7 days","آخر 7 أيام")} <b>${M(W1)}</b></span><span><i class="lw"></i>${tx("7 days before","الـ7 اللي قبلها")} <b>${M(W0)}</b></span></div></div>`}
+// ---------- tab top tip + stage chart (Beshr 2026-11-25: mix of video 3 + 3b; plan: analysis/small-data-charts.md) ----------
+function mixSec(m,tab,dPlan){
+ const LC=LOG_CATS.slice(0,10),ex=m.ex.filter(x=>LC.includes(x.cat)),byDay={};ex.forEach(x=>byDay[x.date]=(byDay[x.date]||0)+x.amount);
+ const first=m.ex.length?m.ex[m.ex.length-1].date:null,age=first?Math.round((new Date(m.today)-new Date(first))/864e5)+1:0;
+ const st=!m.ex.length?0:age<3?1:age<14?2:age<30?3:4,dayK=n=>{const d=new Date(m.today);d.setDate(d.getDate()-n);return ymd(d)};
+ const perDay=Math.round((dPlan||0)/Math.max(1,m.cycle)),spD=[...Array(30)].map((_,i)=>byDay[dayK(29-i)]||0),on=spD.filter(v=>v>0).sort((a,b)=>a-b),usual=on.length?on[on.length>>1]:0;
+ const bar=(f,over)=>`<div class="mbar"><i style="width:${Math.round(cl(f)*100)}%"></i>${over?`<b style="width:${Math.round(cl(over)*100)}%"></b>`:""}</div>`,unl=t=>t?`<p class="munl">${PH("calendar-blank")}${t}</p>`:"";
+ const U=[tx("Your first bank message adds itself","أول رسالة بنك تنضاف لحالها"),n=>tx(`${n} more days to see your usual`,`باقي ${n} أيام وتشوف معدلك`),n=>tx(`${n} days until your payday forecast`,`باقي ${n} يوم وتطلع توقعات الراتب`),tx("Month vs plan unlocks after 30 days","مقارنة الشهر بالخطة تفتح بعد 30 يوم"),tx("Next month: compare with last month","الشهر الجاي: قارن بالشهر اللي قبله")];
+ let ch="",u="",tips=[];
+ if(tab=="e"){
+  if(st==0&&!perDay){ch=`<small>${tx("No plan yet","ما فيه خطة للحين")}</small><b>${tx("Set your monthly plan in Wallet","حدد خطتك الشهرية في المحفظة")}</b>`;u=U[0]}
+  else if(st==0){ch=`<small>${tx("Your plan","خطتك")}</small><b>${M(perDay)} <span>${tx(`a day · payday in ${m.toPay} days`,`باليوم · الراتب بعد ${m.toPay} يوم`)}</span></b>${bar(1)}`;u=U[0]}
+  else if(st==1){const t=byDay[m.today]||0;ch=`<small>${tx("Left today","باقي لك اليوم")}</small><b>${M(Math.max(0,perDay-t))} <span>${tx("of","من")} ${M(perDay)}</span></b>${bar(perDay?(perDay-t)/perDay:0)}`;u=U[1](3-age)}
+  else if(st==2){const d7=spD.slice(-7),mx=Math.max(...d7,1);ch=`<small>${tx("Last 7 days","آخر 7 أيام")}</small><div class="mdots">${d7.map(v=>`<i style="--s:${v?Math.round(10+24*v/mx):8}px"${v?"":' class="e"'}></i>`).join("")}</div><b>${tx("Today","اليوم")} ${M(byDay[m.today]||0)} <span>· ${tx("usual","المعتاد")} ${M(usual)}</span></b>`;u=age<7?U[2](7-age):U[3]}
+  else if(st==3){const d14=spD.slice(-14),mx=Math.max(...d14,1),lo=on[Math.floor(on.length*.25)]||0,hi=on[Math.floor(on.length*.75)]||0;ch=`<small>${tx("Last 14 days","آخر 14 يوم")}</small><div class="mb14">${d14.map(v=>`<i style="height:${Math.max(2,Math.round(v/mx*100))}%"></i>`).join("")}<span class="mband" style="bottom:${Math.round(lo/mx*100)}%;height:${Math.max(4,Math.round((hi-lo)/mx*100))}%"></span></div><small>${tx("Shaded = your usual day","المظلل = يومك المعتاد")}</small>`;u=U[3]}
+  else{const sp=Object.entries(m.spent).filter(([k,v])=>v>0&&LC.includes(k)).sort((a,b)=>b[1]-a[1]),tot=sp.reduce((a,x)=>a+x[1],0),mx=sp.length?sp[0][1]:1,dom=new Date(m.today).getDate();
+   ch=`<small>${tx("Month vs plan","الشهر مقابل الخطة")}</small><div class="mbar mpl"><span class="mtick" style="inset-inline-start:${Math.round(cl(dom/30)*100)}%"></span><i style="width:${Math.round(cl(dPlan?tot/dPlan:0)*100)}%"></i>${dPlan&&tot>dPlan?`<b style="width:${Math.round((tot-dPlan)/tot*100)}%"></b>`:""}</div><small>${M(tot)} ${tx("of","من")} ${M(dPlan||0)}</small>
+   <div class="mtop">${sp.slice(0,4).map(([k,v])=>{const p=m.planOf(k),ov=p&&v>p;return `<div><span>${nm(k)}</span><p><i style="width:${Math.round(v/mx*100)}%"${ov?' class="r"':""}></i></p><b${ov?' class="r"':""}>${M(v)}</b></div>`}).join("")}</div>${sp.length>4?`<small>${tx(`+${sp.length-4} more below`,`+${sp.length-4} تحت`)}</small>`:""}`;u=U[4]}
+  const big=Object.entries(m.spent).filter(([k,v])=>LC.includes(k)&&m.monthEx.filter(x=>x.cat==k).length>=3).sort((a,b)=>b[1]-a[1])[0];
+  tips=st==0?[tx("Tap + to add your first cost","اضغط + لإضافة أول مصروف")]:st<2?[tx("Tap any cost to edit it","اضغط أي مصروف لتعديله"),tx("Tap + to add your next cost","اضغط + لإضافة مصروف ثاني")]
+   :[st!=2&&usual?tx(`Today ${M(byDay[m.today]||0)} · usual ${M(usual)}`,`اليوم ${M(byDay[m.today]||0)} · المعتاد ${M(usual)}`):"",big?tx(`${nm(big[0])}: your biggest cost`,`${nm(big[0])} أكبر مصروف عندك`):"",tx("Tap any cost to edit it","اضغط أي مصروف لتعديله")]}
+ else{
+  if(m.balance==null)return "";const b=m.balance,day=Math.round(b/Math.max(1,m.toPay)),avg=spD.slice(-14).reduce((a,v)=>a+v,0)/14,spare=Math.round((b-avg*m.toPay)/50)*50;
+  if(st<3||age<7){ch=`<small>${tx("Yours to spend","لك تصرفه")}</small><b>${M(day)} <span>${tx(`a day · payday in ${m.toPay} days`,`باليوم · الراتب بعد ${m.toPay} يوم`)}</span></b>${bar(1)}`;
+   if(st==2){const d7=spD.slice(-7),n=(()=>{let k=0;for(let i=6;i>=0&&d7[i]<=day;i--)k++;return k})();ch+=`<small class="mst">${tx(`${n}-day streak under ${M(day)} a day`,`${n} أيام متتالية تحت ${M(day)} باليوم`)}</small><div class="mdots">${d7.map(v=>`<i style="--s:20px" class="${v<=day?"g":"e"}"></i>`).join("")}</div>`}
+   u=st==0?U[0]:U[2](Math.max(1,7-age))}
+  else{const pts=[...Array(8)].map((_,i)=>i),past=[b];for(let i=0;i<7;i++){const d=dayK(i);past.unshift(past[0]+(byDay[d]||0)-m.inc.filter(x=>x.date==d).reduce((a,x)=>a+x.amount,0))}
+   const end=b-avg*m.toPay,all=past.concat(end),hi=Math.max(...all),lo=Math.min(...all,0),Y=v=>Math.round(90-(v-lo)/(hi-lo||1)*80),X=i=>Math.round(i*200/7);
+   ch=`<small>${tx("Until payday","لين الراتب")}</small><svg viewBox="0 0 320 100" class="mproj"><polyline points="${past.map((v,i)=>X(i)+","+Y(v)).join(" ")}" fill="none" stroke="#0F2A4A" stroke-width="3"/><polyline points="200,${Y(b)} 315,${Y(end)}" fill="none" stroke="${end>=0?GR:"#DC2626"}" stroke-width="3" stroke-dasharray="6 5"/><circle cx="315" cy="${Y(end)}" r="5" fill="${end>=0?GR:"#DC2626"}"/></svg><b class="${end>=0?"g":"r"}">${end>=0?tx(`About ${M(Math.max(0,spare))} left on payday`,`حوالي ${M(Math.max(0,spare))} تبقى يوم الراتب`):tx(`About ${M(Math.abs(spare))} short by payday`,`ناقصك حوالي ${M(Math.abs(spare))} يوم الراتب`)}</b>`;
+   const mo=m.planOf("debt"),rem=m.debts.reduce((a,d)=>a+Math.max(0,d.total-d.paid),0),tot=m.debts.reduce((a,d)=>a+d.total,0);
+   if(st==4&&mo>0&&rem>0){const n=Math.ceil(rem/mo),d=new Date(m.next);d.setMonth(d.getMonth()+n-1);const mn=d.toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{month:"long",year:"numeric"});
+    ch+=`<div class="mdebt"><b>${tx(`Debt-free by ${mn}`,`بتخلص الديون في ${mn}`)}</b><div class="mbar"><i style="width:${Math.round(cl((tot-rem)/tot)*100)}%;background:${GR}"></i></div><small>${tx(`${M(tot-rem)} of ${M(tot)} paid · ${M(mo)} a month`,`${M(tot-rem)} من ${M(tot)} انسددت · ${M(mo)} بالشهر`)}</small></div>`}
+   u=st==3?U[3]:U[4]}
+  tips=st<2?[tx("Pencil sets your cash and bank","القلم يضبط الكاش والبنك"),tx("Tap + to add a refund or side job","اضغط + لإضافة استرجاع أو دخل إضافي")]
+   :[avg&&b/avg>=1&&b/avg<=90?tx(`Lasts ${Math.max(0,Math.floor(b/avg))} days at your pace`,`يكفيك ${Math.max(0,Math.floor(b/avg))} يوم بنفس المعدل`):"",tx("Tap + to add a refund or side job","اضغط + لإضافة استرجاع أو دخل إضافي")]}
+ tips=tips.filter(Boolean);if(!tips.length)return "";
+ let last;try{last=localStorage.getItem("hint-last-"+tab)}catch(e){}let i=Math.max(0,tips.indexOf(last)+1)%tips.length;if(tips.length>1&&tips[i]==last)i=(i+1)%tips.length;try{localStorage.setItem("hint-last-"+tab,tips[i])}catch(e){}
+ return `<div class="sec mix"><button class="mtip" data-tips="${esc(JSON.stringify(tips))}" data-i="${i}">${PH("sparkle")}<span><small>${tx("Picked for you","مختار لك")}</small><b>${tips[i]}</b></span></button><button class="mdet" aria-expanded="false">${tx("See the chart","شوف الرسم")}<span class="chev">›</span></button><div class="mch" hidden>${ch}${unl(u)}</div></div>`}
+document.addEventListener("click",e=>{const t=e.target.closest(".mtip");if(t){const L=JSON.parse(t.dataset.tips||"[]"),i=(+t.dataset.i+1)%L.length;t.dataset.i=i;t.querySelector("b").innerHTML=L[i];try{localStorage.setItem("hint-last-"+(t.closest(".card")||{dataset:{}}).dataset.k,L[i])}catch(_){}window.track&&window.track("tip_next","mix");return}
+ const d=e.target.closest(".mdet");if(d){const c=d.nextElementSibling,o=c.hidden;c.hidden=!o;d.setAttribute("aria-expanded",o);d.classList.toggle("on",o);if(o)window.track&&window.track("chart_open","mix")}});
 function build(m){
  const groupSum=(ks)=>ks.reduce((a,k)=>a+m.planOf(k),0),spentOf=ks=>ks.reduce((a,k)=>a+(m.spent[k]||0),0);
  const GR4=[[tx("Must pay","الالتزامات"),m.items.filter(i=>i.g=="Must pay").map(i=>i.k)],[tx("Living","المعيشة"),m.items.filter(i=>i.g=="Living"||i.g=="Personal").map(i=>i.k)],[tx("Saving","الادخار"),m.items.filter(i=>i.g=="Saving"&&i.k!="debt").map(i=>i.k)],[tx("Debt","الديون"),["debt"]]];
@@ -290,13 +330,13 @@ function build(m){
  const monIn=m.inc.filter(x=>x.date.startsWith(m.mon)).reduce((a,x)=>a+x.amount,0),monOut=m.monthEx.reduce((a,x)=>a+x.amount,0),planned=m.items.reduce((a,i)=>a+m.planOf(i.k),0);
  const balSec=m.balance==null?`<div class="sec"><button class="go setbal" data-act="bal">${PH("wallet")} ${tx("Set your balance (cash + bank)","حدد رصيدك (كاش + بنك)")}</button><p class="ds" style="margin:6px 2px 0;font-size:13px">${tx("Then the app shows what you have now, after every cost and income.","بعدها التطبيق يوريك كم معك الحين بعد كل مصروف ودخل.")}</p></div>`
   :`<div class="sec"><div class="baln" data-act="bal" role="button"><div><small>${tx("Money now","فلوسك الحين")}</small><b>${M(m.balance)}</b><small>${tx(`cash ${M(m.start.cash)} · bank ${M(m.start.bank)} · set ${when(m.start.asOf)}`,`كاش ${M(m.start.cash)} · بنك ${M(m.start.bank)} · من ${when(m.start.asOf)}`)}</small></div><span class="pedit">${PH("pencil-simple")}</span></div></div>`;
- const W=[balSec,tiles([[tx("Salary in","الراتب بعد"),tx(`${m.toPay} days`,`${m.toPay} يوم`)],[tx("Left to plan","باقي بدون خطة"),M(Math.max(0,m.income-planned))]]),
+ const W=[mixSec(m,"w"),balSec,tiles([[tx("Salary in","الراتب بعد"),tx(`${m.toPay} days`,`${m.toPay} يوم`)],[tx("Left to plan","باقي بدون خطة"),M(Math.max(0,m.income-planned))]]),
   sec(tx("Monthly budget","الميزانية الشهرية"),budget),
   sec(tx("Money in and out","الداخل والطالع"),`<div class="tiles"><div class="tile" style="background:${GR}14"><small>${tx("Money in","الداخل")}</small><b style="color:${GR}"><bdi dir="ltr">+${RS}${fmt(monIn)}</bdi></b><small>${tx("this month","هالشهر")}</small></div><div class="tile"><small>${tx("Money out","الطالع")}</small><b>${M(monOut)}</b><small>${tx("this month","هالشهر")}</small></div></div><button class="addl" data-act="inc">+ ${tx("Add money in (salary, refund, side job)","أضف دخل (راتب، استرجاع، شغل جانبي)")}</button>`)];
  // expenses page
  const daily=m.items.filter(i=>i.g=="Living"||i.g=="Personal").map(i=>i.k),dPlan=groupSum(daily),dSpent=spentOf(daily),dom=new Date().getDate();
  const cats=Object.entries(m.spent).sort((a,b)=>b[1]-a[1]),totM=monOut||1;
- const E=[sec(tx("Today","اليوم"),m.todayEx.length?xrows(m.todayEx):`<div class="empty">${tx("Nothing yet today","ما فيه شي اليوم")}</div>`),
+ const E=[mixSec(m,"e",dPlan),sec(tx("Today","اليوم"),m.todayEx.length?xrows(m.todayEx):`<div class="empty">${tx("Nothing yet today","ما فيه شي اليوم")}</div>`),
   // Beshr 2026-11-24: one chart instead of rows: ring of this month's categories, centre = total spent (same number as the parts); tap a slice or name for the details
   // Beshr 2026-11-24: ring for this month, arrows step back to earlier months by name
   cmpSec(m),
@@ -478,8 +518,8 @@ function start(m,soft){
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=Q.hero=="photo"?Q.chart():isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
    // video 4: Home shows number + one line only; Wallet/Expenses charts appear as the card opens
-   if(HOME_PHOTOS&&(k=="w"||k=="e"))vz.style.opacity=f?cl((op-0.2)/0.5):0;
-   pg.style.top=lerp(h0,FP?44:isB?232:isD?200:186,f?op:0)+"px";
+   if(HOME_PHOTOS&&(k=="w"||k=="e"))vz.style.opacity=0; // tab top tip + chart below replace the header chart (2026-11-25 mix)
+   pg.style.top=lerp(h0,FP?44:HOME_PHOTOS&&(k=="w"||k=="e")?118:isB?232:isD?200:186,f?op:0)+"px";
    pg.style.opacity=f&&!closing?ez(cl((since-0.12)/0.25)):0;pg.querySelectorAll(":scope>*").forEach((e,n)=>{const q=f&&!closing?cl((since-0.2-0.07*n)/0.3):0;e.style.opacity=ez(q);e.style.transform=`translateY(${(1-ez(q))*10}px)`})});
   const fade=1-cl(op/0.45);document.querySelector(".srch").style.opacity=fade;document.querySelector(".abar").style.opacity=fade;document.querySelector(".hd").style.opacity=OK=="s"||OK=="f"?1-cl(op/0.25):1;
   const ch=document.getElementById("chip");if(ch){const hc=document.querySelector(`.card[data-k="${HK}"]`),A=HK=="f"?AMB:BLUE,u=t-0.5,v=Math.max(0,u-0.4),g=ez(u/0.4)*(0.7+0.3*Math.cos(2*Math.PI*v/1.2)*Math.exp(-v/1.2)),al=n=>Math.round(Math.min(255,Math.max(0,n*g))).toString(16).padStart(2,"0");
@@ -489,7 +529,7 @@ function start(m,soft){
  requestAnimationFrame(render);
  cardEls.forEach(c=>c.addEventListener("click",ev=>{const t=now();
   const row=ev.target.closest(".bg");if(row&&OK){const lv=(+row.dataset.lv+1)%(row.querySelector(".l3>div").innerHTML.trim()?3:2);row.dataset.lv=lv;return}
-  if(ev.target.closest(".xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav,.fkind,.achips"))return;
+  if(ev.target.closest(".mtip,.mdet,.mch,.xadd,.tbtn,a,.swp,.ftabs,.fgo,.dnut,.dleg,.ebars,.mnav,.fkind,.achips"))return;
   if(!OK){if(c.dataset.k=="f"){try{localStorage.setItem("f-seen",Date.now())}catch(e){}c.classList.remove("hnew");const nb=c.querySelector(".hnewb");if(nb)nb.remove()}if(c.dataset.k=="f"&&window._fDaily&&window._fDaily())return;OK=c.dataset.k;window.track&&window.track("open","home",{w:"wallet",e:"expenses",s:"store",f:"forsa"}[OK]);TL.tap=t;TL.close=1e9;c.scrollTop=0;return}
   if(OK==c.dataset.k&&t>TL.tap+TL.open&&TL.close>1e8){const go=()=>{TL.close=now()};if(c.scrollTop>4){c.scrollTo({top:0,behavior:"smooth"});setTimeout(go,280)}else go()}}));
  // ---- Forsa: list + swipe mode ----
