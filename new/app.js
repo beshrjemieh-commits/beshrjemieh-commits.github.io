@@ -427,7 +427,7 @@ function start(m,soft){
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
  // Beshr 2026-11-25: text fits its box: one line if it fits at 18px+, else two lines (16px+) with the 2nd line's bottom lined up with the chart/price beside it, else it slides sideways (marquee) so it can be read
  const fitBig=b=>{if(!b)return;window._mqOff(b);b.style.transform="";const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();let bots=[];
-  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);if(!e.firstElementChild)bots.push(r.bottom)}});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min(170,L-br.left-10))+"px"}
+  if(vz&&vz.firstElementChild){let L=1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);if(!e.firstElementChild)bots.push(r.bottom)}});if(L<1e9)b.style.maxWidth=Math.max(120,Math.min((window.AW||393)-223,L-br.left-10))+"px"}
   b.style.textOverflow="clip";const one=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="nowrap";b.style.lineHeight="";return b.scrollWidth<=b.clientWidth+1},
   two=f=>{b.style.fontSize=f+"px";b.style.whiteSpace="normal";b.style.lineHeight="1.15";return b.scrollWidth<=b.clientWidth+1&&b.scrollHeight<=f*1.15*2+2};
   for(let f=base;f>=18;f--)if(one(f))return;
@@ -440,11 +440,11 @@ function start(m,soft){
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
-   if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);c.style.left=c.style.right=lerp(16,-off,op)+"px"};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
+   if(f){c.style.top=lerp(ht,PT,op)+"px";c.style.height=lerp(h0,PB-PT,op)+"px";c.style.zIndex=20;c.style.borderRadius=lerp(14,FP?0:22,op)+"px";if(FP){const sc=document.getElementById("app").getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);c.style.left=c.style.right=lerp(16,-off,op)+"px"};c.style.boxShadow=op>0?`0 20px 40px -20px rgba(0,0,0,${.25*op})`:"none"}
    else{c.style.opacity=closing&&OK?1-cl(op/0.12):1-cl(op/0.45)}
    c.style.overflowY=f&&op>=1&&!closing?"auto":"hidden";
    {const fo=f&&FP?1-cl(op/0.4):1;c.querySelector(".big").style.opacity=fo;c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
-   const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",W=f?lerp(172,isB?329:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(173,16,op):173,Y=f?lerp(48,98,op):48;
+   const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",XR=(window.AW||393)-220,W=f?lerp(172,isB?(window.AW||393)-64:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(XR,16,op):XR,Y=f?lerp(48,98,op):48;
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
    pg.style.top=lerp(h0,FP?44:isB?232:isD?200:186,f?op:0)+"px";
@@ -500,7 +500,7 @@ function start(m,soft){
    q=byK.filter(d=>!fcat||dCat(d)==fcat)};
   fch.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;if(b.dataset.fk!=null){fk=b.dataset.fk;fcat=""}else fcat=fcat==b.dataset.fc?"":b.dataset.fc;chips();draw();deck.animate([{opacity:.4},{opacity:1}],{duration:200})});
   const openFw=(list,title,daily)=>{qAll=list.slice();fk=fcat="";chips();dMode=daily;fch.style.display=daily==2?"none":"";fw.querySelector(".cwt").innerHTML=title;draw();
-   const sc=app.getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
+   const sc=app.getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);fw.style.left=fw.style.right=-off+"px";fw.classList.add("on");fw.setAttribute("aria-hidden","false")};
   go.onclick=ev=>{ev.stopPropagation();const l=FT[ti].list.filter(d=>d.status!="saved"&&d.status!="hidden");if(l.length)openFw(l,FT[ti].n,0)};
   // Beshr 2026-11-25: tapping Forsa on Home opens the single best match right now (the next best once that one is swiped); after it, the normal Forsa page
   window._fBest=()=>{const L=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),b=topPick(L)||L.sort(byScore)[0];if(b)openFw([b],tx("Best match now","أفضل لقطة الحين"),2)};
@@ -537,7 +537,7 @@ function start(m,soft){
  const wire=root=>{root.querySelectorAll(".tbtn[data-oadd]").forEach(b=>b.onclick=async()=>{const o=m.others.find(x=>x.k==b.dataset.oadd);if(!o)return;b.disabled=true;try{await put("prices",newId(),{item:o.item.slice(0,80),price:Math.round(o.price*100)/100,store:(o.store||"Store not set").slice(0,50)+" (shared)",size:o.size.slice(0,40),date:o.date||ymd(new Date()),createdAt:Date.now()});toast(tx("Added to My items","انضاف لأغراضك"));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}});
  root.querySelectorAll(".tbtn[data-list]").forEach(b=>b.onclick=async()=>{const k=b.dataset.list,keys=m.shopKeys.includes(k)?m.shopKeys.filter(x=>x!=k):m.shopKeys.concat(k);m.shopKeys=keys;window._shopRefresh&&window._shopRefresh();b.textContent=keys.includes(k)?tx("Remove from shopping list","شيله من قائمة التسوق"):tx("Add to shopping list","أضفه لقائمة التسوق");window._saveShop(tx("List updated","انحدثت القائمة"))});};wire(document);
  const sh=document.getElementById("sheet"),sc=document.getElementById("scrim"),close=()=>{sh.classList.remove("on");sc.classList.remove("on");if(window._huntDirty){window._huntDirty=0;reload()}};sc.onclick=close;
- const show=(a,html,init)=>{{const k=app.getBoundingClientRect().width/393||1,o=Math.max(0,(document.documentElement.clientWidth/k-393)/2)+"px";sh.style.left=sh.style.right=sc.style.left=sc.style.right="-"+o}sh.style.setProperty("--a",a);sh.innerHTML=`<div class="grab"></div>`+html;sh.classList.add("on");sc.classList.add("on");init()};
+ const show=(a,html,init)=>{{const k=app.getBoundingClientRect().width/(window.AW||393)||1,o=Math.max(0,(document.documentElement.clientWidth/k-(window.AW||393))/2)+"px";sh.style.left=sh.style.right=sc.style.left=sc.style.right="-"+o}sh.style.setProperty("--a",a);sh.innerHTML=`<div class="grab"></div>`+html;sh.classList.add("on");sc.classList.add("on");init()};
  const ACT=[()=>show(ACC.e,`<h3><span style="color:${ACC.e};line-height:0">${PH("plus-circle")}</span>${tx("Add expense","أضف مصروف")}</h3><button class="pmsg">${PH("receipt")}<span>${tx("Paste latest bank message","الصق آخر رسالة من البنك")}</span></button><div class="amt"><span>${RS}</span><input id="amt" inputmode="decimal" placeholder="0"></div><div class="chips">${LOG_CATS.filter(k=>BY[k]).map((k,i)=>`<button data-k="${k}" class="${i?"":"sel"}">${nm(k)}</button>`).join("")}</div><input class="txt" id="nt" placeholder="${tx("Note (optional)","ملاحظة (اختياري)")}"><label class="dtl">${tx("Date","التاريخ")}<input type="date" id="xdt" value="${ymd(new Date())}" max="${ymd(new Date())}"></label><button class="go" id="sv" disabled>${tx("Save","حفظ")}</button>`,()=>{
    const a=document.getElementById("amt"),b=document.getElementById("sv");setTimeout(()=>a.focus(),350);a.oninput=()=>{b.disabled=!(+a.value>0)};
    // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note
@@ -643,12 +643,12 @@ ${q}`;
   // Beshr 2026-11-24: the window grows out of the tapped category tile and shrinks back into it (no side slide)
    let src=null;const EZ="cubic-bezier(.3,.6,.2,1)";
    const rectIn=el=>{const a=el.getBoundingClientRect(),c=cw.getBoundingClientRect(),k=c.width/cw.offsetWidth||1;return `inset(${(a.top-c.top)/k}px ${(c.right-a.right)/k}px ${(c.bottom-a.bottom)/k}px ${(a.left-c.left)/k}px round 14px)`};
-   const open=(k,el)=>{src=el;fill(k);const sc=app.getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);cw.style.left=cw.style.right=-off+"px";
+   const open=(k,el)=>{src=el;fill(k);const sc=app.getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);cw.style.left=cw.style.right=-off+"px";
     cw.style.transition="none";cw.classList.add("on","grow");cw.setAttribute("aria-hidden","false");cw.style.clipPath=el?rectIn(el):"inset(0)";cw.offsetWidth;
     cw.style.transition=`clip-path .46s ${EZ}`;cw.style.clipPath="inset(0px 0px 0px 0px round 0px)";requestAnimationFrame(()=>cw.classList.remove("grow"))};
    const shut=()=>{cw.classList.add("grow");cw.style.transition=`clip-path .38s ${EZ}`;cw.style.clipPath=src?rectIn(src):"inset(50% 50% 50% 50%)";
     setTimeout(()=>{cw.classList.remove("on","grow");cw.style.clipPath="";cw.setAttribute("aria-hidden","true")},380)};
-   window._cwSt=()=>cw.classList.contains("on")&&cur?{k:cur.k,who}:null;window._cwOpen=(k,w)=>{who=w||"m";fill(k);who=w||"m";fill(k);src=document.querySelector(`.ctile[data-cat="${k}"]`);const sc=app.getBoundingClientRect().width/393||1,off=Math.max(0,(document.documentElement.clientWidth/sc-393)/2);cw.style.left=cw.style.right=-off+"px";cw.style.transition="none";cw.style.clipPath="";cw.classList.add("on");cw.setAttribute("aria-hidden","false")};
+   window._cwSt=()=>cw.classList.contains("on")&&cur?{k:cur.k,who}:null;window._cwOpen=(k,w)=>{who=w||"m";fill(k);who=w||"m";fill(k);src=document.querySelector(`.ctile[data-cat="${k}"]`);const sc=app.getBoundingClientRect().width/(window.AW||393)||1,off=Math.max(0,(document.documentElement.clientWidth/sc-(window.AW||393))/2);cw.style.left=cw.style.right=-off+"px";cw.style.transition="none";cw.style.clipPath="";cw.classList.add("on");cw.setAttribute("aria-hidden","false")};
    seg.onclick=ev=>{const b=ev.target.closest("[data-who]");if(b&&b.dataset.who!=who){who=b.dataset.who;fill(cur.k);body.animate([{opacity:0},{opacity:1}],{duration:220})}};
   document.querySelectorAll(".ctile").forEach(b=>b.onclick=ev=>{ev.stopPropagation();open(b.dataset.cat,b)});
   cw.querySelector(".cwb").onclick=shut;
@@ -857,7 +857,11 @@ const visH=()=>{let h=Math.min(document.documentElement.clientHeight||1e4,innerH
 // Bottom safe area (home indicator). On Beshr's iPhone 15 Pro Home Screen app env() can read 0, so fall back to 34pt on Face ID iPhones.
 (function sab(){const p=document.createElement("div");p.style.cssText="position:fixed;bottom:0;left:0;width:1px;height:0;padding-bottom:env(safe-area-inset-bottom)";document.body.appendChild(p);let b=p.offsetHeight;p.remove();
  if(!b&&navigator.standalone&&screen.height>=812)b=34;document.documentElement.style.setProperty("--sab",b+"px")})();
-(function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`})();
+(function fit(){const w=document.documentElement.clientWidth,h=visH(),s=Math.min(w/393,h/770,1.25),a=document.getElementById("app");
+ // wide screens (Galaxy Fold inner screen, tablets): the app grows wider instead of leaving empty bars at the sides (Beshr 2026-11-25)
+ window.AW=Math.round(Math.min(Math.max(393,w/s),720));a.style.width=window.AW+"px";window.APPH=Math.max(770,h/s);a.style.height=window.APPH+"px";a.style.transform=`translateX(-50%) scale(${s})`;window._fit=fit})();
+// refit when the screen size changes (Galaxy Fold folded/unfolded, rotation); a new width redraws Home so cards and charts use the new size
+{let lw=document.documentElement.clientWidth,rt=0;const rf=()=>{clearTimeout(rt);rt=setTimeout(()=>{const cw=document.documentElement.clientWidth;if(Math.abs(cw-lw)<2)return;lw=cw;const ow=window.AW;window._fit();if(window.AW!=ow)location.reload()},250)};addEventListener("resize",rf)}
 const gate=(html)=>{document.getElementById("app").insertAdjacentHTML("beforeend",`<div id="gate"><div>${html}</div></div>`)};
 (async()=>{try{const {data}=await sb.auth.getSession();if(!data||!data.session){window.__spReady=1;gate(`${tx("Welcome to Smart Wallet.","أهلاً في المحفظة الذكية.")}<br><a href="${location.pathname.includes('/new/')?'../':''}old.html?signin=new">${tx("Sign in or create an account","سجّل دخولك أو أنشئ حساب")}</a>`);return}
  // open straight away from the last data saved on this phone, then refresh quietly (Beshr 2026-11-24: no loading screen)
