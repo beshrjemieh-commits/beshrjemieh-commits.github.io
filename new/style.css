@@ -567,3 +567,9 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 .fam{font-size:12px;color:#64748B;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fas{display:flex;gap:6px;margin:8px 0 6px}.fas span{width:30px;height:30px;border-radius:8px;background:#E2E8F0;color:#94A3B8;display:grid;place-items:center}.fas span.on{background:#DCFCE7;color:#16A34A}.fas svg{width:16px;height:16px}
 .fanx{font-size:13px;color:#0F172A}.fanx b{color:#2563EB;font-weight:600}.fanx.ok{color:#16A34A;font-weight:600}
+
+/* v191 swipe a liked tile away; × on the open hunt tab */
+.agt{touch-action:pan-y;z-index:1}.agt.sw{z-index:2}
+.ftabs .fx{display:none;width:20px;height:20px;margin-inline-start:2px;margin-inline-end:-6px;border-radius:10px;background:#ffffff40;place-items:center;font-style:normal}.ftabs .fx .ph{width:12px;height:12px}.ftabs button.on .fx{display:grid}
+.fundo{margin:8px 0 0}
+.ahint{margin:8px 0 0;font:400 12px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;color:#64748B;text-align:center}

@@ -206,7 +206,7 @@ function addedHTML(all,k){if(!all.length)return "";const nU=all.filter(d=>dKind(
  return `<div class="akw" data-kind="${k=="all"?"":k}">${list.length?addedCats(list,kc):`<div class="achips akind">${kc}</div><div class="empty">${k=="new"?tx("New items you add show here.","الأغراض الجديدة اللي تضيفها تطلع هنا."):tx("Used deals you add show here.","الصفقات المستعملة اللي تضيفها تطلع هنا.")}</div>`}</div>`}
 function addedCats(list,kc){AFAM={};famOf(list).forEach(g=>AFAM[dFam(g[0]).toLowerCase()]=g);const cats={};list.forEach(d=>{const c=dCat(d);(cats[c]=cats[c]||[]).push(d)});
  const cl=Object.entries(cats).sort((a,b)=>b[1].length-a[1].length),cn=c=>DCAT[c]?tx(DCAT[c][0],DCAT[c][1]):(c=="other"?tx("Other","أخرى"):esc(c.charAt(0).toUpperCase()+c.slice(1)));
- return `<div class="achips akind">${kc||""}<span class="fwsep"></span>${cl.map(([c,ds])=>`<button data-acat="${esc(c)}">${cn(c)} <i>${ds.length}</i></button>`).join("")}</div><div class="arows">${addedRows(list)}</div>`}
+ return `<div class="achips akind">${kc||""}<span class="fwsep"></span>${cl.map(([c,ds])=>`<button data-acat="${esc(c)}">${cn(c)} <i>${ds.length}</i></button>`).join("")}</div><div class="arows">${addedRows(list)}</div><div class="ahint">${tx("Swipe a photo sideways to remove it","اسحب الصورة يمين أو يسار عشان تشيلها")}</div>`}
 // Expenses ring for one month (mon = "YYYY-MM"); left = "left for living" (this month only)
 const monName=mon=>{const [y,mm]=mon.split("-").map(Number);return new Date(y,mm-1,15).toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{month:"long",year:new Date().getFullYear()==y?undefined:"numeric"})};
 const prevMon=mon=>{const [y,mm]=mon.split("-").map(Number),d=new Date(y,mm-2,15);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
@@ -251,7 +251,9 @@ const FKN=()=>({used:tx("Used · market","مستعمل · السوق"),new:tx("N
 const dSure=d=>{const r=d.raw||{},c=+r.comps||0,conf=String(r.confidence||"")||(dKind(d)=="new"?(d.market?"high":""):(c>=8?"high":""));return d.market>0&&d.price>0&&d.pct>=15&&conf=="high"&&!dCond(d)[1]&&!(r.ended)&&!(r.reserved)};
 const bestDeal=m=>{const L0=m.deals.filter(d=>d.status!="saved"&&d.status!="hidden"),LS=L0.filter(dSure),L=LS.length?LS:L0;return topPick(L)||L.sort(byScore)[0]};
 function fTabs(m,k){const all=m.deals.filter(d=>d.status!="saved"&&(!k||dKind(d)==k)).sort(byScore),sure=all.filter(dSure),und=(sure.length?sure:all).slice(0,sure.length?12:5),T=[{n:tx("All","الكل"),list:und}];
- (m.hunt.terms||[]).slice(0,12).forEach(t=>{const w=norm(t).toLowerCase().split(" ").filter(x=>x.length>1);if(!w.length)return;const l=und.filter(d=>{const h=(d.title+" "+d.category).toLowerCase();return w.every(x=>h.includes(x))});if(l.length)T.push({n:esc(clean(t)),list:l})});return T}
+ // v191 (Beshr: "my new hunt used to show its deals at the top"): since v171 a hunt only matched the top 12 deals of All, so most hunts showed nothing.
+ // Now each hunt searches every deal (sure ones first), newest hunt first, and shows even before its first results arrive
+ (m.hunt.terms||[]).slice().reverse().slice(0,12).forEach(t=>{const w=norm(t).toLowerCase().split(" ").filter(x=>x.length>1);if(!w.length)return;const l=all.filter(d=>{const h=(d.title+" "+d.category).toLowerCase();return w.every(x=>h.includes(x))}),ls=l.filter(dSure);T.push({n:esc(clean(t)),t,list:(ls.length?ls:l).slice(0,12)})});return T}
 const dealRow=(d,kept)=>`<div class="drow" data-did="${esc(d.id)}">`+dig(hd(`<span>${esc(nmI(d.name))}</span><small class="ds">${d.price?M(d.price):""}${d.market?` <s>${M(d.market)}</s>`:""}${d.pct?` · ▼${d.pct}%`:""}</small>`,`<a class="fopen" href="${esc(dLink(d))}" target="_blank" rel="noopener">${tx("Open","افتح")}</a>`,"",d.image),
  r2([d.market?[tx("Usual price","السعر المعتاد"),`<s style="color:${G}">${M(d.market)}</s>`,null]:null,d.pct?[tx("Below market","أقل من السوق"),d.pct+"%",d.pct/100,AMB]:null,d.offer?[esc(d.offer),"",null]:null,[tx("Where","وين"),esc([nmS(d.source),nmS(d.city)].filter(Boolean).join(" · ")),null]].filter(Boolean)),
  r3([[tx("Full title","العنوان كامل"),esc(d.title)]].concat(d.code?[[tx("Code","الكود"),esc(d.code)]]:[]).concat(d.ends?[[tx("Ends","ينتهي"),esc(d.ends)]]:[])))+`</div>`;
@@ -411,7 +413,7 @@ function build(m){
  // forsa page
  // forsa page (Beshr 2026-11-24): a calm list first, sorted by his hunt words; a button opens the swipe (Tinder) mode for that tab; kept deals have an Open button
  const FT=fTabs(m),keptL=m.deals.filter(d=>d.status=="saved");
- const F=[sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span></button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
+ const F=[sec(tx("Your hunts","بحوثك"),`<div class="ftabs">${FT.map((t,i)=>`<button data-ft="${i}" class="${i?"":"on"}">${t.n} <span>${t.list.length}</span>${i?`<i class="fx" role="button" aria-label="${tx("Remove hunt","احذف البحث")}">${PH("x")}</i>`:""}</button>`).join("")}<button class="fnew">${PH("plus-circle")}${tx("New hunt","بحث جديد")}</button></div><button class="fgo">${PH("fire")}<span class="fgot"></span></button>`),
   sec(tx("Added","المضافة")+`<span class="keptn" hidden>${keptL.length}</span>`,`<div class="kept">${addedHTML(keptL)}</div>${keptL.length?"":`<div class="empty kempty">${tx("Deals you swipe right show here, each with an Open button.","الصفقات اللي تسحبها يمين تطلع هنا، ومعها زر افتح.")}</div>`}`)];
  if(!m.ex.length)E.splice(1,E.length-1,`<div class="sec"><div class="empty">${tx("No costs yet","ما فيه مصاريف للحين")}</div></div>`); // less-data rule: one line, not three empty sections
  return {w:W,e:E,s:S,f:F}}
@@ -597,8 +599,14 @@ function start(m,soft){
   const fw=document.getElementById("fw"),deck=fw.querySelector(".deck"),kept=fc.querySelector(".kept"),kn=fc.querySelector(".keptn"),go=fc.querySelector(".fgo");
   const left=()=>{fw.querySelector(".cwn").textContent=dMode==2?"":tx(`${q.length} left`,`باقي ${q.length}`)};
   const tab=i=>{ti=i;const ids=new Set(FT[i].list.filter(d=>d.status!="saved"&&d.status!="hidden").map(d=>d.id));fc.querySelectorAll(".ftabs [data-ft]").forEach(b=>b.classList.toggle("on",+b.dataset.ft==i));
-   go.querySelector(".fgot").textContent=ids.size?(ids.size==1?tx("Swipe 1 deal","اسحب صفقة واحدة"):tx(`Swipe ${ids.size} deals`,`اسحب ${ids.size} صفقات`)):tx("All caught up","خلصت الصفقات");go.disabled=!ids.size};
-  fc.querySelector(".ftabs").addEventListener("click",ev=>{const b=ev.target.closest("[data-ft]");if(b){ev.stopPropagation();tab(+b.dataset.ft)}});
+   go.querySelector(".fgot").textContent=ids.size?(ids.size==1?tx("Swipe 1 deal","اسحب صفقة واحدة"):tx(`Swipe ${ids.size} deals`,`اسحب ${ids.size} صفقات`)):i&&!FT[i].list.length?tx("Looking for deals… results soon","ندوّر لك… النتائج قريب"):tx("All caught up","خلصت الصفقات");go.disabled=!ids.size};
+  fc.querySelector(".ftabs").addEventListener("click",ev=>{const b=ev.target.closest("[data-ft]");if(!b)return;ev.stopPropagation();
+   // v191: tap × on the open hunt tab to stop that hunt (instant, 6 s Undo)
+   if(ev.target.closest(".fx")&&b.classList.contains("on")&&OK){const t=FT[+b.dataset.ft].t,old=Object.assign({},m.hunt),h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(x=>x.toLowerCase()!=t.toLowerCase());m.hunt=h;
+    put("settings","hunt",h).catch(()=>toast(tx("Couldn't save","ما انحفظ")));b.remove();tab(0);const pu=fc.querySelector(".fundo");if(pu)pu.remove();
+    fc.querySelector(".ftabs").insertAdjacentHTML("afterend",`<button class="aundo fundo">${tx("Hunt removed · Undo","انحذف البحث · تراجع")}</button>`);const u=fc.querySelector(".fundo");clearTimeout(window._fuT);window._fuT=setTimeout(()=>u.remove(),6000);
+    u.onclick=e=>{e.stopPropagation();u.remove();m.hunt=old;put("settings","hunt",old).then(()=>{try{sessionStorage.setItem("f-newhunt",t)}catch(_){}reload()},()=>toast(tx("Couldn't save","ما انحفظ")))};return}
+   tab(+b.dataset.ft)});
   fc.querySelector(".fnew").onclick=ev=>{ev.stopPropagation();ACT[2]()};
   // New / Used switch: hunt tabs, swipe deck and Added list all follow it
   const showKept=()=>{const l=m.deals.filter(x=>x.status=="saved");kn.textContent=l.length;const cur=kept.querySelector(".akw");kept.innerHTML=addedHTML(l,cur&&cur.dataset.kind)};
@@ -653,7 +661,7 @@ function start(m,soft){
   deck.addEventListener("pointerdown",e=>{if(e.target.closest(".dkmore"))return;top=[...deck.querySelectorAll(".dk")].pop();if(!top)return;x0=e.clientX;dx=0;top.style.transition="none";deck.setPointerCapture(e.pointerId)});
   deck.addEventListener("pointermove",e=>{if(x0==null)return;dx=e.clientX-x0;top.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;top.querySelector(".keep").style.opacity=cl(dx/90);top.querySelector(".drop").style.opacity=cl(-dx/90)});
   const up=()=>{if(x0==null)return;x0=null;if(Math.abs(dx)>90)fling(dx>0?1:-1);else{top.style.transition="transform .25s cubic-bezier(.3,.6,.2,1)";top.style.transform="";top.querySelectorAll(".stamp").forEach(s=>s.style.opacity=0)}};
-  deck.addEventListener("pointerup",up);deck.addEventListener("pointercancel",up);setTimeout(()=>tab(0)); }
+  deck.addEventListener("pointerup",up);deck.addEventListener("pointercancel",up);setTimeout(()=>{let i0=0;try{const nh=sessionStorage.getItem("f-newhunt");if(nh){sessionStorage.removeItem("f-newhunt");const j=FT.findIndex(t=>t.t&&t.t.toLowerCase()==nh.toLowerCase());if(j>0)i0=j}}catch(e){}tab(i0)}); }
  // ---- writes ----
  const toast=window._toast=msg=>{app.insertAdjacentHTML("beforeend",`<div class="toast">${msg}</div>`);const el=app.querySelector(".toast:last-child");setTimeout(()=>el.remove(),1900)};
  // bank messages saved by the Shortcut get checked by AI once (category, and shop/amount when the quick rules missed them)
@@ -722,7 +730,7 @@ function start(m,soft){
     if(x){const v=x.dataset.hx,h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(y=>y!=v);m.hunt=h;x.parentElement.animate([{opacity:1},{opacity:0,transform:"scale(.9)"}],{duration:160}).onfinish=drawH;
      try{await put("settings","hunt",h);window._huntDirty=1}catch(e){toast(tx("Couldn't save","ما انحفظ"))}return}
     if(t){q.value=t.dataset.ht;q.focus()}};
-   b.onclick=async()=>{const v=norm(q.value);if(!v)return;b.disabled=true;const h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(x=>x.toLowerCase()!=v.toLowerCase()).concat(v);h.requestedAt=Date.now();try{await put("settings","hunt",h);if(m.prof.share_prices!==false)try{sb.rpc("request_hunt",{p_term:v}).then(()=>{},()=>{})}catch(_){};close();toast(tx("Hunt saved. Results come at the next check.","انحفظ. النتائج بالفحص الجاي."));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}})];
+   b.onclick=async()=>{const v=norm(q.value);if(!v)return;b.disabled=true;const h=Object.assign({},m.hunt);h.terms=(h.terms||[]).filter(x=>x.toLowerCase()!=v.toLowerCase()).concat(v);h.requestedAt=Date.now();try{await put("settings","hunt",h);try{sessionStorage.setItem("f-newhunt",v)}catch(_){}if(m.prof.share_prices!==false)try{sb.rpc("request_hunt",{p_term:v}).then(()=>{},()=>{})}catch(_){};close();toast(tx("Hunt saved. Results come at the next check.","انحفظ. النتائج بالفحص الجاي."));reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}}})];
  document.querySelectorAll(".abar .ab").forEach((b,i)=>b.onclick=()=>{if(!OK){window.track&&window.track("tap","home",["add_expense","add_bill","new_hunt"][i]);ACT[i]()}});
  // ---- search or ask (Beshr 2026-11-24): a question about his money goes to the AI with his numbers; item search stays below as a fallback ----
  const askData=()=>{const t=new Date(),d=n=>{const x=new Date(t);x.setDate(x.getDate()-n);return ymd(x)},sum=a=>Math.round(a.reduce((s,x)=>s+x.amount,0)*100)/100;
@@ -876,11 +884,11 @@ ${q}`;
    fc&&fc.addEventListener("contextmenu",ev=>{if(ev.target.closest(".agt"))ev.preventDefault()},true);
    fc&&fc.addEventListener("click",ev=>{const a=ev.target.closest(".agl[data-swiped]");if(a){ev.preventDefault();ev.stopPropagation()}},true); }
   // swipe a kept deal left or right to delete it (instant, 6 s Undo: his delete rule)
-  fc&&fc.addEventListener("pointerdown",ev=>{const r=ev.target.closest(".asw .afr");if(!r||!OK)return;row=r;sx=ev.clientX;sy=ev.clientY;dx=0;on=0;pid=ev.pointerId},true);
+  fc&&fc.addEventListener("pointerdown",ev=>{const r=ev.target.closest(".asw .afr,.agt");if(!r||!OK)return;row=r;sx=ev.clientX;sy=ev.clientY;dx=0;on=0;pid=ev.pointerId},true);
   fc&&fc.addEventListener("pointermove",ev=>{if(!row||ev.pointerId!=pid)return;const x=ev.clientX-sx,y=ev.clientY-sy;if(!on){if(Math.abs(y)>10&&Math.abs(y)>Math.abs(x)){row=null;return}if(Math.abs(x)>10){on=1;row.closest(".asw").classList.add("sw");try{row.setPointerCapture(pid)}catch(e){}}}
-   if(on){dx=x;row.style.transition="none";row.style.transform=`translateX(${dx}px)`;row.closest(".asw").dataset.side=dx<0?"r":"l"}},true);
-  const end=ev=>{if(!row)return;const r=row,w=r.offsetWidth;row=null;if(!on)return;r.dataset.swiped="1";setTimeout(()=>delete r.dataset.swiped,350);
-   if(Math.abs(dx)>Math.min(110,w*.3)){r.style.transition="transform .2s ease-out";r.style.transform=`translateX(${dx<0?-w:w}px)`;setTimeout(()=>window._delKept(r.closest(".asw")),200)}
+   if(on){dx=x;row.style.transition="none";row.style.transform=`translateX(${dx}px)`;if(row.classList.contains("agt"))row.style.opacity=Math.max(.3,1-Math.abs(dx)/(row.offsetWidth*1.5));row.closest(".asw").dataset.side=dx<0?"r":"l"}},true);
+  const end=ev=>{if(!row)return;const r=row,w=r.offsetWidth;row=null;if(!on)return;const ga=r.querySelector(".agl")||r;r.dataset.swiped=ga.dataset.swiped="1";setTimeout(()=>{delete r.dataset.swiped;delete ga.dataset.swiped},350);
+   if(Math.abs(dx)>Math.min(110,w*.3)){r.style.transition="transform .2s ease-out";r.style.transform=`translateX(${dx<0?-w:w}px)`;r.style.opacity=0;setTimeout(()=>window._delKept(r.closest(".asw")),200)}
    else{r.style.transition="transform .2s ease-out";r.style.transform="";setTimeout(()=>r.closest(".asw").classList.remove("sw"),200)}};
   fc&&fc.addEventListener("pointerup",end,true);fc&&fc.addEventListener("pointercancel",end,true);
   fc&&fc.addEventListener("click",ev=>{const r=ev.target.closest(".afr[data-swiped]");if(r){ev.preventDefault();ev.stopPropagation()}},true);
