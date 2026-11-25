@@ -187,7 +187,7 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wit .xsms.on{opacity:1;transform:none}.wit .xsms>span{width:26px;height:26px;border-radius:7px;background:${GR};color:#fff;display:grid;place-items:center;font-size:15px;flex:none}
 .wit .xsms p{margin:0;font-size:14px;color:#1F2937}.wit .xsms b{display:block;font-size:13px}
 .wit .x3{display:flex;gap:8px;margin-bottom:12px}
-.wit .x3 div{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;text-align:center;font-size:13px;font-weight:600;color:#BFD2E6;transition:all .3s}
+.wit .x3 div{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;text-align:center;font-size:13px;font-weight:600;color:#E8EFF7;transition:all .3s}
 .wit .x3 em{display:block;font-style:normal;font-size:18px}
 .wit .x3 div.on{background:#fff;border-color:#fff;color:${NAVY}}.wit .x3 div.on em{color:${BLUE}}
 .wit .xr{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #F1F5F9}.wit .xr:first-child{border:0}

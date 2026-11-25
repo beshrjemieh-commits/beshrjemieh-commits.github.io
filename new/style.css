@@ -559,3 +559,4 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 #sheet .pscroll .simr{touch-action:pan-x pan-y}
 #sheet:has(.pscroll) #pbar{position:static;flex:none;box-shadow:none;padding-bottom:calc(12px + var(--sab,env(safe-area-inset-bottom)))}
 #sheet{bottom:var(--kb,0px);max-height:calc(100% - 56px - var(--kb,0px))}
+#sheet:has(.pscroll)>.go{position:static;flex:none;box-shadow:none;margin:8px 0 calc(12px + var(--sab,env(safe-area-inset-bottom)))}
