@@ -471,7 +471,7 @@ a.afr{text-decoration:none}.afn small s{color:#94A3B8}
 /* Beshr 2026-11-25 (option B): small grey label under each card's big number */
 .bsub{font-size:11px;font-weight:500;opacity:.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
 .card:has(.big[style*="white-space: normal"]) .bsub{display:none}
-.bsub:has(.bsn){display:flex}.bsn{min-width:0;overflow:hidden;text-overflow:ellipsis}.bsp{flex:none}
+.c-f .bsub{max-width:calc(100% - 72px)}
 /* shopping list split by store (Beshr 2026-11-25) */
 .slsplit{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;height:40px;border:1.5px solid #2563EB;border-radius:12px;background:#fff;color:#2563EB;font:600 14px Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}.slsplit svg{width:18px;height:18px}
 .sgc{background:#F8FAFC;border-radius:14px;padding:10px 12px;margin-bottom:10px}
