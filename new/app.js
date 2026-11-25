@@ -94,7 +94,9 @@ async function load(){
  const set=Object.fromEntries(by.settings.map(x=>[x.id,x]));
  let shared=[],community=[];try{const r=await sb.rpc("shared_deals");if(Array.isArray(r.data))shared=r.data.map(x=>Object.assign({id:x.id,shared:true},x.data||{}))}catch(e){}
  try{const r=await sb.rpc("community_prices");if(Array.isArray(r.data))community=r.data}catch(e){}
- return {by,set,shared,community}}
+ // v188: official packshots for everyone (a new friend has no "products" rows of their own)
+ let cphotos=[];try{const r=await sb.rpc("community_photos");if(Array.isArray(r.data))cphotos=r.data}catch(e){}
+ return {by,set,shared,community,cphotos}}
 function model(R){
  const {by,set}=R,prof=set.profile||{},cards=set.cards||{},plan=(set.plan||{}).items||{};
  const items=ITEMS.map(i=>Object.assign({},i));(cards.added||[]).forEach(a=>{if(a&&a.k&&!items.some(i=>i.k==a.k))items.push({g:a.g||"Personal",k:a.k,s:String(a.s||a.n||"New"),custom:true})});
@@ -116,7 +118,7 @@ function model(R){
  // prices
  const prices=by.prices.map(p=>({item:norm(p.item),size:norm(p.size),store:norm(p.store).replace(/\s*\((shared|online)\)/i,m=>m),price:+p.price||0,date:String(p.date||""),createdAt:+p.createdAt||0})).filter(p=>p.item&&p.price>0);
  const groups=new Map();prices.forEach(p=>{const k=keyOf(p);if(!groups.has(k))groups.set(k,{k,item:p.item,size:p.size,recs:[]});groups.get(k).recs.push(p)});
- const photos={};by.products.forEach(x=>{if(x.key&&x.url)photos[String(x.key)]=String(x.url)});
+ const photos={};(R.cphotos||[]).forEach(x=>{if(x&&x.key&&/^https:\/\//.test(x.url||""))photos[String(x.key)]=String(x.url)});by.products.forEach(x=>{if(x.key&&x.url)photos[String(x.key)]=String(x.url)});
  const G2=[...groups.values()].map(g=>{g.recs.sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.createdAt-a.createdAt);const st=new Map();g.recs.forEach(r=>{if(!st.has(r.store))st.set(r.store,r)});g.stores=[...st.values()].sort((a,b)=>a.price-b.price);g.best=g.stores[0];g.last=g.recs[0];g.photo=photos[g.k]||"";g.grp=grpOf(g.recs.map(x=>x.store),g.item);
   const hist=g.recs.filter(r=>r.store==g.last.store).slice(0,8).reverse();g.hist=hist.map(r=>r.price);g.drop=hist.length>1&&hist.at(-1).price<hist.at(-2).price?{from:hist.at(-2).price,to:hist.at(-1).price}:null;return g}).sort((a,b)=>(b.last.date||"").localeCompare(a.last.date||""));
  const shopKeys=((set.shopping||{}).keys||[]).map(String),list=shopKeys.map(k=>G2.find(g=>g.k==k)).filter(Boolean);
