@@ -71,7 +71,7 @@ svg{display:block;overflow:visible}
 #sheet .pick{display:flex;gap:10px}#sheet .pick label{flex:1;height:96px;border-radius:16px;background:#F1F5F9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer}
 #sheet .pick label span{font-size:28px;color:var(--a);line-height:0}
 #sheet .res .r{font-size:15px}
-.toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:#0F172A;color:#fff;padding:8px 14px;border-radius:16px;font-size:14px;font-weight:600;z-index:60;animation:tst 1.8s forwards}
+.toast{position:absolute;left:50%;top:auto;bottom:calc(var(--sab,34px) + 96px);max-width:calc(100% - 32px);text-align:center;transform:translateX(-50%);background:#0F172A;color:#fff;padding:8px 14px;border-radius:16px;font-size:14px;font-weight:600;z-index:60;animation:tst 1.8s forwards}
 @keyframes tst{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .ab{cursor:pointer}
 
