@@ -226,6 +226,10 @@ body .wob .top,body .wob .body,body .wob .foot,body .wgd .wgh,body .wgd .gs{padd
 .wgd .gb.l{background:#EEF2F7;color:${NAVY}}.wgd .gb.s{height:40px;font-size:14px;margin:0}
 .wgd .gr{display:flex;gap:8px;margin-top:4px}
 .wgd ol{margin:0;padding-inline-start:20px;font-size:15px;line-height:1.55;color:#334155}.wgd ol li{margin:3px 0}.wgd ol b{color:${NAVY}}
+.wgd .gst{display:flex;align-items:center;gap:8px;margin:-4px 0 12px;padding:10px 12px;border-radius:12px;background:#fff;font-size:14px;font-weight:500;color:${G}}
+.wgd .gst i{width:10px;height:10px;border-radius:50%;background:#94A3B8;flex:none;animation:wgp 1.4s ease-in-out infinite}
+.wgd .gst.ok{background:#F0FDF4;color:${GR}}.wgd .gst.ok i{background:${GR};animation:none}
+@keyframes wgp{50%{opacity:.3}}
 .wgd .gout{min-height:20px;margin-top:8px;font-size:14px;text-align:center;color:${G}}.wgd .gout.ok{color:${GR}}
 .wgd .done{text-align:center;padding:18px 14px;color:${G};font-size:14px}
 `;
@@ -407,6 +411,7 @@ function guide(ctx){
  const w=document.createElement("div");w.className="wgd";w.dir=AR?"rtl":"ltr";w.setAttribute("role","dialog");w.setAttribute("aria-modal","true");
  w.innerHTML=`<div class="wgh"><b>${T("Connect bank messages","ربط رسائل البنك")}</b><button aria-label="${T("Close","إغلاق")}">${PH("x")}</button></div><div class="gs">
   <div class="gi">${T("Your bank purchase messages <b>add themselves</b>. Codes (OTP) are never saved. About 1 minute, once.","رسائل مشترياتك من البنك <b>تنضاف لحالها</b>. الرموز (OTP) ما تنحفظ أبداً. دقيقة وحدة، مرة وحدة بس.")}</div>
+  <div class="gst"><i></i><span>${T("Waiting for your first bank message…","ننتظر أول رسالة من البنك…")}</span></div>
   <video class="vid" src="new/media/sms-${AND?"android":"ios"}-${L}.mp4" autoplay muted loop playsinline preload="auto" aria-label="${T("How-to video","فيديو الطريقة")}"></video>
   ${btns}
   <div class="st"><ol>${steps.map(x=>`<li>${x}</li>`).join("")}</ol></div>
@@ -414,8 +419,11 @@ function guide(ctx){
   <div class="done">${T("Your phone may look a little different.","جوالك ممكن يختلف شوي.")}</div></div>`;
  if(ctx.first)w.insertAdjacentHTML("beforeend",`<div class="gft"><button class="gl">${T("Later","بعدين")}</button><span class="gc"></span><button class="gn">${T("Done","تم")}</button></div>`);
  document.body.appendChild(w);requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add("on")));
+ // live status (2026-11-25): turns green when a bank message has arrived
+ const gst=w.querySelector(".gst");let poll=0;const ago=ms=>{const m=Math.round(ms/6e4);return m<1?T("just now","الحين"):m<60?T(`${m} min ago`,`قبل ${m} دقيقة`):m<1440?T(`${Math.round(m/60)} h ago`,`قبل ${Math.round(m/60)} ساعة`):T(`${Math.round(m/1440)} days ago`,`قبل ${Math.round(m/1440)} يوم`)};
+ const check=async()=>{if(!ctx.lastSms||!w.isConnected)return;const t=await Promise.resolve(ctx.lastSms()).catch(()=>0);if(t){gst.classList.add("ok");gst.querySelector("span").textContent=T("Connected ✓ Last bank message ","متصل ✓ آخر رسالة بنك ")+ago(Date.now()-t)}else poll=setTimeout(check,4000)};check();
  const out=w.querySelector(".gout"),say=(t,ok)=>{out.textContent=t;out.classList.toggle("ok",!!ok)};
- const close=()=>{const v=w.querySelector("video");v&&v.pause();w.classList.remove("on");setTimeout(()=>w.remove(),380);ctx.done&&ctx.done()};
+ const close=()=>{clearTimeout(poll);const v=w.querySelector("video");v&&v.pause();w.classList.remove("on");setTimeout(()=>w.remove(),380);ctx.done&&ctx.done()};
  w.querySelector(".wgh button").onclick=close;
  if(ctx.first){w.querySelector(".gl").onclick=()=>{window.track&&window.track("shortcut_later","guide","s1");close()};w.querySelector(".gn").onclick=close}
  const copy=async t=>{try{await navigator.clipboard.writeText(t);return true}catch(e){return false}};
