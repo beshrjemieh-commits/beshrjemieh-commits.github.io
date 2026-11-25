@@ -510,7 +510,7 @@ function start(m,soft){
  if(!window._visH){window._visH=1;let hid=0;document.addEventListener("visibilitychange",()=>{if(document.hidden)hid=1;else if(hid){hid=0;window._nextCharts&&window._nextCharts()}})}
  const cc=k=>C[k].pool[CUR[k]];order.forEach(k=>{document.querySelector(`.card[data-k="${k}"] .tm`).innerHTML=cc(k).line});
  // Beshr 2026-11-25: text fits its box: one line if it fits at 18px+, else two lines (16px+) with the 2nd line's bottom lined up with the chart/price beside it, else it slides sideways (marquee) so it can be read
- const fitBig=b=>{if(!b)return;window._mqOff(b);b.style.transform="";const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();let bots=[];
+ const fitBig=b=>{if(!b)return;window._mqOff(b);b.style.transform="";const base=parseFloat(b.dataset.fs||(b.dataset.fs=getComputedStyle(b).fontSize)),vz=b.parentElement.querySelector(".vz2")||b.nextElementSibling,cr=b.parentElement.getBoundingClientRect(),br=b.getBoundingClientRect();let bots=[];
   if(vz&&vz.firstElementChild){let L=1e9,R=-1e9;vz.querySelectorAll("*").forEach(e=>{const r=e.getBoundingClientRect();if(r.width&&r.width<cr.width*.9&&e.textContent.trim()){L=Math.min(L,r.left);R=Math.max(R,r.right);if(!e.firstElementChild)bots.push(r.bottom)}});
    // room up to the chart beside it; in Arabic the chart is on the left (2026-11-25: names were cut to 120pt and slid in Arabic)
    const ks=cr.width/(b.parentElement.offsetWidth||cr.width)||1,room=(AR?br.right-R:L-br.left)/ks-10;if(L<1e9)b.style.maxWidth=Math.max(120,Math.min((window.AW||393)-223,room))+"px"}
