@@ -528,7 +528,7 @@ function start(m,soft){
   const el0=document.querySelector(`#app .card[data-k="${k}"]`);if(el0)el0.addEventListener("pointerdown",()=>hold=Date.now()+5000,{passive:true});
   const show=(el,o)=>{const b=el.querySelector(".big"),fl=b.querySelector(".flp"),nx=[...o.pf];
    if(!fl||fl.children.length!=nx.length)b.innerHTML=o.v;else{[...fl.children].forEach((sp,i)=>{if(sp.textContent!=nx[i])setTimeout(()=>{sp.classList.add("go");setTimeout(()=>{sp.textContent=nx[i];sp.classList.remove("go")},180)},i*60)});const st=b.querySelector("s");if(st)st.textContent=o.wf}
-   el.querySelector(".bsub").innerHTML=o.n;const vz=el.querySelector(".vz2");if(vz)vz.innerHTML=o.ch();fitBig(b)};
+   el.querySelector(".bsub").innerHTML=o.n;{const nb=el.querySelector(".hnewb");if(nb){nb.style.display=c.oi?"none":"";el.classList.toggle("hnew",!c.oi)}}const vz=el.querySelector(".vz2");if(vz)vz.innerHTML=o.ch();fitBig(b)};
   const go=()=>{if(GEN!=window._gen)return;const el=document.querySelector(`#app .card[data-k="${k}"]`);if(!el)return;
    if(OK||document.hidden||hold>Date.now()){setTimeout(go,1000);return}
    c.oi=(c.oi+1)%L.length;show(el,L[c.oi]);if(--left>0)setTimeout(go,3000)};
