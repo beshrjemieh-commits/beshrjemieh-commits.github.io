@@ -384,7 +384,7 @@ function setup(ctx){
 
 /* ================= tour ================= */
 const STEPS=[
- ["#gear","gear-six",["Settings","Language, arrange Home, bank messages, and this tour again. Share usage is on: only which screens you use, never amounts or names."],["الإعدادات","اللغة، ترتيب الرئيسية، رسائل البنك، وهذا الشرح مرة ثانية. مشاركة الاستخدام شغّالة: بس أي شاشات تستخدم، أبداً مبالغ أو أسماء."]],
+ ["#gear","gear-six",["Settings","Language, arrange Home, bank messages, and this tour again. Share usage: only which screens you use, never amounts or names."],["الإعدادات","اللغة، ترتيب الرئيسية، رسائل البنك، وهذا الشرح مرة ثانية. مشاركة الاستخدام: بس أي شاشات تستخدم، أبداً مبالغ أو أسماء."]],
  [".srch","sparkle",["Search or ask","Find any item, or ask about your money: “How much did I spend on coffee?”"],["ابحث أو اسأل","دوّر أي غرض، أو اسأل عن فلوسك: «كم صرفت على القهوة؟»"]],
  ['.card[data-k="w"]',"wallet",["Wallet","Your money now and days to salary. Tap it for your monthly budget."],["المحفظة","فلوسك الحين وكم باقي على الراتب. اضغطها لميزانيتك الشهرية."]],
  ['.card[data-k="e"]',"receipt",["Expenses","Where your money went this month. Tap a slice of the ring for details."],["المصاريف","وين راحت فلوسك هالشهر. اضغط جزء من الدائرة للتفاصيل."]],
