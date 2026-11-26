@@ -86,11 +86,14 @@ const smsAmt=t=>{t=String(t);const L=t.match(/(?:مبلغ|المبلغ|بمبل�
 const smsWho=t=>{const m=t.match(/(?:لدى|من عند|في متجر|التاجر|لـ|merchant|\bat\b|\bfrom\b)\s*[:：]?\s*([^\n;:]{2,40})/i);return m?m[1].replace(/[.,]?\s+(في|on|بتاريخ|card|بطاقة|mada|مدى|الرصيد|المتاح|رصيدك|رصيد|balance|available|avail|avl|bal)(?![\p{L}]).*$/iu,"").trim():""};
 function readSms(raw){const t=AR_D(raw).replace(/\r/g,"").trim();if(!t)return [];let b=t.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
  if(b.length==1){const p=t.split(/\n(?=(?:شراء|purchase|pos purchase|سحب|مدفوعات|payment|online purchase|عملية شراء|حوالة))/i);if(p.length>1)b=p.map(x=>x.trim()).filter(Boolean)}
- return b.map(x=>{const a=smsAmt(x);if(!a||smsIn(x))return null;const w=smsWho(x);return {amount:Math.round(a*100)/100,note:(w||x.split("\n")[0].replace(/[.,]?\s+(في|on|بتاريخ|card|بطاقة|mada|مدى|الرصيد|المتاح|رصيدك|رصيد|balance|available|avail|avl|bal)(?![\p{L}]).*$/iu,"")).slice(0,60),cat:smsCat(w+" "+x)}}).filter(Boolean)}
+ return b.map(x=>{const a=smsAmt(x);if(!a||smsIn(x)||window.smsKind(x)!="txn")return null;const w=smsWho(x);return {amount:Math.round(a*100)/100,note:(w||x.split("\n")[0].replace(/[.,]?\s+(في|on|بتاريخ|card|بطاقة|mada|مدى|الرصيد|المتاح|رصيدك|رصيد|balance|available|avail|avl|bal)(?![\p{L}]).*$/iu,"")).slice(0,60),cat:smsCat(w+" "+x)}}).filter(Boolean)}
+// 2026-11-26: ads/promos ("win 10,000") never become money. Unclear messages (with an amount) go to a "Check this" list instead of being logged.
+const smsUnclear=raw=>{const t=AR_D(raw).replace(/\r/g,"").trim();return t.split(/\n\s*\n+/).map(x=>x.trim()).filter(x=>x&&smsAmt(x)&&window.smsKind(x)=="unclear")};
+const toReview=async msgs=>{for(const x of msgs){try{await put("smsreview",newId(),{msg:String(x).slice(0,300),date:ymd(new Date()),createdAt:Date.now()})}catch(e){}}};
 // ?sms=<text> from the iPhone Shortcut: kept until the app has its data, then logged automatically (with Undo)
 let SMS_LINK=null;try{const u=new URL(location.href),v=u.searchParams.get("sms");if(v!==null){u.searchParams.delete("sms");history.replaceState(null,"",u.pathname+u.search+u.hash);SMS_LINK=v}}catch(e){}
 async function load(){
- const C=["expenses","income","debts","goals","prices","products","deals","settings","smsraw"];let rows=[],from=0;
+ const C=["expenses","income","debts","goals","prices","products","deals","settings","smsraw","smsreview"];let rows=[],from=0;
  for(;;){const {data,error}=await sb.from("app_docs").select("coll,id,data").in("coll",C).range(from,from+999);if(error)throw error;rows=rows.concat(data);if(data.length<1000)break;from+=1000}
  const by={};C.forEach(c=>by[c]=[]);rows.forEach(r=>by[r.coll].push(Object.assign({id:r.id},r.data||{})));
  const set=Object.fromEntries(by.settings.map(x=>[x.id,x]));
@@ -133,7 +136,7 @@ function model(R){
  const others=[...ob.values()].map(o=>Object.assign(o,{grp:grpOf([o.store],o.item)})).sort((a,b)=>a.item.localeCompare(b.item));
  const _raw={};by.expenses.concat(by.goals).forEach(x=>{if(x&&x.id)_raw[x.id]=Object.fromEntries(Object.entries(x).filter(([k])=>k!="id"&&k!="user_id"))});
  const fset=Object.assign({acted:{}},set.forsa||{});
- return {_R:R,fset,today,smsQ:by.expenses.filter(x=>x.src=="sms"&&!x.aiDone),smsRaw:by.smsraw||[],planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,shopQty:Object.assign({},(set.shopping||{}).qty||{}),deals,hunt,fixes:set.fixes||{},debts,goals,today,mon,community:R.community,_raw}}
+ return {_R:R,fset,today,smsQ:by.expenses.filter(x=>x.src=="sms"&&!x.aiDone),smsRaw:by.smsraw||[],smsReview:by.smsreview||[],planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,shopQty:Object.assign({},(set.shopping||{}).qty||{}),deals,hunt,fixes:set.fixes||{},debts,goals,today,mon,community:R.community,_raw}}
 // ---------- page pieces ----------
 const sec=(h,b)=>`<div class="sec"><h4>${h}</h4>${b}</div>`;
 const tiles=a=>`<div class="tiles">${a.map(([l,v,c])=>`<div class="tile"><small>${l}</small><b style="${c?"color:"+c:""}">${v}</b></div>`).join("")}</div>`;
@@ -159,7 +162,7 @@ let SHOPS=null;const shopsOf=async()=>{if(SHOPS)return SHOPS;try{const r=await s
 async function aiReadSms(list,ex){const cm=(await shopsOf()).slice(0,150).map(x=>`${x.shop} -> ${x.cat}, usually ${x.usual} SAR`).join("\n");const cats=LOG_CATS.filter(k=>BY[k]).map(k=>`${k} = ${(BY[k]||{}).s||k}`).join("\n"),seen={};
  ex.forEach(x=>{const n=norm(x.note).toLowerCase();if(n.length>2&&!seen[n]&&x.cat!="flex")seen[n]=x.cat});const hist=Object.entries(seen).slice(0,60).map(([n,c])=>`${n} -> ${c}`).join("\n");
  const o=await aiJSON(`These are bank SMS messages from Saudi Arabia (Arabic or English). For each one, read the payment.
-Return ONLY JSON: {"items":[{"i":<index>,"skip":<true if it is not money he spent: money coming in, salary, refund, OTP, ad, or no amount>,"amount":<number in SAR>,"shop":"<short shop name, as written>","cat":"<one key from the list>"}]}
+Return ONLY JSON: {"items":[{"i":<index>,"skip":<true if it is not money he spent: money coming in, salary, refund, OTP, ad, promo, prize, offer, competition, draw, or no amount>,"unclear":<true if you cannot tell whether it is a real transaction>,"amount":<number in SAR>,"shop":"<short shop name, as written>","cat":"<one key from the list>"}]}
 Categories:
 ${cats}
 His own past costs (shop -> category), follow these when the shop matches:
@@ -167,6 +170,7 @@ ${hist||"none"}
 Other shoppers' shops (shop -> category, usual price), use these when his own list has no match, and if an amount you read is far from the usual price, re-check the message:
 ${cm||"none"}
 Use "flex" only if nothing fits.
+A message is a real transaction ONLY if it has a purchase/debit/credit/deposit/transfer word AND a card/account reference (last digits) or a balance/reference number. Ads and promos (win, prize, offer, chance, competition, draw, اربح, فرصة, جائزة, مسابقة, سحب, عرض) are NOT transactions: set skip true, never invent an amount. If unsure, set skip true and unclear true.
 Messages:
 ${list.map((t,i)=>`[${i}] ${String(t).slice(0,500)}`).join("\n\n")}`,"quick");
  return Array.isArray(o.items)?o.items:[]}
@@ -676,16 +680,22 @@ function start(m,soft){
  window._smsAI=async()=>{if(window._smsBusy)return;const q=m.smsQ.slice(0,20),r=m.smsRaw.slice(0,20);if(!q.length&&!r.length)return;window._smsBusy=1;
   try{const texts=q.map(x=>x.raw||`${x.note} SAR ${x.amount}`).concat(r.map(x=>x.msg||""));const out=await aiReadSms(texts,m.ex);let changed=0;
    for(const it of out){const i=+it.i;if(!(i>=0&&i<texts.length))continue;const cat=LOG_CATS.includes(it.cat)?it.cat:"flex";
-    if(i<q.length){const x=q[i],d=Object.assign({},x);delete d.id;if(it.skip&&x.cat=="flex"&&!(x.amount>0)){continue}d.aiDone=true;d.ai={amount:+it.amount||0,shop:String(it.shop||"").slice(0,60),cat};{const ia=Math.round((+it.amount||0)*100)/100,inMsg=ia>0&&(AR_D(String(x.raw||""))).replace(/,/g,"").split(/[^0-9.]+/).some(n=>+n==ia);if(inMsg&&!x.edited&&ia!=+x.amount){d.read=d.read||{amount:x.amount,cat:x.cat,note:x.note};d.amount=ia}}if(cat!="flex")d.cat=cat;if(it.shop)d.note=String(it.shop).slice(0,60);await put("expenses",x.id,d);changed++}
-    else{const x=r[i-q.length];if(!it.skip&&+it.amount>0)await put("expenses","sms-ai-"+x.id,{date:x.date||ymd(new Date()),amount:Math.round(+it.amount*100)/100,cat,note:String(it.shop||"Bank SMS").slice(0,60),createdAt:Date.now(),src:"sms",aiDone:true,raw:String(x.msg||"").slice(0,300),ai:{amount:+it.amount||0,shop:String(it.shop||"").slice(0,60),cat}});await del("smsraw",x.id);changed++}}
+    if(i<q.length){const x=q[i],d=Object.assign({},x);delete d.id;if(x.raw&&window.smsKind(x.raw)!="txn"){await put("smsreview",newId(),{msg:String(x.raw).slice(0,300),date:x.date||ymd(new Date()),createdAt:Date.now()});await del("expenses",x.id);changed++;continue}if(it.skip&&x.cat=="flex"&&!(x.amount>0)){continue}d.aiDone=true;d.ai={amount:+it.amount||0,shop:String(it.shop||"").slice(0,60),cat};{const ia=Math.round((+it.amount||0)*100)/100,inMsg=ia>0&&(AR_D(String(x.raw||""))).replace(/,/g,"").split(/[^0-9.]+/).some(n=>+n==ia);if(inMsg&&!x.edited&&ia!=+x.amount){d.read=d.read||{amount:x.amount,cat:x.cat,note:x.note};d.amount=ia}}if(cat!="flex")d.cat=cat;if(it.shop)d.note=String(it.shop).slice(0,60);await put("expenses",x.id,d);changed++}
+    else{const x=r[i-q.length];if(window.smsKind(x.msg||"")!="txn"){if(window.smsKind(x.msg||"")=="unclear")await put("smsreview",newId(),{msg:String(x.msg||"").slice(0,300),date:x.date||ymd(new Date()),createdAt:Date.now()});await del("smsraw",x.id);changed++;continue}if(!it.skip&&+it.amount>0)await put("expenses","sms-ai-"+x.id,{date:x.date||ymd(new Date()),amount:Math.round(+it.amount*100)/100,cat,note:String(it.shop||"Bank SMS").slice(0,60),createdAt:Date.now(),src:"sms",aiDone:true,raw:String(x.msg||"").slice(0,300),ai:{amount:+it.amount||0,shop:String(it.shop||"").slice(0,60),cat}});await del("smsraw",x.id);changed++}}
    q.forEach(x=>{if(!out.some(it=>+it.i==q.indexOf(x))){const d=Object.assign({},x);delete d.id;d.aiDone=true;put("expenses",x.id,d).catch(()=>{})}});
    if(changed)reload()}catch(e){}window._smsBusy=0};
- window._smsLog=async raw=>{const its=readSms(raw);if(!its.length){toast(tx("No payment found in the bank message","ما لقيت مبلغ دفع في رسالة البنك"));return}
+ window._smsLog=async raw=>{const its=readSms(raw);if(!its.length){const u=smsUnclear(raw);if(u.length){await toReview(u);toast(tx("Not sure about this message. Saved to Check this","مو متأكد من هالرسالة. انحفظت في راجع هذي"));reload();return}toast(tx("No payment found in the bank message","ما لقيت مبلغ دفع في رسالة البنك"));return}
   let seen=[];try{seen=JSON.parse(localStorage.getItem("w-smsseen")||"[]")}catch(e){}const key=String(raw).replace(/\s+/g," ").trim().slice(0,200);if(seen.includes(key)){toast(tx("Already logged","مسجّل من قبل"));return}
   const ids=[];try{for(const it of its){const id=newId();ids.push(id);await put("expenses",id,{date:ymd(new Date()),amount:it.amount,cat:it.cat,note:it.note,createdAt:Date.now(),src:"sms",raw:String(raw).slice(0,300),read:{amount:it.amount,cat:it.cat,note:it.note}})}}catch(e){toast(tx("Couldn't save the expense","ما انحفظ المصروف"));return}
   try{seen.push(key);localStorage.setItem("w-smsseen",JSON.stringify(seen.slice(-30)))}catch(e){}
   const tot=its.reduce((x,y)=>x+y.amount,0);reload();setTimeout(()=>{const ap=document.getElementById("app");ap.insertAdjacentHTML("beforeend",`<button class="smsbar">${PH("receipt")}<span>${tx(`Logged ${RS}${p2(tot)}`,`انسجّل ${RS}${p2(tot)}`)} · ${esc(its[0].note).slice(0,22)}</span><b>${tx("Undo","تراجع")}</b></button>`);const bar=ap.querySelector(".smsbar");const kill=setTimeout(()=>bar.remove(),8000);
    bar.onclick=async()=>{clearTimeout(kill);bar.remove();try{for(const id of ids)await del("expenses",id);seen=seen.filter(x=>x!=key);localStorage.setItem("w-smsseen",JSON.stringify(seen))}catch(e){toast(tx("Couldn't undo","ما قدرت أتراجع"));return}toast(tx("Removed","انحذف"));reload()}},1200)};
+ // "Check this": messages the reader was not sure about. Nothing is logged until Beshr taps Add as cost.
+ window._smsCheck=()=>{const L=m.smsReview||[];if(!L.length||document.querySelector(".smsbar.chk"))return;const ap=document.getElementById("app");
+  ap.insertAdjacentHTML("beforeend",`<button class="smsbar chk">${PH("receipt")}<span>${tx(`${L.length} message${L.length>1?"s":""} to check`,`${L.length} رسالة تحتاج مراجعة`)}</span><b>${tx("Open","افتح")}</b></button>`);
+  ap.querySelector(".smsbar.chk").onclick=function(){this.remove();show(ACC.e,`<h3>${PH("receipt")}${tx("Check this","راجع هذي")}</h3>`+L.map(x=>`<div class="row" style="display:block;padding:10px 0;border-bottom:1px solid rgba(128,128,128,.2)"><div style="font-size:13px;opacity:.8;margin-bottom:8px;overflow-wrap:anywhere">${esc(String(x.msg||"").slice(0,160))}</div><button class="tbtn" data-ra="${esc(x.id)}">${tx("Add as cost","أضف كمصروف")}</button> <button class="tbtn" data-rd="${esc(x.id)}">${tx("Not a transaction","مو عملية")}</button></div>`).join(""),()=>{
+    sh.querySelectorAll("[data-rd]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await del("smsreview",b.dataset.rd);reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}});
+    sh.querySelectorAll("[data-ra]").forEach(b=>b.onclick=async()=>{const x=L.find(y=>y.id==b.dataset.ra),a=smsAmt(AR_D(x.msg||""));if(!(a>0)){toast(tx("No amount found","ما لقيت مبلغ"));return}b.disabled=true;try{await addCost(a,smsCat(x.msg||""),smsWho(x.msg||"")||String(x.msg).slice(0,40),x.date,{src:"sms",raw:String(x.msg).slice(0,300)});await del("smsreview",x.id);reload()}catch(e){b.disabled=false;toast(tx("Couldn't save","ما انحفظ"))}})})}};
  const addCost=async(amount,cat,note,date,extra)=>{window.track&&window.track("add_cost","expenses","");const d=/^\d{4}-\d{2}-\d{2}$/.test(date||"")&&date<=ymd(new Date())?date:ymd(new Date());await put("expenses",newId(),{date:d,amount:Math.round(amount*100)/100,cat,note:String(note||"").slice(0,120),createdAt:Date.now(),...(extra||{})})};
  const reload=()=>{try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
   // fetch fresh data and redraw in place, keeping the same card/window open (no page reload, no loading screen)
@@ -709,7 +719,7 @@ function start(m,soft){
    const a=document.getElementById("amt"),b=document.getElementById("sv");setTimeout(()=>a.focus(),350);sh._sms=null;a.oninput=()=>{b.disabled=!(+a.value>0)};
    // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note
    // Beshr 2026-11-24: one tap reads the bank SMS he copied (a web app can't read SMS itself) and fills amount + note; if iPhone won't share the clipboard, a box to paste into appears
-   const fill=t=>{const it=readSms(t)[0]||{amount:"",note:"",cat:"flex"};sh._sms={raw:String(t).slice(0,300),read:{amount:+it.amount||0,cat:it.cat,note:it.note}};if(!it.amount)toast(tx("Reading it with AI…","أقرأها بالذكاء الاصطناعي…"));
+   const fill=t=>{if(window.smsKind(t)!="txn"){if(smsUnclear(t).length)toReview([t]);toast(tx("This does not look like a bank transaction, so I did not fill it","هذي ما تبان عملية بنكية، ما عبيتها"));return}const it=readSms(t)[0]||{amount:"",note:"",cat:"flex"};sh._sms={raw:String(t).slice(0,300),read:{amount:+it.amount||0,cat:it.cat,note:it.note}};if(!it.amount)toast(tx("Reading it with AI…","أقرأها بالذكاء الاصطناعي…"));
     a.value=it.amount;b.disabled=!(+a.value>0);document.getElementById("nt").value=it.note;const btn=sh.querySelector(`.chips button[data-k="${it.cat}"]`);if(btn){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));btn.classList.add("sel")}if(it.amount)toast(tx("Filled from your message","انعبى من رسالتك"));
     aiReadSms([t],m.ex).then(o=>{const r=o[0];if(!r||r.skip||!sh.classList.contains("on"))return;if(sh._sms)sh._sms.ai={amount:+r.amount||0,shop:String(r.shop||"").slice(0,60),cat:r.cat};if(+r.amount>0&&!a.value){a.value=r.amount;b.disabled=false}if(r.shop)document.getElementById("nt").value=String(r.shop).slice(0,60);const bb=LOG_CATS.includes(r.cat)&&r.cat!="flex"&&sh.querySelector(`.chips button[data-k="${r.cat}"]`);if(bb){sh.querySelectorAll(".chips button").forEach(y=>y.classList.remove("sel"));bb.classList.add("sel")}}).catch(()=>{})};
    sh.querySelector(".pmsg").onclick=async()=>{let t="";try{t=await navigator.clipboard.readText()}catch(e){}t=String(t||"").trim();if(t){fill(t);return}
@@ -1048,7 +1058,7 @@ function softApply(R){const sh=document.getElementById("sheet");if(sh&&sh.classL
  try{const c=OK&&document.querySelector(`.card[data-k="${OK}"]`);sessionStorage.setItem("w-ui",JSON.stringify({ok:OK,top:c?c.scrollTop:0,cw:window._cwSt?window._cwSt():null,t:Date.now()}))}catch(e){}
  start(model(R),1)}
 window._wobRefresh=async()=>{const R=await load();saveCache(R);start(model(R),1)};
-const smsGo=()=>{if(SMS_LINK!=null&&window._smsLog){const t=SMS_LINK;SMS_LINK=null;setTimeout(()=>window._smsLog(t),300)}setTimeout(()=>window._smsAI&&window._smsAI(),1500)};
+const smsGo=()=>{setTimeout(()=>window._smsCheck&&window._smsCheck(),2200);if(SMS_LINK!=null&&window._smsLog){const t=SMS_LINK;SMS_LINK=null;setTimeout(()=>window._smsLog(t),300)}setTimeout(()=>window._smsAI&&window._smsAI(),1500)};
 // ---------- boot ----------
 // Visible height. iPhone Home Screen apps can report the full screen height while the page starts below the status bar,
 // which pushed the bottom of the app (quick bar, sheets) off screen (Beshr 2026-11-24). Take the smallest height and remove the status bar in that case.
