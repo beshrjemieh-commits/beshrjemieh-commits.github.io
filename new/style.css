@@ -581,3 +581,6 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 
 /* v196: Forsa "% below" bar sits under the name on the left */
 .fbw{display:block;margin-top:6px;max-width:150px}.fbw b{display:block;font-size:13px;font-weight:700;color:#78350F;line-height:18px;opacity:1}.fbw .obar{display:block;height:8px;border-radius:4px;background:#FDE68A;margin-top:4px;overflow:hidden}.fbw u{display:block;height:100%;border-radius:4px}
+.vlist{display:grid}.vr{display:grid;grid-template-columns:40px 1fr auto 38px;align-items:center;column-gap:10px;padding:8px 0;border-top:.5px solid #F1F5F9}.vr:first-child{border-top:0}
+.vr img,.vr .slph{width:40px;height:40px;border-radius:10px;object-fit:contain;background:#F8FAFC;display:grid;place-items:center;color:#94A3B8;font-style:normal}.vr .slph svg{width:20px;height:20px}
+.vr .sln{min-width:0;display:grid}.vr .sln b{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vr .sln small{color:#64748B;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vr .vsv{color:#16A34A;font-weight:600}.vr .slp{font-size:15px}
