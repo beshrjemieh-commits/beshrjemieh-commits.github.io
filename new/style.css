@@ -582,3 +582,13 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 /* v196: Forsa "% below" bar sits under the name on the left */
 .fbw{display:block;margin-top:6px;max-width:150px}.fbw b{display:block;font-size:13px;font-weight:700;color:#78350F;line-height:18px;opacity:1}.fbw .obar{display:block;height:8px;border-radius:4px;background:#FDE68A;margin-top:4px;overflow:hidden}.fbw u{display:block;height:100%;border-radius:4px}
 .fbw.sg b{color:#16A34A}
+/* Beshr 2026-11-26: closed Home cards, right visual fills number top to sub-line bottom (top/height set in render) */
+.vzh>div:not(.osv){height:100%;width:100%;display:flex;flex-direction:column;justify-content:space-between}
+.vzh>div:not(.osv)>div[style*="display:grid"]{height:100%;align-content:space-between;gap:0!important}
+.vzh>div:not(.osv)>div[style*="display:grid"]>div{line-height:14px}
+.vzh>div:not(.osv)>div:not([style*="display:grid"]):not(.mthl){height:100%;display:flex;flex-direction:column;justify-content:space-between}
+.vzh>div:not(.osv)>div:not([style*="display:grid"]):not(.mthl)>div:first-child{margin-bottom:0!important}
+.vzh .mthl{display:none}
+.vz2.vzh:has(.hph){padding-top:0;justify-content:center}
+.vzh .hph,.vzh .osv .hph{width:var(--ph,48px);height:var(--ph,48px);border-radius:10px}
+.vzh .osv{min-height:0;margin:0;align-items:center}

@@ -449,7 +449,7 @@ function cards(m){
  const fnd=top&&top.last&&top.best&&top.last.price-top.best.price>=.5&&top.last.store!=top.best.store?top:null;
  const tile=(src,ic,chip)=>`<span class="hph">${src?`<img src="${esc(src)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('i'),{innerHTML:window.PH('${ic}')}))">`:`<i>${PH(ic)}</i>`}</span>${chip?`<span class="hchip"><bdi>${chip}</bdi></span>`:""}`;
  const s={t:tx("Store","المتجر"),ic:"shopping-cart",sub:bk.length?tx("Shopping list total","مجموع قائمة التسوق"):tx("With saved prices","بأسعار محفوظة"),v:bk.length?M(bkT):(m.G2.length==1?tx("1 item","غرض واحد"):tx(`${m.G2.length} items`,`${m.G2.length} غرض`)),line:bk.length?(bk.length==1?tx("Basket · 1 item","السلة · غرض واحد"):tx(`Basket · ${bk.length} items`,`السلة · ${bk.length} أغراض`)):drop?tx("Price dropped","السعر نزل"):tx("Your items","أغراضك"),
-  photo:()=>tile(fnd?fnd.photo:(bk[0]||top||{}).photo,"basket"),chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(nmI(drop.item),22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(nmI(top.item),22),ACC.s,p):""};
+  photo:()=>tile(fnd?fnd.photo:(bk.find(g=>g.photo)||(top&&top.photo?top:null)||m.G2.find(g=>g.photo)||{}).photo,"basket"),chart:(p)=>drop?K.strike(drop.drop.from.toFixed(drop.drop.from%1?2:0),drop.drop.to.toFixed(drop.drop.to%1?2:0),cutW(nmI(drop.item),22),ACC.s,p):top?K.strike(top.last.price.toFixed(top.last.price%1?2:0),top.best.price.toFixed(top.best.price%1?2:0),cutW(nmI(top.item),22),ACC.s,p):""};
  // v188 (QA): a new friend has no items of their own: lead with the best find from other shoppers (same item and size only)
  // v193 (Research: E-Commerce Law Art. 11, no misleading price claims): say "lowest price seen" + shop + date, never "cheapest"
  const sD=d=>{const t=d&&new Date(d);return t&&!isNaN(t)?" · "+t.toLocaleDateString(AR?"ar-SA-u-nu-latn-ca-gregory":"en-GB",{day:"numeric",month:"short"}):""};
@@ -587,6 +587,7 @@ function start(m,soft){
    if(!fl||fl.children.length!=nx.length)b.innerHTML=o.v;else{[...fl.children].forEach((sp,i)=>{if(sp.textContent!=nx[i])setTimeout(()=>{sp.classList.add("go");setTimeout(()=>{sp.textContent=nx[i];sp.classList.remove("go")},180)},i*60)});const st=b.querySelector("s");if(st)st.textContent=o.wf}
    el.querySelector(".bsub").innerHTML=o.n;{const nb=el.querySelector(".hnewb");if(nb){nb.style.display=c.oi?"none":"";el.classList.toggle("hnew",!c.oi)}}const vz=el.querySelector(".vz2");if(vz)vz.innerHTML=o.ch();fitBig(b)};
   window._offNext=()=>{if(RM||GEN!=window._gen)return;["s","f"].filter(k=>C[k].offers).forEach((k,j)=>setTimeout(()=>{const el=document.querySelector(`#app .card[data-k="${k}"]`);if(!el||OK)return;const c=C[k];c.oi=(c.oi+1)%c.offers.length;show(el,c,c.offers[c.oi])},350+j*400))};clearInterval(window._offT);window._offT=setInterval(()=>{if(!document.hidden&&!OK)window._offNext()},300000)}
+ try{document.fonts.ready.then(()=>cardEls.forEach(c=>c._al=null));addEventListener("resize",()=>cardEls.forEach(c=>c._al=null))}catch(e){}
  function render(){if(GEN!=window._gen)return;const t=now();
   const op=t<TL.tap?0:t<TL.close?ez((t-TL.tap)/TL.open):1-ez((t-TL.close)/TL.cd),closing=t>=TL.close,since=t-TL.tap;
   cardEls.forEach((c,i)=>{const k=c.dataset.k,f=k==OK,ht=TOPS[i],h0=HH[i],FP=k=="f"||k=="s",PT=FP?0:86,PB=FP?APPH:APPH-20,vz=c.querySelector(".vz2"),pg=c.querySelector(".pg");
@@ -594,8 +595,10 @@ function start(m,soft){
    else{c.style.opacity=closing&&OK?1:1-cl(op/0.45)}
    c.style.overflowY=f&&op>=1&&!closing?"auto":"hidden";
    {const fo=f&&FP?1-cl(op/0.4):1,bk=c.querySelector(".cbk");if(bk){bk.style.opacity=f&&FP?cl((op-0.5)/0.4):0;c.querySelector(".ctab").style.opacity=f&&FP?1-cl((op-0.4)/0.3):1}c.querySelector(".big").style.opacity=fo;{const bs=c.querySelector(".bsub");if(bs)bs.style.opacity=fo}c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
-   const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",XR=(window.AW||393)-220,W=f?lerp(172,isB?(window.AW||393)-64:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(XR,16,op):XR,Y=f?lerp(48,98,op):48;
-   Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
+   const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",XR=(window.AW||393)-220,W=f?lerp(172,isB?(window.AW||393)-64:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(XR,16,op):XR,AL=c._al||(c._al=(()=>{const bg=c.querySelector(".big"),bs=c.querySelector(".bsub"),fs=parseFloat(getComputedStyle(bg).fontSize)||30,t=Math.round(bg.offsetTop+.23*fs),bt=bs&&bs.offsetHeight?bs.offsetTop+bs.offsetHeight-2:bg.offsetTop+bg.offsetHeight;const h=Math.max(30,bt-t),ph=Math.max(52,Math.min(56,h)),lim=h0-8,ov=Math.max(0,t+h/2+ph/2-lim);return {t:t-ov,h,ph}})()),Y=f?lerp(AL.t,98,op):AL.t;
+   // Beshr 2026-11-26 "align text and icons": a closed card's chart/photo spans exactly from the number's top to the bottom of the line under it
+   vz.classList.toggle("vzh",!(f&&op>0));if(!f||op<=0)vz.style.setProperty("--ph",AL.ph+"px");
+   Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(f?lerp(AL.h,H+4,op):AL.h)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
    const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);{const _h=Q.hero=="photo"?Q.chart():isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;if(vz._h!==_h){vz._h=_h;vz.innerHTML=_h}};
    // video 4: Home shows number + one line only; Wallet/Expenses charts appear as the card opens
    if(HOME_PHOTOS&&(k=="w"||k=="e")&&f)vz.style.opacity=Math.max(0,1-op*2.5); // tab top tip + chart below replace the header chart (2026-11-25 mix)
