@@ -83,7 +83,7 @@ const SMS_CAT=[["carcare",/(car wash|مغسلة|tire|tyre|كفرات|زيوت|oi
 // unless the text is clearly a purchase (purchase word + masked card digits). Same regex as the server's log_sms v3.
 const SMS_AD=/(\bwin\b|\bwinners?\b|\bprizes?\b|\boffers?\b|\bchance\b|competition|\bdraw\b|lucky|jackpot|\ba million\b|millionaire|giveaway|\bpromo|cashback|اربح|إربح|فرصة|فرصه|جائزة|جائزه|جوائز|مسابقة|مسابقه|السحب على|مليون ريال|المليون|هدية مجانية|استرداد نقدي)/i;
 // starts like an ad ("اربح…", "Win…", "Get SAR 200 cashback…") = ad; starts like a bank purchase alert = never an ad (shop names like Lucky Supermarket)
-const smsAd=t=>{t=AR_D(t).trim();if(/^(اربح|إربح|win\b|عرض|exclusive|special offer|get\s+(sar|sr|\d)|spend\s+(sar|sr|\d)|احصل|ادخل السحب)/i.test(t))return true;if(/^((pos|online|mada|apple pay)\s+)?(purchase|شراء|عملية شراء|مدفوعات|payment)|^[^\n]{0,30}\bused for\b|^استخدام بطاقة/i.test(t))return false;
+const smsAd=t=>{t=AR_D(t).trim();if(/^(خصم\s*\d+\s*[%٪]|\d+\s*[%٪]\s*(off|discount)|اربح|إربح|win\b|عرض|exclusive|special offer|get\s+(sar|sr|\d)|spend\s+(sar|sr|\d)|احصل|ادخل السحب)/i.test(t))return true;if(/^((pos|online|mada|apple pay)\s+)?(purchase|شراء|عملية شراء|مدفوعات|payment)|^[^\n]{0,30}\bused for\b|^استخدام بطاقة/i.test(t))return false;
  return SMS_AD.test(t)&&!(/(شراء|purchase|\bpos\b|مدفوعات|payment)/i.test(t)&&(/(بطاقة|card|مدى|mada|visa|فيزا)\s*[:：]?\s*[*xX•]*\d{3,4}/i.test(t)||/(مبلغ|amount)/i.test(t)))};
 const smsCat=t=>{for(const [k,re] of SMS_CAT)if(re.test(t))return k;return "flex"};
 const smsIn=t=>/(حوالة واردة|إيداع|ايداع|استرداد|credit(ed)?\b|deposit|refund|incoming|received|راتب|salary)/i.test(t)&&!/(شراء|purchase|\bpos\b|سحب|withdraw|مدفوعات|payment)/i.test(t);
