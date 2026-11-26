@@ -578,3 +578,6 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 .chkm{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:12px;font-size:14px;line-height:1.5;color:#0F172A;margin:8px 0 12px;white-space:normal;word-break:break-word}
 #sheet .chkb{display:flex;gap:10px;margin-top:12px}#sheet .chkb button{flex:1;margin:0}#sheet .chkn{border:1px solid #CBD5E1;background:#fff;color:#0F172A;border-radius:14px;height:50px;font:600 16px "IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;cursor:pointer}
 #sheet .chky.chkq{background:#fff;color:#0F172A;border:1px solid #CBD5E1}.chkw{font-size:13px;color:#B45309;background:#FEF3C7;border-radius:10px;padding:8px 10px;margin:4px 0 0}
+
+/* v196: Forsa "% below" bar sits under the name on the left */
+.fbw{display:block;margin-top:6px;max-width:150px}.fbw b{display:block;font-size:13px;font-weight:700;color:#78350F;line-height:18px;opacity:1}.fbw .obar{display:block;height:8px;border-radius:4px;background:#FDE68A;margin-top:4px;overflow:hidden}.fbw u{display:block;height:100%;border-radius:4px}
