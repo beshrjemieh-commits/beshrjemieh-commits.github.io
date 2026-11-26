@@ -82,12 +82,14 @@ const SMS_CAT=[["carcare",/(car wash|مغسلة|tire|tyre|كفرات|زيوت|oi
 // 2026-11-26 (Beshr): a bank ad ("a million is calling… win SAR 10,000") was logged as money in. Prize/offer ads are never logged,
 // unless the text is clearly a purchase (purchase word + masked card digits). Same regex as the server's log_sms v3.
 const SMS_AD=/(\bwin\b|\bwinners?\b|\bprizes?\b|\boffers?\b|\bchance\b|competition|\bdraw\b|lucky|jackpot|\ba million\b|millionaire|giveaway|\bpromo|cash ?back|\bdeals?\b|(white|yellow|black) friday|ts ?& ?cs|t ?& ?c\b|terms and conditions|valid (from|until|till|to)|كاش ?باك|عروض|الجمعة البيضاء|خصم \d+ ?[%٪]|\d+ ?[%٪] ?(off|cashback|discount|خصم)|اربح|إربح|فرصة|فرصه|جائزة|جائزه|جوائز|مسابقة|مسابقه|السحب على|مليون ريال|المليون|هدية مجانية|استرداد نقدي)/i;
-// starts like an ad ("اربح…", "Win…", "Get SAR 200 cashback…") = ad; starts like a bank purchase alert = never an ad (shop names like Lucky Supermarket)
-const smsAd=t=>{t=AR_D(t).trim();if(/^(خصم\s*\d+\s*[%٪]|\d+\s*[%٪]\s*(off|discount)|اربح|إربح|win\b|عرض|exclusive|special offer|get\s+(sar|sr|\d)|spend\s+(sar|sr|\d)|احصل|ادخل السحب)/i.test(t))return true;if(/^((pos|online|mada|apple pay)\s+)?(purchase|شراء|عملية شراء|مدفوعات|payment)|^[^\n]{0,30}\bused for\b|^استخدام بطاقة|^تم خصم/i.test(t))return false;
- // a purchase word before the first ad word (and an amount) = a real payment whose shop name/footer has an ad word (server log-sms rule)
- {const ai=t.search(SMS_AD),pi=t.search(/(تم خصم|خصم من|شراء|purchase|\bpos\b|مدفوعات|payment|used for|\bspent\b|\bpaid\b|\bcharged\b|\bdebited\b|تم استخدام بطاقة)/i);if(ai>=0&&pi>=0&&pi<ai&&smsAmt(t)&&(pi<12||CARD_RE.test(t)))return false}
- return SMS_AD.test(t)&&!(/(شراء|purchase|\bpos\b|مدفوعات|payment)/i.test(t)&&(/(بطاقة|card|مدى|mada|visa|فيزا)\s*[:：]?\s*[*xX•]*\d{3,4}/i.test(t)||/(مبلغ|amount)/i.test(t)))};
-const CARD_RE=/([*•]{1,4}\s?\d{4}\b|\b[xX]{2,4}\d{4}\b)/,smsCard=t=>CARD_RE.test(AR_D(t))&&!!smsAmt(AR_D(t)); // an ad-looking text that still has a masked card + amount goes to "check this" (kind pay), never silently dropped
+// log-sms v3.7 (server, Security PASS), mirrored for the offline paste path. When an ad word is present:
+// (a) a labelled amount (مبلغ/amount…) BEFORE the first ad word = real payment, log it; (b) else a masked card or a purchase word in the first 20 chars + an amount = "check this" (kind pay); (c) else skip
+const AD_START=/^(خصم\s*\d+\s*[%٪]|\d+\s*[%٪]\s*(off|discount)|اربح|إربح|win\b|عرض|exclusive|special offer|get\s+(sar|sr|\d)|spend\s+(sar|sr|\d)|احصل|ادخل السحب)/i;
+const CARD_RE=/([*•]{1,4}\s?\d{4}\b|\b[xX]{2,4}\d{4}\b)/;
+const smsAdK=t=>{t=AR_D(t).trim();const ai=AD_START.test(t)?0:t.search(SMS_AD);if(ai<0)return "";
+ const li=t.search(/(مبلغ|المبلغ|بمبلغ|amount|amt)\s*[:：]?\s*(SAR|SR|ر\.?\s?س\.?|ريال|⃁)?\s*\d/i);if(li>=0&&li<ai)return "";
+ return (CARD_RE.test(t)||/(تم خصم|خصم من|شراء|purchase|\bpos\b|مدفوعات|payment|used for|\bspent\b|\bpaid\b|\bcharged\b|\bdebited\b|تم استخدام بطاقة)/i.test(t.slice(0,20)))&&smsAmt(t)?"pay":"skip"};
+const smsAd=t=>!!smsAdK(t),smsCard=t=>smsAdK(t)=="pay";
 const smsCat=t=>{for(const [k,re] of SMS_CAT)if(re.test(t))return k;return "flex"};
 const smsIn=t=>/(حوالة واردة|إيداع|ايداع|استرداد|credit(ed)?\b|deposit|refund|incoming|received|راتب|salary)/i.test(t)&&!/(شراء|purchase|\bpos\b|سحب|withdraw|مدفوعات|payment)/i.test(t);
 // 2026-11-25 (Beshr): a credit card message gave the "Available Credit Limit" as the cost. Balance/limit figures are dropped first, and the labelled amount wins.
