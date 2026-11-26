@@ -591,4 +591,4 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 .vzh .mthl{display:none}
 .vz2.vzh:has(.hph){padding-top:0;justify-content:center}
 .vzh .hph,.vzh .osv .hph{width:var(--ph,48px);height:var(--ph,48px);border-radius:10px}
-.vzh .osv{min-height:0;margin:0;height:100%;align-items:center}
+.vzh .osv{min-height:0;margin:0;align-items:center}
