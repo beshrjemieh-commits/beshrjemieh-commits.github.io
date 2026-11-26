@@ -319,10 +319,7 @@ function cmpSec(m){const EV=LOG_CATS.slice(0,10),day=n=>{const d=new Date();d.se
  const t=sumD(day(0)),y=sumD(day(1)),wk=[...Array(7)].map((_,i)=>sumD(day(6-i))),lw=[...Array(7)].map((_,i)=>sumD(day(13-i))),avg=wk.slice(0,6).reduce((a,b)=>a+b,0)/6,W1=wk.reduce((a,b)=>a+b,0),W0=lw.reduce((a,b)=>a+b,0);
  if(!W1&&!W0)return "";const mx=Math.max(1,t,y,avg),bar=(l,v,c)=>`<div class="cmr"><span>${l}</span><span class="bar"><i style="width:${v/mx*100}%;background:${c}"></i></span><b>${M(v)}</b></div>`;
  const MX=Math.max(1,...wk,...lw),dn=n=>new Date(Date.now()-n*864e5).toLocaleDateString(AR?"ar-SA-u-nu-latn":"en-GB",{weekday:"narrow"}),ch=W0?Math.round((W1-W0)/W0*100):null;
- return `<div class="sec cmp"><h4>${tx("Everyday spending","المصروف اليومي")}</h4>${bar(tx("Today","اليوم"),t,NAVY)}${bar(tx("Yesterday","أمس"),y,"#5B82B0")}${bar(tx("Usual day","يومك المعتاد"),avg,"#CBD5E1")}
-  <div class="cmh"><b>${tx("This week vs last week","هالأسبوع والأسبوع الماضي")}</b>${ch==null?"":`<span style="color:${ch>0?"#DC2626":GR}">${ch>0?"▲":"▼"} ${W0>=100&&ch>=-90&&ch<=200?Math.abs(ch)+"%":`${M(Math.round(W1))} ${tx(`(was ${M(Math.round(W0))})`,`(كان ${M(Math.round(W0))})`)}`}</span>`}</div>
-  <div class="cmw" dir="ltr">${wk.map((v,i)=>`<div class="cmd"><span class="cmb"><i class="lw" style="height:${lw[i]/MX*70}px"></i><i class="tw" style="height:${v/MX*70}px"></i></span><small>${dn(6-i)}</small></div>`).join("")}</div>
-  <div class="cml"><span><i class="tw"></i>${tx("Last 7 days","آخر 7 أيام")} <b>${M(W1)}</b></span><span><i class="lw"></i>${tx("7 days before","الـ7 اللي قبلها")} <b>${M(W0)}</b></span></div></div>`}
+ return `<div class="sec cmp"><h4>${tx("Everyday spending","المصروف اليومي")}</h4>${bar(tx("Today","اليوم"),t,NAVY)}${bar(tx("Yesterday","أمس"),y,"#5B82B0")}${bar(tx("Usual day","يومك المعتاد"),avg,"#CBD5E1")}</div>`}
 // ---------- tab top tip + stage chart (Beshr 2026-11-25: mix of video 3 + 3b; plan: analysis/small-data-charts.md) ----------
 function mixSec(m,tab,dPlan){
  const LC=LOG_CATS.slice(0,10),ex=m.ex.filter(x=>LC.includes(x.cat)),byDay={};ex.forEach(x=>byDay[x.date]=(byDay[x.date]||0)+x.amount);
