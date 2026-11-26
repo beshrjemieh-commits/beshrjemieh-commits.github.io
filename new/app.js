@@ -85,7 +85,7 @@ const SMS_AD=/(\bwin\b|\bwinners?\b|\bprizes?\b|\boffers?\b|\bchance\b|competiti
 // starts like an ad ("اربح…", "Win…", "Get SAR 200 cashback…") = ad; starts like a bank purchase alert = never an ad (shop names like Lucky Supermarket)
 const smsAd=t=>{t=AR_D(t).trim();if(/^(خصم\s*\d+\s*[%٪]|\d+\s*[%٪]\s*(off|discount)|اربح|إربح|win\b|عرض|exclusive|special offer|get\s+(sar|sr|\d)|spend\s+(sar|sr|\d)|احصل|ادخل السحب)/i.test(t))return true;if(/^((pos|online|mada|apple pay)\s+)?(purchase|شراء|عملية شراء|مدفوعات|payment)|^[^\n]{0,30}\bused for\b|^استخدام بطاقة|^تم خصم/i.test(t))return false;
  // a purchase word before the first ad word (and an amount) = a real payment whose shop name/footer has an ad word (server log-sms rule)
- {const ai=t.search(SMS_AD),pi=t.search(/(تم خصم|خصم من|شراء|purchase|\bpos\b|مدفوعات|payment|used for|\bspent\b|\bpaid\b|\bcharged\b|\bdebited\b|تم استخدام بطاقة)/i);if(ai>=0&&pi>=0&&pi<ai&&smsAmt(t)&&CARD_RE.test(t))return false}
+ {const ai=t.search(SMS_AD),pi=t.search(/(تم خصم|خصم من|شراء|purchase|\bpos\b|مدفوعات|payment|used for|\bspent\b|\bpaid\b|\bcharged\b|\bdebited\b|تم استخدام بطاقة)/i);if(ai>=0&&pi>=0&&pi<ai&&smsAmt(t)&&(pi<12||CARD_RE.test(t)))return false}
  return SMS_AD.test(t)&&!(/(شراء|purchase|\bpos\b|مدفوعات|payment)/i.test(t)&&(/(بطاقة|card|مدى|mada|visa|فيزا)\s*[:：]?\s*[*xX•]*\d{3,4}/i.test(t)||/(مبلغ|amount)/i.test(t)))};
 const CARD_RE=/([*•]{1,4}\s?\d{4}\b|\b[xX]{2,4}\d{4}\b)/,smsCard=t=>CARD_RE.test(AR_D(t))&&!!smsAmt(AR_D(t)); // an ad-looking text that still has a masked card + amount goes to "check this" (kind pay), never silently dropped
 const smsCat=t=>{for(const [k,re] of SMS_CAT)if(re.test(t))return k;return "flex"};
