@@ -596,7 +596,7 @@ function start(m,soft){
    {const fo=f&&FP?1-cl(op/0.4):1,bk=c.querySelector(".cbk");if(bk){bk.style.opacity=f&&FP?cl((op-0.5)/0.4):0;c.querySelector(".ctab").style.opacity=f&&FP?1-cl((op-0.4)/0.3):1}c.querySelector(".big").style.opacity=fo;{const bs=c.querySelector(".bsub");if(bs)bs.style.opacity=fo}c.querySelector(".tm").style.opacity=fo;vz.style.opacity=fo}
    const Q=cc(k),isB=Q.hero=="bars",isD=Q.hero=="dots",XR=(window.AW||393)-220,W=f?lerp(172,isB?(window.AW||393)-64:isD?172*1.85:172*1.35,op):172,H=f&&isB?lerp(46,120,op):46,X=AR?16:f?lerp(XR,16,op):XR,Y=f?lerp(48,98,op):48;
    Object.assign(vz.style,{left:X+"px",top:Y+"px",width:W+"px",height:(H+4)+"px",alignItems:f&&op>0&&!isB?"flex-start":"flex-end"});
-   const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);vz.innerHTML=Q.hero=="photo"?Q.chart():isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;
+   const p=ez((t-CHG[k])/0.7);if(CHG[k]&&t-CHG[k]<0.35)vz.style.opacity=(+vz.style.opacity||0)*ez((t-CHG[k])/0.35);{const _h=Q.hero=="photo"?Q.chart():isB?Q.chart(p,{w:W,h:H,gap:lerp(5,10,f?op:0)}):`<div style="zoom:${f?lerp(1,isD?1.85:1.35,op):1}">${Q.chart(p)}</div>`;if(vz._h!==_h){vz._h=_h;vz.innerHTML=_h}};
    // video 4: Home shows number + one line only; Wallet/Expenses charts appear as the card opens
    if(HOME_PHOTOS&&(k=="w"||k=="e")&&f)vz.style.opacity=Math.max(0,1-op*2.5); // tab top tip + chart below replace the header chart (2026-11-25 mix)
    pg.style.top=lerp(h0,FP?44:HOME_PHOTOS&&(k=="w"||k=="e")?118:isB?232:isD?200:186,f?op:0)+"px";
