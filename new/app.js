@@ -145,7 +145,7 @@ function model(R){
  const mineK=new Set(G2.map(g=>(g.item+"|"+g.size).toLowerCase())),ob=new Map();
  (R.community||[]).forEach(c=>{const it=norm(c.item),sz=norm(c.size),st=norm(c.store),pr=+c.price||0;if(!it||!(pr>0)||/\((shared|online)\)/i.test(st))return;const k=(it+"|"+sz).toLowerCase();if(mineK.has(k))return;const o=ob.get(k);if(!o||pr<o.price)ob.set(k,{k,item:it,size:sz,store:st,price:pr,people:+c.people||1,date:String(c.last_date||"")})});
  const others=[...ob.values()].map(o=>Object.assign(o,{grp:grpOf([o.store],o.item)})).sort((a,b)=>a.item.localeCompare(b.item));
- const _raw={};by.expenses.concat(by.goals).forEach(x=>{if(x&&x.id)_raw[x.id]=Object.fromEntries(Object.entries(x).filter(([k])=>k!="id"&&k!="user_id"))});
+ const _raw={};by.expenses.concat(by.goals,by.income).forEach(x=>{if(x&&x.id)_raw[x.id]=Object.fromEntries(Object.entries(x).filter(([k])=>k!="id"&&k!="user_id"))});
  const fset=Object.assign({acted:{}},set.forsa||{});
  return {_R:R,fset,today,smsQ:by.expenses.filter(x=>x.src=="sms"&&!x.aiDone),smsRaw:by.smsraw||[],smsChk:by.smscheck||[],planRaw:plan,photos,others,prof,name:String(prof.name||"").split(" ")[0],income,payday,toPay,cycle,next,balance,start,ex,inc,monthEx,spent,todayEx,todaySum,todayDaily,usual,days7,items:vis,planOf,G2,list,shopKeys,shopQty:Object.assign({},(set.shopping||{}).qty||{}),deals,hunt,fixes:set.fixes||{},debts,goals,today,mon,community:R.community,_raw}}
 // ---------- page pieces ----------
@@ -957,7 +957,7 @@ ${q}`;
   const INC=[["salary",tx("Salary","راتب")],["side",tx("Side job","شغل جانبي")],["refund",tx("Refund","استرجاع")],["gift",tx("Gift","هدية")],["other",tx("Other","أخرى")]];
   // v195 (Beshr): delete a money-in entry from the Money in sheet. Tap a row, tap Delete, tap again to confirm; Undo toast for 6 s.
   const incList=()=>{const L=m.inc.filter(x=>x.id).sort((a,b)=>(b.date>a.date?1:b.date<a.date?-1:b.createdAt-a.createdAt)).slice(0,8);return L.length?`<div class="ds" style="margin:12px 0 4px">${tx("Recent money in","آخر الدخل")}</div><div class="res" style="max-height:26vh;overflow-y:auto">${L.map(x=>`<div class="r xr" data-iid="${esc(x.id)}" role="button"><span>${esc(x.date)}${x.note?` <small class="ds">${esc(x.note.slice(0,40))}</small>`:""}</span><b>${M(x.amount)}</b><span class="xpen" aria-label="${tx("Delete","حذف")}">${PH("trash")}</span></div>`).join("")}</div>`:""};
-  const delInc=id=>{const x=m.inc.find(e=>e.id==id);if(!x)return;const raw=x;
+  const delInc=id=>{const x=m.inc.find(e=>e.id==id);if(!x)return;const raw=(m._raw&&m._raw[id])||x;
    show(GR,`<h3>${PH("trash")}${tx("Delete this income?","تحذف هذا الدخل؟")}</h3><p class="ds" style="margin:0 0 12px;overflow-wrap:anywhere">${esc(x.date)} · <b>${M(x.amount)}</b>${x.note?" · "+esc(x.note.slice(0,60)):""}</p><button class="delx" id="fdel">${PH("trash")} ${tx("Delete","حذف")}</button>`,()=>{
     arm(async()=>{await del("income",id);close();reload();await new Promise(r=>setTimeout(r,500));const u=document.createElement("button");u.className="smsbar";u.innerHTML=PH("trash")+"<span>"+tx("Income deleted","انحذف الدخل")+"</span><b>"+tx("Undo","تراجع")+"</b>";document.getElementById("app").appendChild(u);const kill=setTimeout(()=>u.remove(),6000);
      u.onclick=async()=>{clearTimeout(kill);u.remove();try{const d=Object.assign({},raw);delete d.id;await put("income",id,d);reload()}catch(e){fail()}}})})};
