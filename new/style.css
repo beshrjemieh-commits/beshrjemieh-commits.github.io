@@ -581,3 +581,4 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 
 /* v196: Forsa "% below" bar sits under the name on the left */
 .fbw{display:block;margin-top:6px;max-width:150px}.fbw b{display:block;font-size:13px;font-weight:700;color:#78350F;line-height:18px;opacity:1}.fbw .obar{display:block;height:8px;border-radius:4px;background:#FDE68A;margin-top:4px;overflow:hidden}.fbw u{display:block;height:100%;border-radius:4px}
+.fbw.sg b{color:#16A34A}
