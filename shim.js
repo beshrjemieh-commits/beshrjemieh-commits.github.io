@@ -208,8 +208,8 @@
   window.claude = { use: async name => { if(name === "db"){ await ready; return db; } if(name === "assets"){ await ready; return assets; } if(name === "sample"){ await ready; return sampleNS; } return null; } };
 
   /* ---------- sign-in screen ---------- */
-  const css = `#authGate{position:fixed;inset:0;z-index:1000;background:var(--bg,#F8FAFC);color:var(--fg,#0F172A);display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow:auto}
-#authGate .box{width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px}
+  const css = `#authGate{position:fixed;inset:0;z-index:1000;background:var(--bg,#F8FAFC);color:var(--fg,#0F172A);display:flex;align-items:flex-start;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow:auto}
+#authGate .box{width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px;margin:auto 0}#authGate.kb{padding-top:12px;padding-bottom:12px}#authGate.kb img,#authGate.kb p{display:none}#authGate.kb h1{font-size:24px;margin:0}
 #authGate img{width:64px;height:64px;border-radius:16px}
 #authGate h1{font-size:30px;margin:4px 0 0;letter-spacing:-.02em}
 #authGate p{margin:0;color:var(--muted,#64748B)}
@@ -224,12 +224,12 @@
   function gate(){
     if(document.getElementById("authGate")) return;
     const st = document.createElement("style"); st.textContent = css + `
-#authGate[dir=rtl] .box{text-align:right}#authGate[dir=rtl] input{text-align:left}#authGate .lg{background:none;color:var(--muted,#64748B);font-size:14px;height:36px}`; document.head.appendChild(st);
+#authGate[dir=rtl] .box{text-align:right}#authGate[dir=rtl] input{text-align:left}#authGate .lg{background:none;color:var(--accent,#2563EB);font-size:16px;font-weight:600;height:44px;min-height:44px}`; document.head.appendChild(st);
     const g = document.createElement("div"); g.id = "authGate";
     let AR = false; try{ AR = localStorage.getItem("w-lang") === "ar"; }catch(e){}
     const T = (en, ar) => AR ? ar : en;
     let signup = false, msg = "", bad = false;
-    const errAr = m => /invalid login|invalid credentials/i.test(m) ? "البريد أو كلمة السر غير صحيحة." : /already registered|already exists/i.test(m) ? "هذا البريد مسجل من قبل. جرب تسجيل الدخول." : /rate limit|too many|seconds/i.test(m) ? "محاولات كثيرة. انتظر شوي وجرب مرة ثانية." : /network|fetch/i.test(m) ? "ما فيه اتصال. تأكد من الإنترنت وجرب مرة ثانية." : /password/i.test(m) ? "كلمة السر لازم تكون 6 خانات على الأقل." : /email/i.test(m) ? "تأكد من البريد الإلكتروني وجرب مرة ثانية." : "صار خطأ. جرب مرة ثانية.";
+    const errTx = m => /invalid login|invalid credentials/i.test(m) ? T("Email or password is not correct.","البريد أو كلمة السر غير صحيحة.") : /already registered|already exists/i.test(m) ? T("This email is already registered. Try signing in.","هذا البريد مسجل من قبل. جرب تسجيل الدخول.") : /rate limit|too many|seconds/i.test(m) ? T("Too many tries. Wait a moment and try again.","محاولات كثيرة. انتظر شوي وجرب مرة ثانية.") : /network|fetch/i.test(m) ? T("No connection. Check your internet and try again.","ما فيه اتصال. تأكد من الإنترنت وجرب مرة ثانية.") : /password/i.test(m) ? T("Password must be at least 6 characters.","كلمة السر لازم تكون 6 خانات على الأقل.") : /email/i.test(m) ? T("Check your email address and try again.","تأكد من البريد الإلكتروني وجرب مرة ثانية.") : T("Something went wrong. Try again.","صار خطأ. جرب مرة ثانية.");
     function draw(){
       const em = (g.querySelector("#gEmail") || {}).value || "", pw = (g.querySelector("#gPass") || {}).value || "";
       g.dir = AR ? "rtl" : "ltr"; g.lang = AR ? "ar" : "en";
@@ -249,10 +249,19 @@
         go.disabled = true; s.textContent = signup ? T("Creating your account…","جاري إنشاء حسابك…") : T("Signing in…","جاري تسجيل الدخول…");
         const {data, error} = signup ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
         go.disabled = false;
-        if(error){ s.textContent = /confirm/i.test(error.message) ? T("Please tap the confirm link in your email first, then sign in.","اضغط رابط التأكيد في بريدك أولًا، بعدها سجل دخولك.") : AR ? errAr(error.message) : error.message; s.className = "st err"; msg = s.textContent; bad = true; return; }
+        if(error){ s.textContent = /confirm/i.test(error.message) ? T("Please tap the confirm link in your email first, then sign in.","اضغط رابط التأكيد في بريدك أولًا، بعدها سجل دخولك.") : errTx(error.message); s.className = "st err"; msg = s.textContent; bad = true; return; }
         if(signup && !data.session){ signup = false; msg = T("Check your email and tap the confirm link, then sign in here.","شيك على بريدك واضغط رابط التأكيد، بعدها سجل دخولك هنا."); bad = false; draw(); }
       };
     }
+    /* v205: keep the button above the iPhone keyboard (same visualViewport pattern as the app's sheets) */
+    const vv = window.visualViewport;
+    const fit = () => {
+      if(!vv) return; const kb = innerHeight - vv.height - vv.offsetTop > 100 || vv.height < innerHeight - 100;
+      g.style.height = vv.height + "px"; g.style.top = vv.offsetTop + "px"; g.style.bottom = "auto"; g.classList.toggle("kb", kb);
+      const f = document.activeElement; if(kb && f && g.contains(f)) setTimeout(() => { const b = g.querySelector(".go"); if(b) b.scrollIntoView({block:"end"}); }, 50);
+    };
+    if(vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); }
+    g.addEventListener("focusin", () => setTimeout(fit, 300));
     document.body.appendChild(g); draw();
   }
   function start(u){
