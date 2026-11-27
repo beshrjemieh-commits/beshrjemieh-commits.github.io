@@ -138,18 +138,18 @@ const arCount = (n: number) => n === 1 ? "رسالة" : n === 2 ? "رسالتي�
 export function words(p: Pick, lang: string): { title: string; body: string } {
   const v = p.vars, ar = lang === "ar";
   if (p.kind === "hunt") return ar
-    ? { title: `لقينا فرصة: ${cut(String(v.name), 18)}`, body: `أقل من السوق بـ ${v.pct}%.` }
-    : { title: `Deal found: ${cut(String(v.name), 18)}`, body: `${v.pct}% below market.` };
+    ? { title: `${cut(String(v.name), 14)} أقل من السوق بـ ${v.pct}%`, body: "يطابق اللي تدوّر عليه." }
+    : { title: `${cut(String(v.name), 14)}: ${v.pct}% below market`, body: "Matches your hunt." };
   if (p.kind === "price") return ar
-    ? { title: `${cut(String(v.item), 20)} صار أرخص`, body: `${v.to} ريال في ${v.store}، كان ${v.from}.` }
-    : { title: `${cut(String(v.item), 20)} is cheaper`, body: `SAR ${v.to} at ${v.store}, was ${v.from}.` };
+    ? { title: `${cut(String(v.item), 14)}: ${v.to} ريال في ${cut(String(v.store), 8)}`, body: `كان ${v.from} ريال.` }
+    : { title: `${cut(String(v.item), 14)}: SAR ${v.to} at ${cut(String(v.store), 8)}`, body: `Was SAR ${v.from}.` };
   if (p.kind === "quiet") return ar
-    ? { title: "أسبوع هادي؟", body: `ما سجلت شي من ${+v.days <= 10 ? v.days + " أيام" : v.days + " يوم"}.` }
-    : { title: "A quiet week?", body: `Nothing logged for ${v.days} days.` };
+    ? { title: `ما سجلت شي من ${+v.days <= 10 ? v.days + " أيام" : v.days + " يوم"}`, body: "أسبوع هادي ولا كنت مشغول؟" }
+    : { title: `Nothing logged for ${v.days} days`, body: "A quiet week, or just busy?" };
   const n = +v.n;
   return ar
-    ? { title: n === 1 ? "رسالة من البنك" : n === 2 ? "رسالتين من البنك" : `${arCount(n)} من البنك`, body: "ضغطة وتترتب." }
-    : { title: n === 1 ? "1 bank message" : `${n} bank messages`, body: "One tap to sort " + (n === 1 ? "it." : "them.") };
+    ? { title: n === 1 ? "رسالة من البنك تحتاج تأكيدك" : n === 2 ? "رسالتين من البنك تحتاج تأكيدك" : `${arCount(n)} من البنك تحتاج تأكيدك`, body: "ما قدرنا نصنفها لحالنا." }
+    : { title: n === 1 ? "1 bank message to confirm" : `${n} bank messages to confirm`, body: n === 1 ? "We couldn't sort it alone." : "We couldn't sort them alone." };
 }
 
 // ================= web push (RFC 8030 + 8291 aes128gcm + RFC 8292 VAPID), WebCrypto only =================

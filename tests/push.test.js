@@ -54,14 +54,15 @@ t("priority hunt>price>bank>quiet",()=>{const all={terms:["playstation"],deals:[
  assert.equal(P.decide(base({...all,now:at("2026-12-02",23)})).why,"quiet-hours");
  assert.equal(P.decide(base({...all,log:[{kind:"hunt",ref:"z",sent:NOW-36e5,clicked:false}]})).why,"daily-cap")});
 // --- words
-t("words: short texts EN + AR, Western digits",()=>{const p=P.pickHunt(base({terms:["playstation"],deals:[deal("a")]}));const e=P.words(p,"en"),a=P.words(p,"ar");
- assert.deepEqual(e,{title:"Deal found: Sony PlayStation…",body:"20% below market."});assert.equal(a.body,"أقل من السوق بـ 20%.");assert.match(a.title,/^لقينا فرصة: /);assert.ok(!/[٠-٩]/.test(a.body));
+t("words: final texts EN + AR, Western digits, short titles",()=>{const p=P.pickHunt(base({terms:["playstation"],deals:[deal("a")]}));const e=P.words(p,"en"),a=P.words(p,"ar");
+ assert.deepEqual(e,{title:"Sony…: 20% below market",body:"Matches your hunt."});assert.equal(a.title,"Sony… أقل من السوق بـ 20%");assert.equal(a.body,"يطابق اللي تدوّر عليه.");assert.ok(!/[٠-٩]/.test(a.title+a.body));
  assert.ok(P.words({kind:"hunt",vars:{name:"Apple iPhone 15 Pro Max 256GB blue",pct:20}},"en").title.length<=32);
- const pp=P.words({kind:"price",vars:{item:"Almarai milk 2L",store:"Panda",from:"11.00",to:"9.50"}},"en");assert.deepEqual(pp,{title:"Almarai milk 2L is cheaper",body:"SAR 9.50 at Panda, was 11.00."});
- assert.equal(P.words({kind:"price",vars:{item:"حليب",store:"بنده",from:"11.00",to:"9.50"}},"ar").body,"9.50 ريال في بنده، كان 11.00.");
- assert.equal(P.words({kind:"quiet",vars:{days:7}},"en").body,"Nothing logged for 7 days.");assert.equal(P.words({kind:"quiet",vars:{days:9}},"ar").body,"ما سجلت شي من 9 أيام.");assert.equal(P.words({kind:"quiet",vars:{days:12}},"ar").body,"ما سجلت شي من 12 يوم.");
- assert.deepEqual([1,2,5].map(n=>P.words({kind:"bank",vars:{n}},"ar").title),["رسالة من البنك","رسالتين من البنك","5 رسائل من البنك"]);
- assert.deepEqual([1,2].map(n=>P.words({kind:"bank",vars:{n}},"en").title),["1 bank message","2 bank messages"]);assert.equal(P.words({kind:"bank",vars:{n:2}},"en").body,"One tap to sort them.")});
+ const pi=P.pickPrice(base({prices:[pr("Milk","Danube",13,NOW-9*864e5,"2026-11-23"),pr("Milk","Panda",11,NOW-5*864e5,"2026-11-27"),pr("Milk","Panda",9.5,NOW-2*36e5)]}));assert.equal(pi.vars.from,"11.00","was = previous price at the SAME store, not another store");assert.equal(pi.vars.to,"9.50");
+ assert.deepEqual(P.words(pi,"en"),{title:"Milk 2L: SAR 9.50 at Panda",body:"Was SAR 11.00."});assert.deepEqual(P.words(pi,"ar"),{title:"Milk 2L: 9.50 ريال في Panda",body:"كان 11.00 ريال."});
+ assert.ok(P.words({kind:"price",vars:{item:"Almarai full fat milk 2L",store:"Hyper Panda Jeddah",from:"11.00",to:"9.50"}},"en").title.length<=36);
+ assert.deepEqual(P.words({kind:"quiet",vars:{days:7}},"en"),{title:"Nothing logged for 7 days",body:"A quiet week, or just busy?"});assert.equal(P.words({kind:"quiet",vars:{days:9}},"ar").title,"ما سجلت شي من 9 أيام");assert.equal(P.words({kind:"quiet",vars:{days:12}},"ar").title,"ما سجلت شي من 12 يوم");assert.equal(P.words({kind:"quiet",vars:{days:9}},"ar").body,"أسبوع هادي ولا كنت مشغول؟");
+ assert.deepEqual([1,2,5].map(n=>P.words({kind:"bank",vars:{n}},"ar").title),["رسالة من البنك تحتاج تأكيدك","رسالتين من البنك تحتاج تأكيدك","5 رسائل من البنك تحتاج تأكيدك"]);assert.equal(P.words({kind:"bank",vars:{n:2}},"ar").body,"ما قدرنا نصنفها لحالنا.");
+ assert.deepEqual([1,2].map(n=>P.words({kind:"bank",vars:{n}},"en")),[{title:"1 bank message to confirm",body:"We couldn't sort it alone."},{title:"2 bank messages to confirm",body:"We couldn't sort them alone."}])});
 t("secret compare",async()=>{});
 // --- web push crypto: encrypt like a phone would, then decrypt it back (RFC 8291)
 const ua=await crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveBits"]);const uaPub=new Uint8Array(await crypto.subtle.exportKey("raw",ua.publicKey));const authS=crypto.getRandomValues(new Uint8Array(16));
