@@ -272,7 +272,10 @@
     user = u; window.__stage="signed in"; const g = document.getElementById("authGate"); if(g) g.remove(); readyResolve();
   }
   window.walletEmail = () => (user && user.email) || "";
-  window.walletSignOut = async () => { await sb.auth.signOut(); location.reload(); };
+  window.walletSignOut = async () => {
+    // stop pushes for this account on this phone (Security JC-015)
+    try { await Promise.race([(async () => { const r = await navigator.serviceWorker.ready, x = await r.pushManager.getSubscription(); if (x) { const ep = x.endpoint; await x.unsubscribe(); await sb.rpc("push_off", { p_endpoint: ep }); } })(), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+    await sb.auth.signOut(); location.reload(); };
   /* Delete account: photos, all saved data, then the login itself (SQL function delete_my_account() in Supabase). */
   window.walletDeleteAccount = async () => {
     if(!user) throw new Error("not signed in");

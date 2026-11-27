@@ -188,9 +188,15 @@ export async function encrypt(payload: string, p256dh: string, authSecret: strin
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]), data));
   return cat(salt, new Uint8Array([0, 0, 0x10, 0]), new Uint8Array([asPub.length]), asPub, ct); // record size 4096
 }
+// Only real push services (Security, Hares 2026-11-27): https, no port, known host. Anything else is never contacted.
+export const PUSH_HOST = /^(web\.push\.apple\.com|fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9-]+\.notify\.windows\.com)$/;
+export function endpointOk(endpoint: string): boolean {
+  try { const u = new URL(endpoint); return u.protocol === "https:" && !u.port && !u.username && !u.password && PUSH_HOST.test(u.hostname); } catch (_) { return false; }
+}
 async function sendPush(sub: { endpoint: string; p256dh: string; auth: string }, payload: object, cfg: { vapid_public: string; vapid_private: string }, subject: string) {
+  if (!endpointOk(sub.endpoint)) return 0;
   const body = await encrypt(JSON.stringify(payload), sub.p256dh, sub.auth);
-  const r = await fetch(sub.endpoint, { method: "POST", headers: { Authorization: await vapidHeader(sub.endpoint, cfg.vapid_public, cfg.vapid_private, subject), "Content-Encoding": "aes128gcm", "Content-Type": "application/octet-stream", TTL: "86400", Urgency: "normal" }, body });
+  const r = await fetch(sub.endpoint, { method: "POST", headers: { Authorization: await vapidHeader(sub.endpoint, cfg.vapid_public, cfg.vapid_private, subject), "Content-Encoding": "aes128gcm", "Content-Type": "application/octet-stream", TTL: "86400", Urgency: "normal" }, body, redirect: "manual", signal: AbortSignal.timeout(10000) });
   await r.text().catch(() => "");
   return r.status;
 }
