@@ -598,3 +598,4 @@ html.l2 .hnewb{white-space:nowrap;margin-inline-start:6px;vertical-align:1px;bac
 .hpill{border:0;border-radius:14px;background:#2563EB;color:#fff;font:600 13px/1.25 Riyal,"IBM Plex Sans","IBM Plex Sans Arabic",sans-serif;padding:10px 12px;min-height:44px;width:172px;box-sizing:border-box;text-align:center;cursor:pointer}
 .hpill.w{background:transparent;color:#93C5FD;box-shadow:inset 0 0 0 1.5px #93C5FD}
 .vz2:has(.hpill){align-items:center;justify-content:center}
+.vwy{cursor:pointer}.vwhy{display:block;font-size:12px;line-height:16px;color:#475569;margin-top:4px}.vwhy a{color:#2563EB;font-weight:600;text-decoration:none}
