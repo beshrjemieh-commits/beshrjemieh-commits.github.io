@@ -246,7 +246,16 @@ const dCond=d=>{const t=d.title+" "+(d.raw&&d.raw.desc||"");if(BAD.test(t))retur
  if(/like new|كالجديد|شبه جديد|نظيف جدا/i.test(t))return [tx("Like new","كالجديد"),0];if(/\bnew\b|جديد|مختوم|sealed/i.test(t))return [tx("New","جديد"),0];return [tx("Used","مستعمل"),0]};
 // verdict + confidence, like the old app (comps = similar ads checked)
 // v203: a NEW-item deal is not "high" just because a market price exists: stored confidence only, else no label
-const dConf=d=>{const r=d.raw||{},c=+r.comps||0;return String(r.confidence||"")||(dKind(d)=="new"?"":(c>=8?"high":c?"low":""))};
+// High confidence rules v1.2 (Data, Beshr OK 2026-11-27): "high" only when the hunter stored it AND re-checked the ad in the last 24 h AND it is not reserved/ended.
+// No comps>=8 fallback any more. "low" only when stored as low; medium or missing = no label.
+const dT=v=>typeof v=="number"?v:Date.parse(v||"")||0,dChk=r=>dT(r.checkedAt)||dT((r.proof||{}).checkedAt);
+const dConf=d=>{const r=d.raw||{},c=String(r.confidence||"");return c=="high"?(Date.now()-dChk(r)<=864e5&&!r.reserved&&!r.ended?"high":""):c=="low"?"low":""};
+// the "why" behind High confidence, from raw.proof (tap the badge)
+const dWhy=d=>{const r=d.raw||{},P=r.proof||{},t=dChk(r),mn=Math.max(0,Math.round((Date.now()-t)/6e4)),ago=mn<60?tx(`${mn} min ago`,`قبل ${mn} دقيقة`):tx(`${Math.round(mn/60)} h ago`,`قبل ${Math.round(mn/60)} ساعة`),u=+P.usual||0;
+ let L="",url="";if(P.usualFrom=="history"&&u)L=tx(`Usual ${M(u)} for ${+P.historyDays||0} days`,`السعر المعتاد ${M(u)} لمدة ${+P.historyDays||0} يوم`);
+ else if(P.usualFrom=="sellers"&&u){const sl=(P.sellers||[]).find(x=>+x.price==u)||(P.sellers||[])[0]||{};url=/^https:\/\//.test(sl.url||"")?sl.url:"";L=tx(`Lowest other seller: <bdi>${esc(sl.store||"")}</bdi> ${M(u)}`,`أقل سعر عند غيرهم: <bdi>${esc(sl.store||"")}</bdi> ${M(u)}`)}
+ else if(P.usualFrom=="market"&&+P.medianAd)L=tx(`${+P.similarAds||0} similar ads, middle price ${M(+P.medianAd)}`,`${+P.similarAds||0} إعلان مشابه، السعر المتوسط ${M(+P.medianAd)}`);
+ if(!L)return "";return L+(t?` · ${tx("checked","آخر تحقق")} ${ago}`:"")+(url?` <a href="${esc(url)}" target="_blank" rel="noopener">${tx("Open","افتح")} ›</a>`:"")};
 const dVerdict=d=>{const conf=dConf(d);
  if(!d.market||!d.price)return null;const bad=dCond(d)[1];
  const v=bad||d.pct<5?[tx("Not a good deal","مو صفقة"),"#DC2626"]:d.pct>=20?[tx("Good deal","صفقة حلوة"),"#16A34A"]:[tx("Fair price","سعر معقول"),"#B45309"];
@@ -262,7 +271,9 @@ const dHot=d=>{const t=d.title+" "+((d.raw||{}).desc||"");const h=HOT.find(([re]
 const dTop=d=>{if(!d.price||!d.market||d.offer||dCond(d)[1]||d.pct<20||d.pct>75)return -1;const v=dVerdict(d),hi=v&&v.conf==tx("High confidence","ثقة عالية"),c=+(d.raw||{}).comps||0;
  if(dKind(d)=="used"&&!hi&&c<3)return -1;return d.pct*2+(hi?40:0)+(dHot(d)?40:0)+Math.min(30,(d.market-d.price)/50)};
 const topPick=list=>{let best=null,bs=-1;list.forEach(d=>{if(d.status=="hidden")return;const v=dTop(d);if(v>bs){bs=v;best=d}});return best};
-const vChip=d=>{const v=dVerdict(d);return v?`<span class="vchip" style="--v:${v.c}">${v.t}${v.conf?`<small> · ${v.conf}</small>`:""}</span>`:""};
+const vChip=d=>{const v=dVerdict(d),w=v&&dConf(d)=="high"?dWhy(d):"";return v?`<span class="vchip${w?" vwy":""}" style="--v:${v.c}"${w?` role="button" data-why="${esc(w)}"`:""}>${v.t}${v.conf?`<small> · ${v.conf}${w?" ⓘ":""}</small>`:""}</span>`:""};
+// tap a High confidence badge: show/hide its why line right under it (does not open the deal)
+document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest(".vwy[data-why]");if(!b||ev.target.closest("a"))return;ev.stopPropagation();ev.preventDefault();const n=b.nextElementSibling;if(n&&n.classList.contains("vwhy")){n.remove();return}b.insertAdjacentHTML("afterend",`<span class="vwhy">${b.dataset.why}</span>`)},true);
 const FKN=()=>({used:tx("Used · market","مستعمل · السوق"),new:tx("New · authorized sellers","جديد · وكلاء معتمدين")});
 // Beshr 2026-11-25: fewer Forsa deals, only sure ones: high confidence, 15%+ below market, no damage; at most 12 (top 5 by score if none pass)
 const dSure=d=>{const r=d.raw||{};return d.market>0&&d.price>0&&d.pct>=15&&dConf(d)=="high"&&!dCond(d)[1]&&!(r.ended)&&!(r.reserved)};
