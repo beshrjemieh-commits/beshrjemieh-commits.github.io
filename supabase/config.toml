@@ -3,3 +3,7 @@ project_id = "rvqjjbgeossfygaglohe"
 [functions.ai]
 # The function checks the sign-in itself (works with Supabase's new signing keys).
 verify_jwt = false
+
+[functions.push]
+# Called hourly by pg_cron with a secret header (x-cron); the function checks it itself.
+verify_jwt = false
