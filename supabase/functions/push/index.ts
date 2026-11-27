@@ -59,7 +59,8 @@ export function matchesHunt(deal: Doc, terms: string[]): boolean {
   });
 }
 const dealPct = (d: Doc) => +(d.price as number) > 0 && +(d.market as number) > 0 ? Math.max(0, Math.round((1 - +(d.price as number) / +(d.market as number)) * 100)) : Math.round(+(d.pct as number) || 0);
-const cut = (s: string, n: number) => { s = norm(s); if (s.length <= n) return s; const c = s.slice(0, n); return c.slice(0, Math.max(n - 12, c.lastIndexOf(" "))).trim() + "…"; };
+const western = (s: string) => s.replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x660)).replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x6F0));
+const cut = (s: string, n: number) => { s = western(norm(s)); if (s.length <= n) return s; const c = s.slice(0, n); return c.slice(0, Math.max(n - 12, c.lastIndexOf(" "))).trim().replace(/[.,;:!\-\s]+$/, "") + "…"; };
 const money = (n: number) => n.toFixed(2);
 
 // ---- the four ideas: each returns a Pick or null ----

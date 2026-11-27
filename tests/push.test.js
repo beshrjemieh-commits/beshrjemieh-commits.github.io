@@ -78,4 +78,6 @@ const v=await P.makeVapid();assert.equal(P.unb64u(v.vapid_public).length,65);con
 t("push service allowlist",()=>{const ok=["https://web.push.apple.com/Qabc","https://fcm.googleapis.com/fcm/send/x","https://updates.push.services.mozilla.com/wpush/v2/x","https://par02p.notify.windows.com/w/?token=x"];ok.forEach(u=>assert.ok(P.endpointOk(u),u));
  ["http://web.push.apple.com/x","https://evil.com/x","https://web.push.apple.com.evil.com/x","https://fcm.googleapis.com:8443/x","https://user@fcm.googleapis.com/x","https://127.0.0.1/x","https://notify.windows.com.evil.io/x","https://x.evil.com/.notify.windows.com","not a url",""].forEach(u=>assert.ok(!P.endpointOk(u),u))});
 assert.ok(await P.same("abc","abc"));assert.ok(!(await P.same("abc","abd")));assert.ok(!(await P.same("abc","")));n++;
+t("cut name: no double punctuation, Western digits",()=>{const w=P.words({kind:"price",vars:{item:"Almarai milk",store:"Othaim Markets, Jeddah Branch",from:"1000000.00",to:"999999.50"}},"en");assert.ok(!/…\.|\.\./.test(w.title+w.body),w.title);assert.equal(w.body,"Was SAR 1000000.00.");
+ assert.match(P.words({kind:"hunt",vars:{name:"آيفون ١٥ برو",pct:20}},"ar").title,/15/);assert.ok(!/[٠-٩]/.test(P.words({kind:"hunt",vars:{name:"آيفون ١٥ برو",pct:20}},"ar").title))});
 console.log("push tests: "+n+" groups passed")})().catch(e=>{console.error(e);process.exit(1)});
