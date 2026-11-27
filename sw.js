@@ -1,6 +1,6 @@
 // Keeps the app shell on the phone so it opens instantly, even on weak 4G; data always comes live from Supabase.
 // 2026-11-22: blank white screen on slow 4G (Beshr). Before, every file waited for the network with no time limit.
-const CACHE = "wallet-v206";
+const CACHE = "wallet-v207";
 const SHELL = ["./", "index.html", "new/app.js", "new/onboard.js", "new/track.js", "new/style.css", "old.html", "shim.js", "i18n.js", "home.js", "extras.js", "motion.js", "icons.js", "riyal.js", "manifest.webmanifest", "vendor/supabase-2.118.0.js", "icon-180.png", "icon-192.png", "icon-512.png"];
 const CDN = /^https:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 const WAIT = 1500; // ms to wait for the network before showing the saved copy
@@ -28,4 +28,27 @@ self.addEventListener("fetch", e => {
     e.waitUntil(net.catch(() => {}));
     return Promise.race([net.catch(() => saved), new Promise(res => setTimeout(() => res(saved), WAIT))]);
   })());
+});
+
+// Push (JC-015): the server sends {title, body, kind, url, id}; a tap opens the app on that screen (same site only)
+self.addEventListener("push", e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch (_) { return; }
+  if (!d.title) return;
+  const rtl = /[\u0600-\u06FF]/.test(d.title);
+  e.waitUntil(self.registration.showNotification(String(d.title).slice(0, 80), {
+    body: String(d.body || "").slice(0, 240), icon: "icon-192.png", badge: "icon-192.png", tag: String(d.kind || "wallet"),
+    dir: rtl ? "rtl" : "ltr", lang: rtl ? "ar" : "en", data: { url: String(d.url || ""), id: String(d.id || "") }
+  }));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const d = e.notification.data || {};
+  let u; try { u = new URL(d.url || "", self.registration.scope); } catch (_) { u = new URL(self.registration.scope); }
+  if (u.origin !== location.origin) u = new URL(self.registration.scope);
+  if (d.id) u.searchParams.set("p", d.id);
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(cs => {
+    const c = cs.find(x => x.url.startsWith(self.registration.scope));
+    if (c) return c.focus().then(() => c.postMessage({ push: 1, url: u.href }));
+    return self.clients.openWindow(u.href);
+  }));
 });
