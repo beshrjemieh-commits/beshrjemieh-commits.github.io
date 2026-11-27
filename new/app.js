@@ -35,11 +35,11 @@ const K={
 
 // ---------- same categories as the full app ----------
 const ITEMS=[["Must pay","rent","Rent"],["Must pay","iqama","Iqama"],["Must pay","car","Car payment"],["Must pay","util","Bills"],["Must pay","phone","Phone"],["Must pay","family","Family"],
- ["Living","food","Eating out"],["Living","coffee","Coffee"],["Living","grocery","Grocery"],["Living","market","Supermarket"],["Living","fuel","Fuel"],["Living","carcare","Car care"],
+ ["Living","food","Eating out"],["Living","coffee","Coffee"],["Living","grocery","Grocery"],["Living","market","Supermarket"],["Living","fuel","Fuel"],["Living","rides","Rides"],["Living","carcare","Car care"],
  ["Personal","smoke","Smoking"],["Personal","fun","Fun"],["Personal","shop","Shopping"],["Personal","flex","Other"],
  ["Saving","ef","Emergency fund"],["Saving","debt","Debt"],["Saving","goals","Goals"]].map(([g,k,s])=>({g,k,s}));
-const AR_N={bills:"فواتير",rent:"الإيجار",iqama:"الإقامة",car:"قسط السيارة",util:"الفواتير",phone:"الجوال",family:"العائلة",food:"مطاعم",coffee:"قهوة",grocery:"بقالة",market:"سوبرماركت",fuel:"بنزين",carcare:"صيانة السيارة",smoke:"تدخين",fun:"ترفيه",shop:"تسوق",flex:"أخرى",ef:"صندوق الطوارئ",debt:"الديون",goals:"الأهداف"};
-const LOG_CATS=["coffee","food","grocery","market","smoke","fun","fuel","carcare","shop","flex","util","phone","family","car","rent","iqama","debt"];
+const AR_N={bills:"فواتير",rent:"الإيجار",iqama:"الإقامة",car:"قسط السيارة",util:"الفواتير",phone:"الجوال",family:"العائلة",food:"مطاعم",coffee:"قهوة",grocery:"بقالة",market:"سوبرماركت",fuel:"بنزين",rides:"مشاوير",carcare:"صيانة السيارة",smoke:"تدخين",fun:"ترفيه",shop:"تسوق",flex:"أخرى",ef:"صندوق الطوارئ",debt:"الديون",goals:"الأهداف"};
+const LOG_CATS=["coffee","food","grocery","market","smoke","fun","fuel","rides","carcare","shop","flex","util","phone","family","car","rent","iqama","debt"];
 let BY={},D={};const nm=k=>(BY[k]&&BY[k].custom)?BY[k].s:(AR?(AR_N[k]||(BY[k]||{}).s||k):((BY[k]||{}).s||(k.charAt(0).toUpperCase()+k.slice(1))));
 // clean long names (ads, receipts) into short product names
 const clean=t=>{t=norm(String(t||"").replace(/[^\p{L}\p{N}\s.+\-]/gu," "));const L=t.toLowerCase();
@@ -78,7 +78,7 @@ async function put(coll,id,data){const {error}=await sb.from("app_docs").upsert(
 async function del(coll,id){const {error}=await sb.from("app_docs").delete().eq("coll",coll).eq("id",id);if(error)throw error}
 // ---------- bank SMS reader (same rules as the full app) ----------
 const AR_D=t=>String(t||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/٫/g,".").replace(/٬/g,",");
-const SMS_CAT=[["carcare",/(car wash|مغسلة|tire|tyre|كفرات|زيوت|oil change|ورشة|صيانة|قطع غيار|najm|نجم)/i],["fuel",/(aldrees|petromin|sasco|naft|نفط|الدريس|بترومين|ساسكو|محطة|fuel|petrol|بنزين)/i],["grocery",/(بقالة|baqala|bakala|grocery|تموينات|mini ?market|ميني ماركت)/i],["market",/(panda|بنده|tamimi|التميمي|danube|الدانوب|othaim|العثيم|lulu|لولو|carrefour|كارفور|farm|المزرعة|manuel|nesto|hyper|هايبر|supermarket|سوبرماركت|nana)/i],["shop",/(amazon|امازون|noon|نون|namshi|shein|centrepoint|zara|h&m|ikea|ايكيا|jarir|جرير|extra|اكسترا|mall|مول|apple store|nike|adidas|max fashion|redtag)/i],["smoke",/(tobacco|smoke|iqos|vape|دخان|تبغ|معسل|شيشة|سجائر|ايكوس)/i],["coffee",/(starbucks|coffee|caf[eé]|كافيه|قهوة|كوفي|dunkin|tim hortons|half million|هاف مليون|barns|بارنز|dose|brew|roaster|costa)/i],["food",/(jahez|hunger|talabat|mrsool|keeta|toyou|restaurant|مطعم|جاهز|هنقر|مرسول|burger|برجر|pizza|kfc|mcdonald|albaik|البيك|herfy|هرفي|shawarma|شاورما|bakery|مخبز|baskin)/i],["fun",/(cinema|vox|muvi|amc|playstation|psn|steam|xbox|game|سينما|ترفيه|boulevard|webook|bowling)/i],["phone",/(mobily|موبايلي|stc|zain|زين|salam|virgin mobile)/i],["util",/(saudi electricity|الكهرباء|nwc|المياه|internet|انترنت)/i]];
+const SMS_CAT=[["carcare",/(car wash|مغسلة|tire|tyre|كفرات|زيوت|oil change|ورشة|صيانة|قطع غيار|najm|نجم)/i],["fuel",/(aldrees|petromin|sasco|naft|نفط|الدريس|بترومين|ساسكو|محطة|fuel|petrol|بنزين)/i],["grocery",/(بقالة|baqala|bakala|grocery|تموينات|mini ?market|ميني ماركت)/i],["market",/(panda|بنده|tamimi|التميمي|danube|الدانوب|othaim|العثيم|lulu|لولو|carrefour|كارفور|farm|المزرعة|manuel|nesto|hyper|هايبر|supermarket|سوبرماركت|nana)/i],["rides",/(\bjeeny\b|جيني|\buber\b(?!\s*eats)|أوبر|اوبر|\bcareem\b(?!\s*(food|now|quik|pay))|كريم رايد|كريم للتوصيل|\bbolt\b|بولت|\bkaiian\b|كايان|\btaxi\b|تاكسي)/i],["shop",/(amazon|امازون|noon|نون|namshi|shein|centrepoint|zara|h&m|ikea|ايكيا|jarir|جرير|extra|اكسترا|mall|مول|apple store|nike|adidas|max fashion|redtag)/i],["smoke",/(tobacco|smoke|iqos|vape|دخان|تبغ|معسل|شيشة|سجائر|ايكوس)/i],["coffee",/(starbucks|coffee|caf[eé]|كافيه|قهوة|كوفي|dunkin|tim hortons|half million|هاف مليون|barns|بارنز|dose|brew|roaster|costa)/i],["food",/(jahez|hunger|talabat|mrsool|keeta|toyou|restaurant|مطعم|جاهز|هنقر|مرسول|burger|برجر|pizza|kfc|mcdonald|albaik|البيك|herfy|هرفي|shawarma|شاورما|bakery|مخبز|baskin)/i],["fun",/(cinema|vox|muvi|amc|playstation|psn|steam|xbox|game|سينما|ترفيه|boulevard|webook|bowling)/i],["phone",/(mobily|موبايلي|stc|zain|زين|salam|virgin mobile)/i],["util",/(saudi electricity|الكهرباء|nwc|المياه|internet|انترنت)/i]];
 // 2026-11-26 (Beshr): a bank ad ("a million is calling… win SAR 10,000") was logged as money in. Prize/offer ads are never logged,
 // unless the text is clearly a purchase (purchase word + masked card digits). Same regex as the server's log_sms v3.
 // log-sms v3.8 (server, FROZEN 2026-11-26, Security PASS; wallet/bank-setup/log-sms-v3.sql), mirrored line for line for the offline paste path and the AI pass.
@@ -128,8 +128,8 @@ function model(R){
  const monthEx=ex.filter(x=>x.date.startsWith(mon)),spent={};monthEx.forEach(x=>spent[x.cat]=(spent[x.cat]||0)+x.amount);
  const todayEx=ex.filter(x=>x.date==today),todaySum=todayEx.reduce((a,x)=>a+x.amount,0);
  const days7=[...Array(7)].map((_,i)=>{const d=new Date(now);d.setDate(d.getDate()-6+i);const k=ymd(d);return ex.filter(x=>x.date==k).reduce((a,x)=>a+x.amount,0)});
- const last30=[...Array(30)].map((_,i)=>{const d=new Date(now);d.setDate(d.getDate()-30+i);return ymd(d)}),usual=ex.filter(x=>x.date>=last30[0]&&x.date<today&&LOG_CATS.slice(0,10).includes(x.cat)).reduce((a,x)=>a+x.amount,0)/30;
- const todayDaily=todayEx.filter(x=>LOG_CATS.slice(0,10).includes(x.cat)).reduce((a,x)=>a+x.amount,0);
+ const last30=[...Array(30)].map((_,i)=>{const d=new Date(now);d.setDate(d.getDate()-30+i);return ymd(d)}),usual=ex.filter(x=>x.date>=last30[0]&&x.date<today&&LOG_CATS.slice(0,11).includes(x.cat)).reduce((a,x)=>a+x.amount,0)/30;
+ const todayDaily=todayEx.filter(x=>LOG_CATS.slice(0,11).includes(x.cat)).reduce((a,x)=>a+x.amount,0);
  const planOf=k=>+((plan[k]||{}).plan)||0,vis=items.filter(i=>!hidden.has(i.k));
  // prices
  const prices=by.prices.map(p=>({item:norm(p.item),size:norm(p.size),store:norm(p.store).replace(/\s*\((shared|online)\)/i,m=>m),price:+p.price||0,date:String(p.date||""),createdAt:+p.createdAt||0})).filter(p=>p.item&&p.price>0);
@@ -315,14 +315,14 @@ function catsOf(m){if(m._cats)return m._cats;const cb=new Map();(m.community||[]
    .concat(mine.filter(x=>AO.has(x.k))).sort((a,b)=>a.item.localeCompare(b.item));
  return m._cats=PG.map(([k])=>({k,mine:mine.filter(x=>x.grp==k),oth:oth.filter(x=>x.grp==k)})).filter(c=>nU(c))}
 // Beshr 2026-11-25: everyday spending at a glance: today vs yesterday vs usual, then this week vs last week day by day
-function cmpSec(m){const EV=LOG_CATS.slice(0,10),day=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)},sumD=k=>m.ex.filter(x=>x.date==k&&EV.includes(x.cat)).reduce((a,x)=>a+x.amount,0);
+function cmpSec(m){const EV=LOG_CATS.slice(0,11),day=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)},sumD=k=>m.ex.filter(x=>x.date==k&&EV.includes(x.cat)).reduce((a,x)=>a+x.amount,0);
  const t=sumD(day(0)),y=sumD(day(1)),wk=[...Array(7)].map((_,i)=>sumD(day(6-i))),lw=[...Array(7)].map((_,i)=>sumD(day(13-i))),avg=wk.slice(0,6).reduce((a,b)=>a+b,0)/6,W1=wk.reduce((a,b)=>a+b,0),W0=lw.reduce((a,b)=>a+b,0);
  if(!W1&&!W0)return "";const mx=Math.max(1,t,y,avg),bar=(l,v,c)=>`<div class="cmr"><span>${l}</span><span class="bar"><i style="width:${v/mx*100}%;background:${c}"></i></span><b>${M(v)}</b></div>`;
  const MX=Math.max(1,...wk,...lw),dn=n=>new Date(Date.now()-n*864e5).toLocaleDateString(AR?"ar-SA-u-nu-latn":"en-GB",{weekday:"narrow"}),ch=W0?Math.round((W1-W0)/W0*100):null;
  return `<div class="sec cmp"><h4>${tx("Everyday spending","المصروف اليومي")}</h4>${bar(tx("Today","اليوم"),t,NAVY)}${bar(tx("Yesterday","أمس"),y,"#5B82B0")}${bar(tx("Usual day","يومك المعتاد"),avg,"#CBD5E1")}</div>`}
 // ---------- tab top tip + stage chart (Beshr 2026-11-25: mix of video 3 + 3b; plan: analysis/small-data-charts.md) ----------
 function mixSec(m,tab,dPlan){
- const LC=LOG_CATS.slice(0,10),ex=m.ex.filter(x=>LC.includes(x.cat)),byDay={};ex.forEach(x=>byDay[x.date]=(byDay[x.date]||0)+x.amount);
+ const LC=LOG_CATS.slice(0,11),ex=m.ex.filter(x=>LC.includes(x.cat)),byDay={};ex.forEach(x=>byDay[x.date]=(byDay[x.date]||0)+x.amount);
  const first=m.ex.length?m.ex[m.ex.length-1].date:null,age=first?Math.round((new Date(m.today)-new Date(first))/864e5)+1:0;
  const st=!m.ex.length?0:age<3?1:age<14?2:age<30?3:4,dayK=n=>{const d=new Date(m.today);d.setDate(d.getDate()-n);return ymd(d)};
  const perDay=Math.round((dPlan||0)/Math.max(1,m.cycle)),spD=[...Array(30)].map((_,i)=>byDay[dayK(29-i)]||0),on=spD.filter(v=>v>0).sort((a,b)=>a-b),usual=on.length?on[on.length>>1]:0;
