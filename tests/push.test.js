@@ -54,8 +54,15 @@ t("priority hunt>price>bank>quiet",()=>{const all={terms:["playstation"],deals:[
  assert.equal(P.decide(base({...all,now:at("2026-12-02",23)})).why,"quiet-hours");
  assert.equal(P.decide(base({...all,log:[{kind:"hunt",ref:"z",sent:NOW-36e5,clicked:false}]})).why,"daily-cap")});
 // --- words
-t("words EN + AR, Western digits",()=>{const p=P.pickHunt(base({terms:["playstation"],deals:[deal("a")]}));const e=P.words(p,"en"),a=P.words(p,"ar");assert.match(e.body,/20% below market, listed 10 min ago/);assert.match(a.body,/بـ 20%/);assert.ok(!/[٠-٩]/.test(a.body));
- const q=P.words({kind:"quiet",vars:{days:9}},"ar");assert.match(q.body,/9 أيام/);assert.match(P.words({kind:"quiet",vars:{days:12}},"ar").body,/12 يوم\./);const b=P.words({kind:"bank",vars:{n:2,pay:1,inn:1}},"ar");assert.equal(b.title,"رسالتين من البنك تحتاجك");assert.equal(P.words({kind:"bank",vars:{n:1,pay:0,inn:1}},"en").title,"1 bank message to check")});
+t("words: short texts EN + AR, Western digits",()=>{const p=P.pickHunt(base({terms:["playstation"],deals:[deal("a")]}));const e=P.words(p,"en"),a=P.words(p,"ar");
+ assert.deepEqual(e,{title:"Deal found: Sony PlayStation…",body:"20% below market."});assert.equal(a.body,"أقل من السوق بـ 20%.");assert.match(a.title,/^لقينا فرصة: /);assert.ok(!/[٠-٩]/.test(a.body));
+ assert.ok(P.words({kind:"hunt",vars:{name:"Apple iPhone 15 Pro Max 256GB blue",pct:20}},"en").title.length<=32);
+ const pp=P.words({kind:"price",vars:{item:"Almarai milk 2L",store:"Panda",from:"11.00",to:"9.50"}},"en");assert.deepEqual(pp,{title:"Almarai milk 2L is cheaper",body:"SAR 9.50 at Panda, was 11.00."});
+ assert.equal(P.words({kind:"price",vars:{item:"حليب",store:"بنده",from:"11.00",to:"9.50"}},"ar").body,"9.50 ريال في بنده، كان 11.00.");
+ assert.equal(P.words({kind:"quiet",vars:{days:7}},"en").body,"Nothing logged for 7 days.");assert.equal(P.words({kind:"quiet",vars:{days:9}},"ar").body,"ما سجلت شي من 9 أيام.");assert.equal(P.words({kind:"quiet",vars:{days:12}},"ar").body,"ما سجلت شي من 12 يوم.");
+ assert.deepEqual([1,2,5].map(n=>P.words({kind:"bank",vars:{n}},"ar").title),["رسالة من البنك","رسالتين من البنك","5 رسائل من البنك"]);
+ assert.deepEqual([1,2].map(n=>P.words({kind:"bank",vars:{n}},"en").title),["1 bank message","2 bank messages"]);assert.equal(P.words({kind:"bank",vars:{n:2}},"en").body,"One tap to sort them.")});
+t("secret compare",async()=>{});
 // --- web push crypto: encrypt like a phone would, then decrypt it back (RFC 8291)
 const ua=await crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveBits"]);const uaPub=new Uint8Array(await crypto.subtle.exportKey("raw",ua.publicKey));const authS=crypto.getRandomValues(new Uint8Array(16));
 const body=await P.encrypt(JSON.stringify({title:"مرحبا",body:"x"}),P.b64u(uaPub),P.b64u(authS));
@@ -69,4 +76,5 @@ const pt=new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:nonce},aw
 const v=await P.makeVapid();assert.equal(P.unb64u(v.vapid_public).length,65);const k=await crypto.subtle.importKey("jwk",JSON.parse(v.vapid_private),{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);assert.equal((await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},k,new Uint8Array(3))).byteLength,64);n++;
 t("push service allowlist",()=>{const ok=["https://web.push.apple.com/Qabc","https://fcm.googleapis.com/fcm/send/x","https://updates.push.services.mozilla.com/wpush/v2/x","https://par02p.notify.windows.com/w/?token=x"];ok.forEach(u=>assert.ok(P.endpointOk(u),u));
  ["http://web.push.apple.com/x","https://evil.com/x","https://web.push.apple.com.evil.com/x","https://fcm.googleapis.com:8443/x","https://user@fcm.googleapis.com/x","https://127.0.0.1/x","https://notify.windows.com.evil.io/x","https://x.evil.com/.notify.windows.com","not a url",""].forEach(u=>assert.ok(!P.endpointOk(u),u))});
+assert.ok(await P.same("abc","abc"));assert.ok(!(await P.same("abc","abd")));assert.ok(!(await P.same("abc","")));n++;
 console.log("push tests: "+n+" groups passed")})().catch(e=>{console.error(e);process.exit(1)});

@@ -134,30 +134,31 @@ export function decide(i: Input): { pick: Pick | null; why: string } {
 }
 
 // ---- words (from mockups/ideas.json; Western digits; "SAR"/"ريال" because the new riyal sign may not show in a notification) ----
-const arMin = (n: number) => n < 2 ? "قبل شوي" : n < 60 ? (n <= 10 ? `قبل ${n} دقايق` : `قبل ${n} دقيقة`) : n < 90 ? "قبل ساعة" : "قبل ساعتين";
-const enMin = (n: number) => n < 2 ? "just now" : n < 60 ? `${n} min ago` : n < 90 ? "1 h ago" : "2 h ago";
 const arCount = (n: number) => n === 1 ? "رسالة" : n === 2 ? "رسالتين" : n <= 10 ? `${n} رسائل` : `${n} رسالة`;
 export function words(p: Pick, lang: string): { title: string; body: string } {
   const v = p.vars, ar = lang === "ar";
   if (p.kind === "hunt") return ar
-    ? { title: "لقينا لك فرصة", body: `${v.name} أقل من السوق بـ ${v.pct}%، نزل ${arMin(+v.mins).replace("قبل شوي", "الحين")}. شوفه قبل لا يروح.` }
-    : { title: "Your hunt found one", body: `${v.name} is ${v.pct}% below market, listed ${enMin(+v.mins)}. Worth a look before it goes.` };
+    ? { title: `لقينا فرصة: ${cut(String(v.name), 18)}`, body: `أقل من السوق بـ ${v.pct}%.` }
+    : { title: `Deal found: ${cut(String(v.name), 18)}`, body: `${v.pct}% below market.` };
   if (p.kind === "price") return ar
-    ? { title: "صار أرخص اليوم", body: `${v.item} نزل إلى ${v.to} ريال في ${v.store}. آخر مرة دفعت ${v.from} ريال.` }
-    : { title: "Cheaper today", body: `${v.item} dropped to SAR ${v.to} at ${v.store}. You paid SAR ${v.from} last time.` };
+    ? { title: `${cut(String(v.item), 20)} صار أرخص`, body: `${v.to} ريال في ${v.store}، كان ${v.from}.` }
+    : { title: `${cut(String(v.item), 20)} is cheaper`, body: `SAR ${v.to} at ${v.store}, was ${v.from}.` };
   if (p.kind === "quiet") return ar
-    ? { title: "أسبوع هادي؟", body: `ما سجلت شي من ${+v.days <= 10 ? v.days + " أيام" : v.days + " يوم"}. ما صرفت ولا نسيت؟ ضيفه بـ 5 ثواني.` }
-    : { title: "A quiet week?", body: `Nothing logged for ${v.days} days. Spent nothing, or forgot one? Add it in 5 seconds.` };
-  const n = +v.n, pay = +v.pay, inn = +v.inn;
-  const enMix = n === 1 ? "It looks like " + (pay ? "a purchase" : "money in") + ". One tap to sort it." : pay && inn ? `${inn} look${inn === 1 ? "s" : ""} like money in, ${pay} like ${pay === 1 ? "a purchase" : "purchases"}. One tap each to sort them.` : `${pay ? "They look like purchases" : "They look like money in"}. One tap each to sort them.`;
-  const arMix = n === 1 ? "شكلها " + (pay ? "شراء" : "دخل") + ". ضغطة وتترتب." : pay && inn ? `${inn} شكلها دخل و${pay} شراء. ضغطة لكل وحدة وتترتب.` : `${pay ? "شكلها شراء" : "شكلها دخل"}. ضغطة لكل وحدة وتترتب.`;
+    ? { title: "أسبوع هادي؟", body: `ما سجلت شي من ${+v.days <= 10 ? v.days + " أيام" : v.days + " يوم"}.` }
+    : { title: "A quiet week?", body: `Nothing logged for ${v.days} days.` };
+  const n = +v.n;
   return ar
-    ? { title: n === 1 ? "رسالة من البنك تحتاجك" : `${arCount(n)} من البنك تحتاجك`, body: arMix }
-    : { title: n === 1 ? "1 bank message to check" : `${n} bank messages to check`, body: enMix };
+    ? { title: n === 1 ? "رسالة من البنك" : n === 2 ? "رسالتين من البنك" : `${arCount(n)} من البنك`, body: "ضغطة وتترتب." }
+    : { title: n === 1 ? "1 bank message" : `${n} bank messages`, body: "One tap to sort " + (n === 1 ? "it." : "them.") };
 }
 
 // ================= web push (RFC 8030 + 8291 aes128gcm + RFC 8292 VAPID), WebCrypto only =================
 const enc = new TextEncoder();
+// constant-time compare of two secrets (SHA-256 digests, XOR-accumulated)
+export async function same(a: string, b: string): Promise<boolean> {
+  const h = async (x: string) => new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(x)));
+  const [x, y] = [await h(a), await h(b)]; let d = 0; for (let i = 0; i < 32; i++) d |= x[i] ^ y[i]; return d === 0;
+}
 export const b64u = (b: ArrayBuffer | Uint8Array) => { const u = b instanceof Uint8Array ? b : new Uint8Array(b); let s = ""; u.forEach((c) => (s += String.fromCharCode(c))); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
 export const unb64u = (s: string) => { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; const r = atob(s), u = new Uint8Array(r.length); for (let i = 0; i < r.length; i++) u[i] = r.charCodeAt(i); return u; };
 const cat = (...a: Uint8Array[]) => { const o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let p = 0; a.forEach((x) => { o.set(x, p); p += x.length; }); return o; };
@@ -260,6 +261,9 @@ if (typeof Deno !== "undefined" && (import.meta as { main?: boolean }).main !== 
     const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json" } });
     // deno-lint-ignore no-explicit-any
     let sql: any;
+    // Security (Hares): reject anything without a well-formed secret BEFORE touching the database
+    const got = req.headers.get("x-cron") || "";
+    if (!/^[0-9a-f]{64}$/.test(got)) return json({ error: "unauthorized" }, 401);
     try {
       const { default: postgres } = await import("npm:postgres@3.4.5");
       sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, { max: 1, prepare: false, idle_timeout: 5 });
@@ -270,12 +274,12 @@ if (typeof Deno !== "undefined" && (import.meta as { main?: boolean }).main !== 
         const k = await makeVapid();
         await sql`update private.push_config set vapid_public = ${k.vapid_public}, vapid_private = ${k.vapid_private} where id = 1 and (vapid_public is null or vapid_private is null)`;
       }
-      const got = req.headers.get("x-cron") || "";
-      if (!cfg.cron_secret || got !== cfg.cron_secret) return json({ error: "unauthorized", keys: "ready" }, 401);
+      if (!cfg.cron_secret || !(await same(got, cfg.cron_secret))) return json({ error: "unauthorized" }, 401);
       const body = await req.json().catch(() => ({}));
       return json(await run(sql, !!(body && body.dry), Date.now()));
     } catch (e) {
-      return json({ error: String((e as Error).message).slice(0, 200) }, 500);
+      console.error("push failed:", String((e as Error).message).slice(0, 300));
+      return json({ error: "failed" }, 500);
     } finally { try { await sql?.end({ timeout: 2 }); } catch (_) { /* closed */ } }
   });
 }
