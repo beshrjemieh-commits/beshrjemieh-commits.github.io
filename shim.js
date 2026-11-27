@@ -223,25 +223,37 @@
 #authGate .st.err{color:var(--bad,#DC2626)}`;
   function gate(){
     if(document.getElementById("authGate")) return;
-    const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+    const st = document.createElement("style"); st.textContent = css + `
+#authGate[dir=rtl] .box{text-align:right}#authGate[dir=rtl] input{text-align:left}#authGate .lg{background:none;color:var(--muted,#64748B);font-size:14px;height:36px}`; document.head.appendChild(st);
     const g = document.createElement("div"); g.id = "authGate";
-    g.innerHTML = `<div class="box"><img src="icon-192.png" alt=""><h1>Smart Wallet</h1><p>Your balance, spending, prices and deals in one place.</p>
-      <form novalidate><label for="gEmail">Email</label><input id="gEmail" type="email" autocomplete="email" inputmode="email">
-      <label for="gPass">Password</label><input id="gPass" type="password" autocomplete="current-password">
-      <button class="go" type="submit">Sign in</button><div class="st" role="status"></div></form>
-      <button class="sw" type="button">New here? Create an account</button></div>`;
-    document.body.appendChild(g);
-    let signup = false; const go = g.querySelector(".go"), sw = g.querySelector(".sw"), s = g.querySelector(".st");
-    sw.onclick = () => { signup = !signup; go.textContent = signup ? "Create account" : "Sign in"; sw.textContent = signup ? "Have an account? Sign in" : "New here? Create an account"; s.textContent = ""; };
-    g.querySelector("form").onsubmit = async e => {
-      e.preventDefault(); const email = g.querySelector("#gEmail").value.trim(), password = g.querySelector("#gPass").value;
-      s.className = "st"; if(!email || password.length < 6){ s.textContent = "Enter your email and a password of at least 6 characters."; s.className = "st err"; return; }
-      go.disabled = true; s.textContent = signup ? "Creating your account…" : "Signing in…";
-      const {data, error} = signup ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
-      go.disabled = false;
-      if(error){ s.textContent = /confirm/i.test(error.message) ? "Please tap the confirm link in your email first, then sign in." : error.message; s.className = "st err"; return; }
-      if(signup && !data.session){ sw.click(); s.textContent = "Check your email and tap the confirm link, then sign in here."; }
-    };
+    let AR = false; try{ AR = localStorage.getItem("w-lang") === "ar"; }catch(e){}
+    const T = (en, ar) => AR ? ar : en;
+    let signup = false, msg = "", bad = false;
+    const errAr = m => /invalid login|invalid credentials/i.test(m) ? "البريد أو كلمة السر غير صحيحة." : /already registered|already exists/i.test(m) ? "هذا البريد مسجل من قبل. جرب تسجيل الدخول." : /rate limit|too many|seconds/i.test(m) ? "محاولات كثيرة. انتظر شوي وجرب مرة ثانية." : /network|fetch/i.test(m) ? "ما فيه اتصال. تأكد من الإنترنت وجرب مرة ثانية." : /password/i.test(m) ? "كلمة السر لازم تكون 6 خانات على الأقل." : /email/i.test(m) ? "تأكد من البريد الإلكتروني وجرب مرة ثانية." : "صار خطأ. جرب مرة ثانية.";
+    function draw(){
+      const em = (g.querySelector("#gEmail") || {}).value || "", pw = (g.querySelector("#gPass") || {}).value || "";
+      g.dir = AR ? "rtl" : "ltr"; g.lang = AR ? "ar" : "en";
+      g.innerHTML = `<div class="box"><img src="icon-192.png" alt=""><h1>${T("Smart Wallet","المحفظة الذكية")}</h1><p>${T("Your balance, spending, prices and deals in one place.","رصيدك ومصاريفك والأسعار والصفقات في مكان واحد.")}</p>
+      <form novalidate><label for="gEmail">${T("Email","البريد الإلكتروني")}</label><input id="gEmail" type="email" dir="ltr" autocomplete="email" inputmode="email">
+      <label for="gPass">${T("Password","كلمة السر")}</label><input id="gPass" type="password" dir="ltr" autocomplete="${signup ? "new-password" : "current-password"}">
+      <button class="go" type="submit">${signup ? T("Create account","إنشاء حساب") : T("Sign in","تسجيل الدخول")}</button><div class="st${bad ? " err" : ""}" role="status">${msg}</div></form>
+      <button class="sw" type="button">${signup ? T("Have an account? Sign in","عندك حساب؟ سجل دخولك") : T("New here? Create an account","جديد هنا؟ سوّ حساب")}</button>
+      <button class="lg" type="button">${AR ? "English" : "العربية"}</button></div>`;
+      g.querySelector("#gEmail").value = em; g.querySelector("#gPass").value = pw;
+      const go = g.querySelector(".go"), sw = g.querySelector(".sw");
+      g.querySelector(".lg").onclick = () => { AR = !AR; try{ localStorage.setItem("w-lang", AR ? "ar" : "en"); }catch(e){} msg = ""; bad = false; draw(); };
+      sw.onclick = () => { signup = !signup; msg = ""; bad = false; draw(); };
+      g.querySelector("form").onsubmit = async e => {
+        e.preventDefault(); const s = g.querySelector(".st"), email = g.querySelector("#gEmail").value.trim(), password = g.querySelector("#gPass").value;
+        s.className = "st"; if(!email || password.length < 6){ msg = T("Enter your email and a password of at least 6 characters.","اكتب بريدك الإلكتروني وكلمة سر من 6 خانات على الأقل."); bad = true; s.textContent = msg; s.className = "st err"; return; }
+        go.disabled = true; s.textContent = signup ? T("Creating your account…","جاري إنشاء حسابك…") : T("Signing in…","جاري تسجيل الدخول…");
+        const {data, error} = signup ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
+        go.disabled = false;
+        if(error){ s.textContent = /confirm/i.test(error.message) ? T("Please tap the confirm link in your email first, then sign in.","اضغط رابط التأكيد في بريدك أولًا، بعدها سجل دخولك.") : AR ? errAr(error.message) : error.message; s.className = "st err"; msg = s.textContent; bad = true; return; }
+        if(signup && !data.session){ signup = false; msg = T("Check your email and tap the confirm link, then sign in here.","شيك على بريدك واضغط رابط التأكيد، بعدها سجل دخولك هنا."); bad = false; draw(); }
+      };
+    }
+    document.body.appendChild(g); draw();
   }
   function start(u){
     // signed in from the new app's welcome screen: go straight back there (its own first-time questions run, not the old setup)
